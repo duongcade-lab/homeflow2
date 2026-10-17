@@ -270,7 +270,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     let editing = false;
 
     const header = el('div',{},[
-      el('div',{class:'eyebrow'},['\u{1F399}\uFE0F N\u00f3i v\u1edbi HomeFlow']),
+      el('div',{class:'eyebrow'},['\u2728 N\u00f3i v\u1edbi HomeFlow']),
       el('h1',{class:'page-title',style:'margin-top:4px;font-size:21px'},['C\u1ee9 n\u00f3i ra,', el('br'), 'HomeFlow lo ph\u1ea7n c\u00f2n l\u1ea1i']),
       el('div',{class:'sub'},['M\u1ed9t \u0111o\u1ea1n nh\u1eafn l\u00e0 AI hi\u1ec3u vi\u1ec7c, s\u1eafp l\u1ecbch v\u00e0 g\u1ee3i \u00fd ai lo \u2014 ai l\u00e0m.'])
     ]);
@@ -336,13 +336,13 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     ));
     exampleBox.appendChild(chips);
 
-    const goBtn = el('button',{class:'btn btn-speak'},['\u{1F399}\uFE0F N\u00f3i v\u1edbi HomeFlow']);
+    const goBtn = el('button',{class:'btn btn-speak'},['\u2728 HomeFlow hi\u1ec3u gi\u00fap']);
 
     const stageBox = el('div',{style:'display:none'});
 
     const resultBox = el('div',{style:'display:none'});
 
-    const dumpCard = el('div',{class:'card',style:'display:flex;flex-direction:column'},[
+    const dumpCard = el('div',{class:'card dump-card',style:'display:flex;flex-direction:column'},[
       el('div',{class:'field'},[
         el('label',{},['\u0110i\u1ec1u b\u1ea1n \u0111ang ngh\u0129']),
         ta,

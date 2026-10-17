@@ -73,17 +73,18 @@ body{
   border-top:1px solid var(--hairline);
 }
 .speak-fab{
-  position:fixed;right:16px;bottom:calc(86px + env(safe-area-inset-bottom));
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(84px + env(safe-area-inset-bottom));
   z-index:35;
   display:flex;align-items:center;gap:8px;
   border:none;cursor:pointer;
   background:linear-gradient(145deg,#9B7FC6,#7A5CA6);
   color:#fff;font-family:var(--font);font-size:13px;font-weight:800;
-  padding:13px 18px;border-radius:999px;
+  padding:13px 20px;border-radius:999px;
   box-shadow:0 10px 24px rgba(122,92,166,.45), inset 0 1px 0 rgba(255,255,255,.35);
   transition:transform .15s,box-shadow .15s;
 }
-.speak-fab:active{transform:scale(.93)}
+.speak-fab:active{transform:translateX(-50%) scale(.93)}
 .speak-fab-ico{font-size:17px;line-height:1}
 .tab-btn{
   display:flex;flex-direction:column;align-items:center;gap:2px;
@@ -974,6 +975,7 @@ textarea.input{resize:none;line-height:1.6}
   width:100%;
 }
 .btn-speak:hover{filter:brightness(1.05)}
+.dump-card{background:linear-gradient(165deg,#FFFFFF 0%,#FBF3EE 100%);border:1px solid rgba(155,127,198,.14)}
 .dump-trust{
   text-align:center;font-size:11.5px;font-weight:600;color:var(--muted);
   margin-top:14px;line-height:1.5;
