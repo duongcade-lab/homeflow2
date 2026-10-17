@@ -283,4 +283,27 @@
     if(h<18) return 'Ch\u00e0o bu\u1ed5i chi\u1ec1u';
     return 'Ch\u00e0o bu\u1ed5i t\u1ed1i';
   };
+
+  HF.openHelp = function(){
+    function item(ico, t, s){
+      return el('div',{style:'display:flex;gap:11px;align-items:flex-start'},[
+        el('span',{style:'font-size:20px;line-height:1.3'},[ico]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{style:'font-weight:800;font-size:13.5px'},[t]),
+          el('div',{style:'font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5'},[s])
+        ])
+      ]);
+    }
+    HF.sheet({
+      title:'Tr\u1ee3 gi\u00fap',
+      body:()=>el('div',{style:'display:flex;flex-direction:column;gap:14px'},[
+        item('\u2728','N\u00f3i v\u1edbi HomeFlow','K\u1ec3 vi\u1ec7c b\u1eb1ng l\u1eddi t\u1ef1 nhi\u00ean, HomeFlow t\u1ef1 hi\u1ec3u, s\u1eafp x\u1ebfp ng\u00e0y gi\u1edd v\u00e0 ph\u00e2n c\u00f4ng ng\u01b0\u1eddi ph\u1ee5 tr\u00e1ch.'),
+        item('\u{1F9E0}','Ng\u01b0\u1eddi lo \u2260 ng\u01b0\u1eddi l\u00e0m','M\u1ed9t ng\u01b0\u1eddi nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch (lo), m\u1ed9t ng\u01b0\u1eddi th\u1ef1c hi\u1ec7n (l\u00e0m) \u2014 vi\u1ec7c nh\u1edb \u0111\u01b0\u1ee3c chia s\u1ebb, kh\u00f4ng ai g\u00e1nh m\u1ecdi th\u1ee9.'),
+        item('\u2696\uFE0F','C\u00e2n b\u1eb1ng','Xem ai \u0111ang g\u00e1nh nhi\u1ec1u nh\u1ea5t v\u00e0 nh\u1eadn g\u1ee3i \u00fd chia s\u1ebb l\u1ea1i vi\u1ec7c cho c\u00e2n b\u1eb1ng.'),
+        item('\u{1F4DD}','B\u1ea3n tin tu\u1ea7n','T\u1ed5ng k\u1ebft nh\u1eb9 nh\u00e0ng m\u1ed7i tu\u1ea7n: vi\u1ec7c \u0111\u00e3 xong, vi\u1ec7c c\u00f2n l\u1ea1i v\u00e0 \u0111i\u1ec1u c\u1ea7n nh\u1edb.'),
+        item('\u{1F4CB}','Vi\u1ec7c nh\u00e0','Xem to\u00e0n b\u1ed9 vi\u1ec7c, \u0111\u00e1nh d\u1ea5u ho\u00e0n th\u00e0nh, th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng.'),
+        el('div',{style:'font-size:11.5px;color:var(--muted);text-align:center;margin-top:2px'},['C\u1ea7n h\u1ed7 tr\u1ee3 th\u00eam? G\u1eedi ph\u1ea3n h\u1ed3i qua m\u1ee5c C\u00e0i \u0111\u1eb7t \u2192 Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i \u2728'])
+      ])
+    });
+  };
 })();

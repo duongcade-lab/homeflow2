@@ -697,7 +697,7 @@ V.Settings = function(state, nav, params){
         menuRow('\u{1F5D3}\uFE0F','L\u1ecbch & Hi\u1ec3n th\u1ecb','Ng\u00f4n ng\u1eef, giao di\u1ec7n', placeholderToast),
         menuRow('\u{1F4B0}','Chi ph\u00ed','Theo d\u00f5i chi ti\u00eau gia \u0111\u00ecnh', placeholderToast),
         menuRow('\u2753','Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i','C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p, li\u00ean h\u1ec7', placeholderToast),
-        menuRow('\u{1F510}','D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0','Xu\u1ea5t d\u1eef li\u1ec7u, b\u1ea3o m\u1eadt', placeholderToast)
+        menuRow('\u{1F510}','D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0','Xu\u1ea5t d\u1eef li\u1ec7u, b\u1ea3o m\u1eadt', ()=>nav('settings',{path:['data']}))
       ]));
 
       s.push(el('div',{class:'footer-note'},['\u{1F49C} HomeFlow']));
@@ -1082,6 +1082,38 @@ V.Settings = function(state, nav, params){
       return s;
     }
 
+    function buildData(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0']));
+      const resetBtn = el('button',{class:'btn btn-danger',style:'width:100%;padding:12px'},['\u21BA \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo']);
+      resetBtn.addEventListener('click', ()=>{
+        if(resetBtn.dataset.confirm){
+          HF.resetState();
+          location.reload();
+        }else{
+          resetBtn.dataset.confirm='1';
+          resetBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn \u0111\u1eb7t l\u1ea1i?';
+          setTimeout(()=>{ delete resetBtn.dataset.confirm; resetBtn.textContent='\u21BA \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo'; }, 3500);
+        }
+      });
+      s.push(el('div',{class:'card compact'},[
+        el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
+          el('span',{style:'font-size:20px'},['\u{1F510}']),
+          el('div',{style:'flex:1'},[
+            el('div',{style:'font-weight:800;font-size:14px'},['D\u1eef li\u1ec7u c\u1ee7a b\u1ea1n']),
+            el('div',{class:'sub',style:'font-size:12.5px;margin-top:3px'},['HomeFlow l\u01b0u d\u1eef li\u1ec7u ngay tr\u00ean thi\u1ebft b\u1ecb n\u00e0y \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o.'])
+          ])
+        ]),
+        el('div',{style:'margin-top:14px;padding-top:12px;border-top:1px dashed var(--hairline)'},[
+          el('div',{style:'font-size:12.5px;font-weight:700;margin-bottom:6px'},['\u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo']),
+          el('div',{style:'font-size:11.5px;color:var(--muted);margin-bottom:10px'},['X\u00f3a to\u00e0n b\u1ed9 d\u1eef li\u1ec7u v\u00e0 quay v\u1ec1 b\u1ed9 vi\u1ec7c m\u1eabu ban \u0111\u1ea7u.']),
+          resetBtn
+        ])
+      ]));
+      return s;
+    }
+
     function build(){
       if(path[0]==='family'){
         if(path[1]){
@@ -1091,6 +1123,7 @@ V.Settings = function(state, nav, params){
         return buildFamily();
       }
       if(path[0]==='tasks') return buildTasks();
+      if(path[0]==='data') return buildData();
       return buildLanding();
     }
 

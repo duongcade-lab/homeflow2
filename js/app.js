@@ -24,7 +24,7 @@
             el('div',{style:'font-size:10.5px;color:var(--muted);font-weight:600'},['Share the load. Enjoy the moments.'])
           ])
         ]),
-        el('button',{class:'btn btn-soft',style:'padding:8px 14px;font-size:12.5px',onclick:()=>{HF.resetState(); location.reload();}},['\u21BA Demo'])
+        el('button',{class:'btn btn-soft',style:'padding:8px 14px;font-size:12.5px',onclick:()=>HF.openHelp()},['\u2753 Tr\u1ee3 gi\u00fap'])
       ]));
     }
   }
