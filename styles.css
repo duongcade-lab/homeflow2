@@ -503,6 +503,48 @@ textarea.input{resize:none;line-height:1.6}
 .faq-chev{color:var(--muted);font-size:13px;transition:transform .2s}
 .faq-q.open .faq-chev{transform:rotate(180deg)}
 .faq-a{font-size:12.5px;color:var(--muted);line-height:1.55;padding:0 0 12px}
+.growth-empty{text-align:center;padding:26px 20px}
+.growth-empty-t{font-weight:800;font-size:15px;margin-top:8px}
+.growth-empty-s{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.growth-ov{padding:16px}
+.growth-ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.growth-metric{
+  background:var(--primary-soft);border-radius:16px;padding:14px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;
+}
+.growth-metric:nth-child(2){background:var(--peach-soft)}
+.growth-metric-ico{font-size:18px}
+.growth-metric-val{font-size:21px;font-weight:900;letter-spacing:-.01em}
+.growth-metric-lbl{font-size:11px;font-weight:700;color:var(--muted)}
+.growth-ov-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:12px;padding-top:12px;border-top:1px dashed var(--hairline);
+}
+.growth-ov-date{font-size:11.5px;color:var(--muted);font-weight:600}
+.chart-card{margin-top:14px}
+.chart-title{font-size:13px;font-weight:800;margin-bottom:8px}
+.chart-filters{display:flex;gap:6px;margin-bottom:10px}
+.chip-f{
+  border:none;cursor:pointer;font-family:var(--font);
+  font-size:11px;font-weight:700;color:var(--muted);
+  background:rgba(142,116,130,.08);border-radius:999px;padding:5px 12px;
+  transition:background .15s,color .15s;
+}
+.chip-f.on{background:var(--primary);color:#fff}
+.chart-svg{width:100%}
+.chart-empty{font-size:12px;color:var(--muted);text-align:center;padding:22px 0}
+.growth-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--hairline);
+}
+.growth-row:last-child{border-bottom:none}
+.growth-date{
+  font-size:11px;font-weight:700;color:var(--primary-deep);
+  background:var(--primary-soft);border-radius:8px;padding:3px 8px;
+  white-space:nowrap;
+}
+.growth-val{font-size:13px;font-weight:700}
+.growth-note{font-size:11.5px;color:var(--muted);margin-top:1px}
 
 .banner{
   border-radius:var(--radius-md);padding:10px 13px;font-size:12.5px;font-weight:600;

@@ -1027,6 +1027,190 @@ V.Settings = function(state, nav, params){
       return list;
     }
 
+    // ---------------- Growth (Phát triển) ----------------
+    let growthFilter = 'all';
+
+    function fmtShort(iso){
+      const d = new Date(iso);
+      return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+    }
+
+    function openGrowthSheet(kid, rec){
+      const isEdit = !!rec;
+      const date = el('input',{class:'input',type:'date',value:rec?String(rec.date).slice(0,10):HF.dayOffset(0).toISOString().slice(0,10)});
+      const height = el('input',{class:'input',type:'number',inputmode:'decimal',step:'0.1',min:'0',placeholder:'VD: 128',value:rec?rec.height:''});
+      const weight = el('input',{class:'input',type:'number',inputmode:'decimal',step:'0.1',min:'0',placeholder:'VD: 27.5',value:rec?rec.weight:''});
+      const note = el('input',{class:'input',placeholder:'Ghi ch\u00fa (t\u00f9y ch\u1ecdn)',value:rec?(rec.note||''):''});
+
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+        field('Ng\u00e0y \u0111o', date),
+        el('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:12px'},[
+          field('Chi\u1ec1u cao (cm)', height),
+          field('C\u00e2n n\u1eb7ng (kg)', weight)
+        ]),
+        field('Ghi ch\u00fa', note),
+        el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
+          isEdit ? el('button',{class:'btn btn-danger',style:'flex:0.8;padding:13px 10px;font-size:13.5px'},['\u{1F5D1}\uFE0F X\u00f3a']) : null,
+          el('button',{class:'btn btn-primary',style:'flex:1.6;padding:13px 10px;font-size:13.5px'},[isEdit?'\u{1F4BE} L\u01b0u thay \u0111\u1ed5i':'\u2795 L\u01b0u ch\u1ec9 s\u1ed1'])
+        ])
+      ]);
+
+      const sheet = HF.sheet({title:isEdit?'Ch\u1ec9nh s\u1eeda ch\u1ec9 s\u1ed1':'Th\u00eam ch\u1ec9 s\u1ed1 ph\u00e1t tri\u1ec3n', body:()=>body});
+
+      const delBtn = body.querySelector('.btn-danger');
+      if(delBtn){
+        delBtn.addEventListener('click', ()=>{
+          if(delBtn.dataset.confirm){
+            HF.deleteGrowth(state, rec.id);
+            HF.toast('\u0110\u00e3 x\u00f3a ch\u1ec9 s\u1ed1','\u{1F5D1}\uFE0F');
+            sheet.close();
+            rerender();
+          }else{
+            delBtn.dataset.confirm='1';
+            delBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn x\u00f3a?';
+            setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='\u{1F5D1}\uFE0F X\u00f3a'; }, 3000);
+          }
+        });
+      }
+
+      const saveBtn = body.querySelector('.btn-primary');
+      saveBtn.addEventListener('click', ()=>{
+        if(!date.value){ HF.toast('Ch\u1ecdn ng\u00e0y \u0111o tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        const h = parseFloat(height.value);
+        const w = parseFloat(weight.value);
+        if(isNaN(h)||h<=0){ HF.toast('Nh\u1eadp chi\u1ec1u cao h\u1ee3p l\u1ec7 (cm)','\u{1F914}'); return; }
+        if(isNaN(w)||w<=0){ HF.toast('Nh\u1eadp c\u00e2n n\u1eb7ng h\u1ee3p l\u1ec7 (kg)','\u{1F914}'); return; }
+        const data = {kidId:kid.id, date:new Date(date.value).toISOString(), height:h, weight:w, note:note.value.trim()};
+        if(isEdit){
+          HF.updateGrowth(state, rec.id, data);
+          HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt ch\u1ec9 s\u1ed1','\u270F\uFE0F');
+        }else{
+          HF.addGrowth(state, data);
+          HF.toast('\u0110\u00e3 th\u00eam ch\u1ec9 s\u1ed1','\u{1F4C8}');
+        }
+        sheet.close();
+        rerender();
+      });
+    }
+
+    function confirmDeleteGrowth(rec){
+      if(confirmIds.has('g'+rec.id)){
+        confirmIds.delete('g'+rec.id);
+        HF.deleteGrowth(state, rec.id);
+        HF.toast('\u0110\u00e3 x\u00f3a ch\u1ec9 s\u1ed1','\u{1F5D1}\uFE0F');
+        rerender();
+      }else{
+        confirmIds.add('g'+rec.id);
+        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00f3a ch\u1ec9 s\u1ed1 n\u00e0y','\u26A0\uFE0F');
+        setTimeout(()=>confirmIds.delete('g'+rec.id), 3500);
+      }
+    }
+
+    function trendChart(points, color, unit){
+      if(points.length===0){
+        return el('div',{class:'chart-empty'},['Ch\u01b0a c\u00f3 d\u1eef li\u1ec7u trong kho\u1ea3ng n\u00e0y']);
+      }
+      const W=300,H=100,PAD_L=36,PAD_R=10,PAD_T=12,PAD_B=20;
+      const pw=W-PAD_L-PAD_R, ph=H-PAD_T-PAD_B;
+      const vals = points.map(p=>p.value);
+      const min=Math.min(...vals), max=Math.max(...vals);
+      const span=(max-min)||1;
+      const pad=span*0.15;
+      const yMin=min-pad, yMax=max+pad;
+      const t0=new Date(points[0].date).getTime();
+      const t1=new Date(points[points.length-1].date).getTime();
+      const tSpan=(t1-t0)||1;
+      const xy = points.map(p=>({
+        x: PAD_L + ((new Date(p.date).getTime()-t0)/tSpan)*pw,
+        y: PAD_T + (1-(p.value-yMin)/(yMax-yMin))*ph
+      }));
+      if(points.length===1){ xy[0].x = PAD_L + pw/2; }
+      const line = xy.length===1
+        ? (Math.round(xy[0].x-9)+','+Math.round(xy[0].y)+' '+(Math.round(xy[0].x+9))+','+Math.round(xy[0].y))
+        : xy.map(pt=>Math.round(pt.x)+','+Math.round(pt.y)).join(' ');
+      const dots = xy.map(pt=>'<circle cx="'+Math.round(pt.x)+'" cy="'+Math.round(pt.y)+'" r="3.5" fill="'+color+'"/>').join('');
+      const sameVal = max===min;
+      const svg = '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" preserveAspectRatio="xMidYMid meet">'+
+        '<polyline points="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+        dots+
+        '<text x="'+PAD_L+'" y="'+PAD_T+'" font-size="9" fill="#9A8590" font-weight="700">'+Math.round(max)+unit+'</text>'+
+        (sameVal ? '' : '<text x="'+PAD_L+'" y="'+(H-PAD_B)+'" font-size="9" fill="#9A8590" font-weight="700">'+Math.round(min)+unit+'</text>')+
+        '<text x="'+PAD_L+'" y="'+(H-4)+'" font-size="8.5" fill="#B3A3AC">'+fmtShort(points[0].date)+'</text>'+
+        '<text x="'+(W-PAD_R)+'" y="'+(H-4)+'" font-size="8.5" fill="#B3A3AC" text-anchor="end">'+fmtShort(points[points.length-1].date)+'</text>'+
+        '</svg>';
+      return el('div',{class:'chart-svg',html:svg});
+    }
+
+    function chartBlock(title, points, color, unit){
+      const FILTERS = [['6m','6 th\u00e1ng'],['1y','1 n\u0103m'],['all','T\u1ea5t c\u1ea3']];
+      const cutoff = growthFilter==='6m' ? 180 : (growthFilter==='1y' ? 365 : null);
+      const filtered = cutoff ? points.filter(p=>new Date(p.date).getTime() >= Date.now()-cutoff*86400000) : points;
+      return el('div',{class:'card compact chart-card'},[
+        el('div',{class:'chart-title'},[title]),
+        el('div',{class:'chart-filters'}, FILTERS.map(([id,lbl])=>{
+          return el('button',{class:'chip-f'+(growthFilter===id?' on':''),onclick:()=>{growthFilter=id; rerender();}},[lbl]);
+        })),
+        trendChart(filtered, color, unit)
+      ]);
+    }
+
+    function growthTab(kid){
+      const s = [];
+      const recs = HF.growthFor(state, kid.id);
+      const latest = recs.length ? recs[recs.length-1] : null;
+
+      if(!latest){
+        const emptyCard = el('div',{class:'card compact growth-empty'},[
+          el('div',{style:'font-size:36px'},['\u{1F4C8}']),
+          el('div',{class:'growth-empty-t'},['Ch\u01b0a c\u00f3 d\u1eef li\u1ec7u ph\u00e1t tri\u1ec3n']),
+          el('div',{class:'growth-empty-s'},['Th\u00eam chi\u1ec1u cao v\u00e0 c\u00e2n n\u1eb7ng \u0111\u1ec3 b\u1eaft \u0111\u1ea7u theo d\u00f5i qu\u00e1 tr\u00ecnh ph\u00e1t tri\u1ec3n.']),
+          el('button',{class:'btn btn-primary',style:'margin-top:16px;width:100%'},['\u2795 Th\u00eam ch\u1ec9 s\u1ed1 \u0111\u1ea7u ti\u00ean'])
+        ]);
+        emptyCard.querySelector('.btn-primary').addEventListener('click', ()=>openGrowthSheet(kid, null));
+        s.push(emptyCard);
+        return s;
+      }
+
+      function metric(ico, val, lbl){
+        return el('div',{class:'growth-metric'},[
+          el('div',{class:'growth-metric-ico'},[ico]),
+          el('div',{class:'growth-metric-val'},[val]),
+          el('div',{class:'growth-metric-lbl'},[lbl])
+        ]);
+      }
+
+      const ov = el('div',{class:'card compact growth-ov'},[
+        el('div',{class:'growth-ov-grid'},[
+          metric('\u{1F4CF}',''+latest.height+' cm','Chi\u1ec1u cao'),
+          metric('\u2696\uFE0F',''+latest.weight+' kg','C\u00e2n n\u1eb7ng')
+        ]),
+        el('div',{class:'growth-ov-foot'},[
+          el('span',{class:'growth-ov-date'},['C\u1eadp nh\u1eadt: '+fmtDate(latest.date)]),
+          el('button',{class:'btn btn-soft',style:'padding:8px 14px;font-size:12.5px'},['\u2795 Th\u00eam ch\u1ec9 s\u1ed1'])
+        ])
+      ]);
+      ov.querySelector('.btn-soft').addEventListener('click', ()=>openGrowthSheet(kid, null));
+      s.push(ov);
+
+      s.push(chartBlock('Chi\u1ec1u cao theo th\u1eddi gian', recs.map(r=>({date:r.date, value:+r.height})), '#8B6FB8', ' cm'));
+      s.push(chartBlock('C\u00e2n n\u1eb7ng theo th\u1eddi gian', recs.map(r=>({date:r.date, value:+r.weight})), '#E8936F', ' kg'));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'L\u1ecbch s\u1eed \u0111o']));
+      s.push(el('div',{class:'card compact'}, recs.slice().reverse().map(rec=>{
+        return el('div',{class:'growth-row'},[
+          el('div',{class:'growth-date'},[fmtDate(rec.date)]),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'growth-val'},[rec.height+' cm \u00b7 '+rec.weight+' kg']),
+            rec.note ? el('div',{class:'growth-note'},[rec.note]) : null
+          ]),
+          el('button',{class:'icon-btn',style:'color:var(--primary-deep)',onclick:()=>openGrowthSheet(kid, rec)},['\u270F\uFE0F']),
+          el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>confirmDeleteGrowth(rec)},['\u{1F5D1}\uFE0F'])
+        ]);
+      })));
+
+      return s;
+    }
+
     function buildProfile(kid){
       const s = [];
       s.push(backRow('Th\u00e0nh vi\u00ean','settings',{path:['family']}));
@@ -1064,15 +1248,7 @@ V.Settings = function(state, nav, params){
           '\u270F\uFE0F Ch\u1ec9nh s\u1eeda h\u1ed3 s\u01a1'
         ]));
       }else if(profileTab==='growth'){
-        s.push(el('div',{class:'card compact'},[
-          el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
-            el('span',{style:'font-size:22px'},['\u{1F4C8}']),
-            el('div',{style:'flex:1'},[
-              el('div',{style:'font-weight:800;font-size:14px'},['Ph\u00e1t tri\u1ec3n']),
-              el('div',{class:'sub',style:'font-size:12.5px;margin-top:3px'},['Theo d\u00f5i chi\u1ec1u cao, c\u00e2n n\u1eb7ng v\u00e0 c\u1ed9t m\u1ed1c ph\u00e1t tri\u1ec3n c\u1ee7a '+kid.name+'. T\u00ednh n\u0103ng n\u00e0y s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi \u2728'])
-            ])
-          ])
-        ]));
+        s.push(...growthTab(kid));
       }else if(profileTab==='health'){
         s.push(historyBlock(kid, 'health', 'S\u1ee9c kh\u1ecfe', '\u{1FA7A}'));
       }else if(profileTab==='study'){

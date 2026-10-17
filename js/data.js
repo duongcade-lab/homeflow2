@@ -149,6 +149,27 @@
     HF.saveState(state);
   };
 
+  HF.addGrowth = function(state, rec){
+    state.growth.push(Object.assign({id:HF.uid('g')}, rec));
+    HF.saveState(state);
+  };
+
+  HF.updateGrowth = function(state, id, patch){
+    const r = state.growth.find(x=>x.id===id);
+    if(!r) return;
+    Object.assign(r, patch);
+    HF.saveState(state);
+  };
+
+  HF.deleteGrowth = function(state, id){
+    state.growth = state.growth.filter(x=>x.id!==id);
+    HF.saveState(state);
+  };
+
+  HF.growthFor = function(state, kidId){
+    return state.growth.filter(r=>r.kidId===kidId).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  };
+
   function serialize(t){
     return Object.assign({}, t, {
       due: t.due instanceof Date ? t.due.toISOString() : t.due,
@@ -186,6 +207,7 @@
         s.history = s.history || JSON.parse(JSON.stringify(SEED_HISTORY));
         s.family = s.family || {name:'Gia \u0111\u00ecnh HomeFlow', avatar:''};
         s.feedback = s.feedback || [];
+        s.growth = s.growth || [];
         if(s.members && s.members.length){
           HF.MEMBERS.length = 0;
           HF.MEMBERS.push(...s.members);
@@ -193,9 +215,9 @@
         return s;
       }
     }catch(e){}
-    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}};
+    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[]};
     try{ localStorage.setItem(KEY, JSON.stringify(fresh)); }catch(e){}
-    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}};
+    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[]};
   };
 
   HF.saveState = function(state){
@@ -207,7 +229,8 @@
         history: state.history||{health:[],study:[]},
         members: HF.MEMBERS,
         family: state.family||{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''},
-        feedback: state.feedback||[]
+        feedback: state.feedback||[],
+        growth: state.growth||[]
       }));
     }catch(e){}
   };
