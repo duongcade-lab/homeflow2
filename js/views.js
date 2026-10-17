@@ -336,7 +336,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     ));
     exampleBox.appendChild(chips);
 
-    const goBtn = el('button',{class:'btn btn-speak'},['\u2728 HomeFlow hi\u1ec3u gi\u00fap']);
+    const goBtn = el('button',{class:'btn btn-speak',style:'flex:1'},['\u2728 HomeFlow hi\u1ec3u gi\u00fap']);
 
     const stageBox = el('div',{style:'display:none'});
 
@@ -346,12 +346,12 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       el('div',{class:'field'},[
         el('label',{},['\u0110i\u1ec1u b\u1ea1n \u0111ang ngh\u0129']),
         ta,
-        el('div',{style:'display:flex;gap:8px;align-items:center;margin-top:8px'},[
-          micBtn,
-          exampleBox
-        ])
+        exampleBox
       ]),
-      goBtn,
+      el('div',{style:'display:flex;gap:8px;align-items:stretch;margin-top:4px'},[
+        micBtn,
+        goBtn
+      ]),
       el('div',{class:'dump-trust'},['\u2728 AI hi\u1ec3u ti\u1ebfng Vi\u1ec7t t\u1ef1 nhi\u00ean \u2014 c\u1ee9 n\u00f3i nh\u01b0 \u0111ang nh\u1eafn cho ng\u01b0\u1eddi th\u00e2n.'])
     ]);
 
