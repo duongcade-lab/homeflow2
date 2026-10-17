@@ -6,3 +6,8 @@ podman-compose.preview.vibeflow.yaml
 # Misc
 .DS_Store
 node_modules/
+
+# Local demo assets (not part of the app)
+HomeFlow.png
+HomeFlow_Beauty_Can_Code_Family4.pptx
+vibeflow-notes (1).txt
