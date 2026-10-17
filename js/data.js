@@ -87,6 +87,37 @@
     {id:'d6', title:'Đưa cả nhà đi chơi công viên', cat:'event', due:HF.dayOffset(-6), time:'', owner:'bo', planner:'me', status:'done', doneAt:HF.dayOffset(-6), pts:2, mental:true, src:'seed'}
   ];
 
+  const DEFAULT_EXPENSE_CATS = [
+    {id:'c_home', name:'Nh\u00e0 c\u1eeda', emoji:'\u{1F3E0}'},
+    {id:'c_food', name:'\u0102n u\u1ed1ng', emoji:'\u{1F35C}'},
+    {id:'c_edu', name:'Gi\u00e1o d\u1ee5c', emoji:'\u{1F393}'},
+    {id:'c_health', name:'S\u1ee9c kh\u1ecfe', emoji:'\u{1FA7A}'},
+    {id:'c_shopping', name:'Mua s\u1eafm', emoji:'\u{1F6D2}'},
+    {id:'c_transport', name:'Di chuy\u1ec3n', emoji:'\u{1F697}'},
+    {id:'c_gift', name:'Gia \u0111\u00ecnh / Qu\u00e0 t\u1eb7ng', emoji:'\u{1F381}'},
+    {id:'c_fun', name:'Gi\u1ea3i tr\u00ed', emoji:'\u{1F389}'},
+    {id:'c_other', name:'Kh\u00e1c', emoji:'\u{1F4E6}'}
+  ];
+
+  HF.CURRENCIES = [['VND','VND \u20AB'],['USD','USD $'],['EUR','EUR \u20AC'],['JPY','JPY \u00A5'],['GBP','GBP \u00A3'],['CNY','CNY \u00A5']];
+
+  HF.addExpenseCat = function(state, profile){
+    state.expenses.categories.push(Object.assign({id:'c'+Date.now().toString(36)}, profile));
+    HF.saveState(state);
+  };
+
+  HF.updateExpenseCat = function(state, id, patch){
+    const c = state.expenses.categories.find(x=>x.id===id);
+    if(!c) return;
+    Object.assign(c, patch);
+    HF.saveState(state);
+  };
+
+  HF.deleteExpenseCat = function(state, id){
+    state.expenses.categories = state.expenses.categories.filter(x=>x.id!==id);
+    HF.saveState(state);
+  };
+
   const KEY = 'homeflow_state_v1';
 
   const MEMBER_COLORS = ['#8B6FB8','#5B9BD5','#F2A65A','#EF8FA3','#7FA98B','#E8936F','#E05D5D','#6BB5A9'];
@@ -209,6 +240,7 @@
         s.feedback = s.feedback || [];
         s.growth = s.growth || [];
         s.prefs = s.prefs || {defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true};
+        s.expenses = s.expenses || {currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]};
         if(s.members && s.members.length){
           HF.MEMBERS.length = 0;
           HF.MEMBERS.push(...s.members);
@@ -216,9 +248,9 @@
         return s;
       }
     }catch(e){}
-    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}};
+    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}};
     try{ localStorage.setItem(KEY, JSON.stringify(fresh)); }catch(e){}
-    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}};
+    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}};
   };
 
   HF.saveState = function(state){
@@ -232,7 +264,8 @@
         family: state.family||{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''},
         feedback: state.feedback||[],
         growth: state.growth||[],
-        prefs: state.prefs||{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}
+        prefs: state.prefs||{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true},
+        expenses: state.expenses||{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}
       }));
     }catch(e){}
   };
