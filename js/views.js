@@ -1264,32 +1264,62 @@ V.Settings = function(state, nav, params){
       const s = [];
       s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
       s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0']));
-      const resetBtn = el('button',{class:'btn btn-danger',style:'width:100%;padding:12px'},['\u21BA \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo']);
-      resetBtn.addEventListener('click', ()=>{
-        if(resetBtn.dataset.confirm){
-          HF.resetState();
-          location.reload();
-        }else{
-          resetBtn.dataset.confirm='1';
-          resetBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn \u0111\u1eb7t l\u1ea1i?';
-          setTimeout(()=>{ delete resetBtn.dataset.confirm; resetBtn.textContent='\u21BA \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo'; }, 3500);
-        }
-      });
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'D\u1eef li\u1ec7u HomeFlow l\u01b0u g\u00ec']));
+      const stored = [
+        ['\u{1F4CB}','Vi\u1ec7c nh\u00e0 & ph\u00e2n c\u00f4ng','Ti\u00eau \u0111\u1ec1, ng\u00e0y gi\u1edd, ng\u01b0\u1eddi lo & ng\u01b0\u1eddi l\u00e0m, tr\u1ea1ng th\u00e1i'],
+        ['\u{1F46B}','Th\u00e0nh vi\u00ean','T\u00ean, ng\u00e0y sinh, vai tr\u00f2, gi\u1edbi t\u00ednh, \u1ea3nh \u0111\u1ea1i di\u1ec7n'],
+        ['\u{1FA7A}','L\u1ecbch s\u1eed s\u1ee9c kh\u1ecfe & h\u1ecdc t\u1eadp c\u1ee7a con','C\u00e1c b\u1ea3n ghi do gia \u0111\u00ecnh nh\u1eadp'],
+        ['\u{1F4C8}','Ch\u1ec9 s\u1ed1 ph\u00e1t tri\u1ec3n','Chi\u1ec1u cao, c\u00e2n n\u1eb7ng theo th\u1eddi gian'],
+        ['\u{1F4B0}','C\u1ea5u h\u00ecnh chi ph\u00ed','Ti\u1ec1n t\u1ec7, danh m\u1ee5c chi ph\u00ed'],
+        ['\u2699\uFE0F','C\u00e0i \u0111\u1eb7t kh\u00e1c','T\u00ean gia \u0111\u00ecnh, t\u00f9y ch\u1ecdn hi\u1ec3n th\u1ecb, ph\u1ea3n h\u1ed3i']
+      ];
       s.push(el('div',{class:'card compact'},[
-        el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
-          el('span',{style:'font-size:20px'},['\u{1F510}']),
-          el('div',{style:'flex:1'},[
-            el('div',{style:'font-weight:800;font-size:14px'},['D\u1eef li\u1ec7u c\u1ee7a b\u1ea1n']),
-            el('div',{class:'sub',style:'font-size:12.5px;margin-top:3px'},['HomeFlow l\u01b0u d\u1eef li\u1ec7u ngay tr\u00ean thi\u1ebft b\u1ecb n\u00e0y \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o.'])
-          ])
-        ]),
-        el('div',{style:'margin-top:14px;padding-top:12px;border-top:1px dashed var(--hairline)'},[
-          el('div',{style:'font-size:12.5px;font-weight:700;margin-bottom:6px'},['\u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo']),
-          el('div',{style:'font-size:11.5px;color:var(--muted);margin-bottom:10px'},['X\u00f3a to\u00e0n b\u1ed9 d\u1eef li\u1ec7u v\u00e0 quay v\u1ec1 b\u1ed9 vi\u1ec7c m\u1eabu ban \u0111\u1ea7u.']),
-          resetBtn
+        ...stored.map(([ico,lbl,sub])=>{
+          return el('div',{class:'pref-row'},[
+            el('span',{style:'font-size:17px;width:30px;text-align:center;flex:none'},[ico]),
+            el('div',{style:'flex:1;min-width:0'},[
+              el('div',{class:'set-row-t'},[lbl]),
+              el('div',{class:'set-row-s'},[sub])
+            ])
+          ]);
+        }),
+        el('div',{style:'font-size:11.5px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px dashed var(--hairline);line-height:1.6'},[
+          'T\u1ea5t c\u1ea3 d\u1eef li\u1ec7u \u0111\u01b0\u1ee3c l\u01b0u ngay tr\u00ean thi\u1ebft b\u1ecb n\u00e0y (tr\u00ecnh duy\u1ec7t) \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o, kh\u00f4ng c\u00f3 t\u00e0i kho\u1ea3n hay \u0111\u1ed3ng b\u1ed9 \u0111\u00e1m m\u00e2y. N\u1ebfu x\u00f3a d\u1eef li\u1ec7u tr\u00ecnh duy\u1ec7t ho\u1eb7c m\u1edf tr\u00ean thi\u1ebft b\u1ecb kh\u00e1c, d\u1eef li\u1ec7u s\u1ebd kh\u00f4ng c\u00f2n.'
+        ])
+      ]));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Qu\u1ea3n l\u00fd d\u1eef li\u1ec7u']));
+      const resetBtn = el('button',{class:'btn btn-danger',style:'width:100%;padding:12px'},['\u21BA Reset d\u1eef li\u1ec7u HomeFlow']);
+      resetBtn.addEventListener('click', ()=>openResetConfirm());
+      s.push(el('div',{class:'card compact'},[
+        el('div',{style:'font-size:12.5px;font-weight:700'},['Reset d\u1eef li\u1ec7u HomeFlow']),
+        el('div',{style:'font-size:11.5px;color:var(--muted);margin:5px 0 12px;line-height:1.5'},['\u0110\u01b0a HomeFlow v\u1ec1 b\u1ed9 d\u1eef li\u1ec7u demo ban \u0111\u1ea7u \u2014 d\u00f9ng khi tr\u00ecnh di\u1ec5n ho\u1eb7c mu\u1ed1n b\u1eaft \u0111\u1ea7u l\u1ea1i.']),
+        resetBtn,
+        el('div',{style:'font-size:11px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px dashed var(--hairline);line-height:1.6'},[
+          '\u201cX\u00f3a d\u1eef li\u1ec7u c\u1ee7a t\u00f4i\u201d s\u1ebd c\u00f3 khi t\u00e0i kho\u1ea3n v\u00e0 m\u00e1y ch\u1ee7 ra m\u1eaft \u2014 hi\u1ec7n t\u1ea1i m\u1ecdi d\u1eef li\u1ec7u ch\u1ec9 n\u1eb1m tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n.'
         ])
       ]));
       return s;
+    }
+
+    function openResetConfirm(){
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:14px'},[
+        el('div',{style:'font-size:13.5px;font-weight:800'},['B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n reset d\u1eef li\u1ec7u HomeFlow?']),
+        el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.6'},[
+          'To\u00e0n b\u1ed9 vi\u1ec7c nh\u00e0, l\u1ecbch s\u1eed s\u1ee9c kh\u1ecfe & h\u1ecdc t\u1eadp, ch\u1ec9 s\u1ed1 ph\u00e1t tri\u1ec3n, th\u00e0nh vi\u00ean m\u1edbi, c\u1ea5u h\u00ecnh chi ph\u00ed v\u00e0 c\u00e0i \u0111\u1eb7t s\u1ebd \u0111\u01b0\u1ee3c \u0111\u1eb7t l\u1ea1i v\u1ec1 b\u1ed9 d\u1eef li\u1ec7u demo ban \u0111\u1ea7u.'
+        ]),
+        el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
+          el('button',{class:'btn btn-ghost',style:'flex:1;padding:13px 10px;font-size:13.5px'},['H\u1ee7y']),
+          el('button',{class:'btn btn-danger',style:'flex:1.2;padding:13px 10px;font-size:13.5px'},['\u21BA Reset d\u1eef li\u1ec7u'])
+        ])
+      ]);
+      const sheet = HF.sheet({title:'Reset d\u1eef li\u1ec7u?', body:()=>body});
+      body.querySelector('.btn-ghost').addEventListener('click', ()=>sheet.close());
+      body.querySelector('.btn-danger').addEventListener('click', ()=>{
+        HF.resetState();
+        location.reload();
+      });
     }
 
 function buildHelp(){
