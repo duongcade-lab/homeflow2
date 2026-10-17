@@ -62,8 +62,9 @@
       return DB.household;
     }
     if(!sb() || !DB.household) throw new Error('no household');
-    const { error } = await sb().from('households').update({ name: n }).eq('id', DB.household.household_id);
+    const { data, error } = await sb().from('households').update({ name: n }).eq('id', DB.household.household_id).select('id');
     if(error) throw error;
+    if(!data || !data.length) throw new Error('household not found');
     DB.household.name = n;
     return DB.household;
   };

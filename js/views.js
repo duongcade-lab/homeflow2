@@ -2083,15 +2083,16 @@ V.Settings = function(state, nav, params){
       famCard.querySelector('.btn-soft').addEventListener('click', async ()=>{
         const n = famName.value.trim();
         if(!n){ HF.toast('Nh\u1eadp t\u00ean gia \u0111\u00ecnh tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
-        state.family.name = n;
         if(HF.db && HF.db.household && HF.auth && HF.auth.mode!=='off'){
           try{
             await HF.db.renameHousehold(n);
           }catch(e){
-            HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c t\u00ean gia \u0111\u00ecnh','\u{1F914}');
+            console.warn('renameHousehold:', e.message);
+            HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c t\u00ean gia \u0111\u00ecnh, th\u1eed l\u1ea1i nh\u00e9','\u{1F914}');
             return;
           }
         }
+        state.family.name = n;
         HF.saveState(state);
         HF.toast('\u0110\u00e3 l\u01b0u t\u00ean gia \u0111\u00ecnh','\u2705');
       });
