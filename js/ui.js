@@ -240,7 +240,8 @@
 
   HF.ownerSelect = function(value, onChange, exclude){
     const sel = el('select',{class:'input'});
-    for(const m of HF.MEMBERS){
+    const list = HF.MEMBERS.length ? HF.MEMBERS : [{id:'me', name:'Ch\u1ee7 nh\u00e0'}];
+    for(const m of list){
       if(exclude && exclude.includes(m.id)) continue;
       const o = el('option',{value:m.id},[m.name]);
       sel.appendChild(o);

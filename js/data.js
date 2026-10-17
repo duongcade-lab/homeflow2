@@ -53,7 +53,8 @@
   };
 
   HF.memberById = function(id){
-    return HF.MEMBERS.find(m=>m.id===id) || HF.MEMBERS[0];
+    return HF.MEMBERS.find(m=>m.id===id) || HF.MEMBERS[0] ||
+      {id:'me', name:'Ch\u1ee7 nh\u00e0', short:'Ch\u1ee7 nh\u00e0', color:'#8B6FB8', soft:'#EFE9F8', emoji:'\u{1F9D1}', kind:'adult', role:'Ng\u01b0\u1eddi l\u1edbn'};
   };
 
   HF.categoryById = function(id){
