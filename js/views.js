@@ -1385,6 +1385,7 @@ V.Settings = function(state, nav, params){
               head:'\u0110\u0103ng xu\u1ea5t?',
               title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n \u0111\u0103ng xu\u1ea5t kh\u1ecfi HomeFlow?',
               message:'B\u1ea1n s\u1ebd c\u1ea7n \u0111\u0103ng nh\u1eadp l\u1ea1i b\u1eb1ng Google \u0111\u1ec3 ti\u1ebfp t\u1ee5c.',
+              confirmLabel:'\u0110\u0103ng xu\u1ea5t',
               onConfirm:()=>HF.auth.signOut()
             });
           }},['\u{1F6AA} \u0110\u0103ng xu\u1ea5t'])

@@ -74,10 +74,18 @@
   AUTH.signOut = async function(){
     if(AUTH.mode==='supabase'){
       setState('signing_out');
-      try{ await AUTH._sb.auth.signOut(); }catch(e){}
+      try{ await AUTH._sb.auth.signOut({ scope: 'local' }); }catch(e){}
     }
     if(AUTH.mode==='mock'){ localStorage.removeItem('hf_mock_session'); }
+    // Hard-clear any persisted Supabase session on this device, so a failed
+    // server-side revocation can never leave the previous account logged in.
+    try{
+      Object.keys(localStorage).forEach(k=>{
+        if(k.startsWith('sb-') && k.endsWith('-auth-token')) localStorage.removeItem(k);
+      });
+    }catch(e){}
     AUTH.user = null;
+    if(HF.db) HF.db.household = null;
     setState('logged_out');
   };
 

@@ -332,7 +332,7 @@
       opts.note ? el('div',{style:'font-size:11.5px;color:var(--danger);background:var(--danger-soft);border-radius:10px;padding:9px 11px;line-height:1.5'},[opts.note]) : null,
       el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
         el('button',{class:'btn btn-ghost',style:'flex:1;padding:13px 10px;font-size:13.5px'},['H\u1ee7y']),
-        el('button',{class:'btn btn-danger',style:'flex:1;padding:13px 10px;font-size:13.5px'},['X\u00f3a'])
+        el('button',{class:'btn btn-danger',style:'flex:1;padding:13px 10px;font-size:13.5px'},[opts.confirmLabel||'X\u00f3a'])
       ])
     ]);
     const sheet = HF.sheet({title:opts.head||'X\u00f3a?', body:()=>body});
