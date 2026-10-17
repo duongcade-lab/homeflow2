@@ -448,7 +448,9 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
           title: String(t.title||'').trim(),
           cat, due, time: t.time||'',
           owner, planner, shared: !!t.shared,
-          mental: true, status:'open', pts:1, src:'llm'
+          mental: true, status:'open', pts:1, src:'llm',
+          dueKnown: !!t.date,
+          doerKnown: true
         };
       }).filter(t=>t.title);
     }
@@ -614,6 +616,21 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
           confirmDuplicate(existing, doAdd);
           return;
         }
+        const noDoer = parsedTasks.find(t=>t.doerKnown===false);
+        const noDate = parsedTasks.find(t=>t.dueKnown===false);
+        if(noDoer || noDate){
+          const msgs = [];
+          if(noDoer) msgs.push('Kh\u00f4ng r\u00f5 ai l\u00e0m vi\u1ec7c \u201c'+noDoer.title+'\u201d');
+          if(noDate) msgs.push('Kh\u00f4ng x\u00e1c \u0111\u1ecbnh \u0111\u01b0\u1ee3c ng\u00e0y cho \u201c'+noDate.title+'\u201d');
+          HF.confirmIssue({
+            head:'C\u1ea7n ki\u1ec3m tra l\u1ea1i',
+            title: msgs.join('. ')+'.',
+            note:'Vui l\u00f2ng ch\u1ec9nh s\u1eeda l\u1ea1i tr\u01b0\u1edbc khi th\u00eam.',
+            mode:'edit',
+            onEdit: ()=>{ setEditing(true); }
+          });
+          return;
+        }
         const issueTask = parsedTasks.find(t=>HF.isPastDate(t.due) || HF.timeConflict(state, t));
         if(issueTask){
           const past = HF.isPastDate(issueTask.due);
@@ -624,8 +641,12 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
           HF.confirmIssue({
             head: past&&conflict ? 'C\u00f3 v\u1ebb ch\u01b0a \u1ed5n' : (past ? 'Ng\u00e0y \u0111\u00e3 qua' : 'Gi\u1edd b\u1ecb tr\u00f9ng'),
             title: msgs.join('. ')+'.',
-            note: 'B\u1ea1n c\u00f3 mu\u1ed1n ch\u1ec9nh s\u1eeda tr\u01b0\u1edbc khi th\u00eam kh\u00f4ng?',
-            onChange: ()=>{ setEditing(true); },
+            note: conflict
+              ? 'Vui l\u00f2ng ch\u1ec9nh s\u1eeda l\u1ea1i ng\u00e0y/gi\u1edd \u0111\u1ec3 tr\u00e1nh tr\u00f9ng.'
+              : 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u1ed5i ng\u00e0y kh\u00f4ng?',
+            mode: conflict ? 'edit' : 'confirm',
+            onChange: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
+            onEdit: ()=>{ setEditing(true); },
             onKeep: doAdd
           });
           return;
@@ -1287,8 +1308,12 @@ V.Settings = function(state, nav, params){
           HF.confirmIssue({
             head: past&&conflict ? 'C\u00f3 v\u1ebb ch\u01b0a \u1ed5n' : (past ? 'Ng\u00e0y \u0111\u00e3 qua' : 'Gi\u1edd b\u1ecb tr\u00f9ng'),
             title: msgs.join('. ')+'.',
-            note: 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u1ed5i ng\u00e0y/gi\u1edd kh\u00f4ng?',
-            onChange: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y/gi\u1edd kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
+            note: conflict
+              ? 'Vui l\u00f2ng ch\u1ec9nh s\u1eeda l\u1ea1i ng\u00e0y/gi\u1edd \u0111\u1ec3 tr\u00e1nh tr\u00f9ng.'
+              : 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u1ed5i ng\u00e0y kh\u00f4ng?',
+            mode: conflict ? 'edit' : 'confirm',
+            onChange: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
+            onEdit: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y/gi\u1edd kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
             onKeep: doSave
           });
           return;
@@ -2309,8 +2334,12 @@ function buildReminders(){
             HF.confirmIssue({
               head: past&&conflict ? 'C\u00f3 v\u1ebb ch\u01b0a \u1ed5n' : (past ? 'Ng\u00e0y \u0111\u00e3 qua' : 'Gi\u1edd b\u1ecb tr\u00f9ng'),
               title: msgs.join('. ')+'.',
-              note: 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u1ed5i ng\u00e0y/gi\u1edd kh\u00f4ng?',
-              onChange: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y/gi\u1edd kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
+              note: conflict
+                ? 'Vui l\u00f2ng ch\u1ec9nh s\u1eeda l\u1ea1i ng\u00e0y/gi\u1edd \u0111\u1ec3 tr\u00e1nh tr\u00f9ng.'
+                : 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u1ed5i ng\u00e0y kh\u00f4ng?',
+              mode: conflict ? 'edit' : 'confirm',
+              onChange: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
+              onEdit: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y/gi\u1edd kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
               onKeep: doAdd
             });
             return;

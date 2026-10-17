@@ -2,7 +2,7 @@
   const HF = window.HF = window.HF || {};
 
   const WEEKDAY_RE = /(ch\u1ee7\s*nh\u1eadt|th\u1ee9\s*[2-7]|cn\b)/i;
-  const TIME_RE = /(?:l\u00fac\s*)?(\d{1,2})(?:h|gi\u1edd)(?:\s*(\d{1,2}))?/i;
+  const TIME_RE = /(?:l\u00fac\s*)?(\d{1,2})(?::(\d{2})|\s*(?:h|gi\u1edd)(?:\s*(\d{1,2}))?)/i;
   const TRANSPORT_RE = /(\u0111\u01b0a|ch\u1edf|\u0111\u00f3n)/i;
 
   const CAT_KEYWORDS = [
@@ -67,7 +67,7 @@
     const m = s.match(TIME_RE);
     if(!m) return '';
     const h = parseInt(m[1],10);
-    const mi = m[2] ? parseInt(m[2],10) : 0;
+    const mi = m[2] ? parseInt(m[2],10) : (m[3] ? parseInt(m[3],10) : 0);
     return String(h).padStart(2,'0') + ':' + String(mi).padStart(2,'0');
   }
 
@@ -95,14 +95,14 @@
     const parent = hasBo ? 'bo' : (hasMe ? 'me' : null);
     const kidId = hasBin ? 'bin' : (hasSu ? 'su' : null);
 
-    if(shared) return {owner:'me', shared:true, kid:kidId, parent, transport};
-    if(parent && (transport || cat==='health')) return {owner:parent, shared:false, kid:kidId, parent, transport};
-    if(parent) return {owner:parent, shared:false, kid:kidId, parent, transport};
-    if(kidId && cat==='health') return {owner:'bo', shared:false, kid:kidId, parent:null, transport};
-    if(kidId) return {owner:kidId, shared:false, kid:kidId, parent:null, transport};
-    if(hasKidWord && cat==='health') return {owner:'bo', shared:false, kid:null, parent:null, transport};
-    if(cat==='event' || cat==='shopping') return {owner:'me', shared:true, kid:kidId, parent:null, transport};
-    return {owner:'me', shared:false, kid:kidId, parent:null, transport};
+    if(shared) return {owner:'me', shared:true, kid:kidId, parent, transport, known:true};
+    if(parent && (transport || cat==='health')) return {owner:parent, shared:false, kid:kidId, parent, transport, known:true};
+    if(parent) return {owner:parent, shared:false, kid:kidId, parent, transport, known:true};
+    if(kidId && cat==='health') return {owner:'bo', shared:false, kid:kidId, parent:null, transport, known:true};
+    if(kidId) return {owner:kidId, shared:false, kid:kidId, parent:null, transport, known:true};
+    if(hasKidWord && cat==='health') return {owner:'bo', shared:false, kid:null, parent:null, transport, known:true};
+    if(cat==='event' || cat==='shopping') return {owner:'me', shared:true, kid:kidId, parent:null, transport, known:true};
+    return {owner:'me', shared:false, kid:kidId, parent:null, transport, known:false};
   }
 
   function detectPlanner(s, doer, cat){
@@ -165,9 +165,7 @@
     const curY = now.getFullYear(), curM = now.getMonth();
     function push(d, mo){
       if(d>=1 && d<=31 && mo>=1 && mo<=12){
-        let y = curY;
-        if(new Date(y, mo-1, d) < now) y = curY+1;
-        dates.push(new Date(y, mo-1, d));
+        dates.push(new Date(curY, mo-1, d));
       }
     }
     // "26, 27/10" — shared denominator
@@ -193,9 +191,7 @@
       const d = parseInt(m[1],10);
       if(m[2]) push(d, parseInt(m[2],10));
       else if(d>=1 && d<=31){
-        let mo = curM;
-        if(d < now.getDate()) mo = curM+1;
-        dates.push(new Date(curY, mo, d));
+        dates.push(new Date(curY, curM, d));
       }
     }
     const seen = new Set();
@@ -207,7 +203,7 @@
     });
   }
 
-  function buildTask(low, due){
+  function buildTask(low, due, dueKnown){
     const time = parseTime(low);
     const cat = detectCategory(low);
     const doer = detectDoer(low, cat);
@@ -230,7 +226,9 @@
       mental,
       shared: !!doer.shared,
       kidOk: ['home','shopping','kids'].includes(cat),
-      confidence: Math.round(confidence*100)
+      confidence: Math.round(confidence*100),
+      dueKnown: !!dueKnown,
+      doerKnown: !!doer.known
     };
   }
 
@@ -253,12 +251,14 @@
       }
       const weekday = parseWeekday(low);
       const explicitDates = parseExplicitDates(low);
+      const dueKnown = !!(weekday || explicitDates.length ||
+        /\bh\u00f4m nay\b|ng\u00e0y mai|\bmai\b|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y/.test(low));
       if(explicitDates.length){
         for(const d of explicitDates){
-          tasks.push(buildTask(low, d));
+          tasks.push(buildTask(low, d, dueKnown));
         }
       }else{
-        tasks.push(buildTask(low, inferDue(low, weekday)));
+        tasks.push(buildTask(low, inferDue(low, weekday), dueKnown));
       }
     }
     return tasks;
