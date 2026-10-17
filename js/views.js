@@ -1376,8 +1376,10 @@ V.Settings = function(state, nav, params){
             el('span',{class:'set-ico'},[u.avatar ? el('img',{src:u.avatar,style:'width:34px;height:34px;border-radius:50%',alt:''}) : '\u{1F464}']),
             el('div',{style:'flex:1;min-width:0'},[
               el('div',{class:'set-t'},['T\u00e0i kho\u1ea3n']),
-              el('div',{class:'set-s',style:'overflow-wrap:anywhere'},[u.name+(u.email?' \u00b7 '+u.email:'')]),
-              hh ? el('div',{class:'set-s',style:'margin-top:3px'},['\u{1F3E0} '+hh.name+' \u00b7 '+(hh.role==='owner'?'Ch\u1ee7 gia \u0111\u00ecnh':'Th\u00e0nh vi\u00ean')]) : null
+              el('div',{class:'set-s',style:'overflow-wrap:anywhere'},[u.name]),
+              hh ? el('div',{class:'set-s set-hh',style:'margin-top:3px',onclick:()=>renameHouseholdSheet(hh)},[
+                '\u{1F3E0} '+hh.name+' \u00b7 '+(hh.role==='owner'?'Ch\u1ee7 gia \u0111\u00ecnh':'Th\u00e0nh vi\u00ean')+' \u270F\uFE0F'
+              ]) : null
             ])
           ]),
           el('button',{class:'btn btn-ghost',style:'width:100%;margin-top:10px;color:var(--danger)',onclick:()=>{
@@ -2465,6 +2467,32 @@ function buildReminders(){
     function rerender(){
       root.innerHTML='';
       build().forEach(n=>root.appendChild(n));
+    }
+
+    function renameHouseholdSheet(hh){
+      const input = el('input',{class:'input',value:hh.name,maxlength:40});
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+        el('div',{class:'rs-field'},[el('span',{},['T\u00ean gia \u0111\u00ecnh']), input]),
+        el('button',{class:'btn btn-primary',style:'width:100%;padding:13px'},['\u{1F4BE} L\u01b0u t\u00ean m\u1edbi'])
+      ]);
+      const sheet = HF.sheet({title:'\u{1F3E0} \u0110\u1ed5i t\u00ean gia \u0111\u00ecnh', body:()=>body});
+      const saveBtn = body.querySelector('.btn-primary');
+      saveBtn.addEventListener('click', async ()=>{
+        const n = input.value.trim();
+        if(!n){ HF.toast('Nh\u1eadp t\u00ean gia \u0111\u00ecnh tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        saveBtn.disabled = true;
+        saveBtn.textContent = '\u0110ang l\u01b0u...';
+        try{
+          await HF.db.renameHousehold(n);
+          sheet.close();
+          HF.toast('\u0110\u00e3 \u0111\u1ed5i t\u00ean gia \u0111\u00ecnh','\u270F\uFE0F');
+          rerender();
+        }catch(e){
+          saveBtn.disabled = false;
+          saveBtn.textContent = '\u{1F4BE} L\u01b0u t\u00ean m\u1edbi';
+          HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c, th\u1eed l\u1ea1i nh\u00e9','\u{1F914}');
+        }
+      });
     }
 
     rerender();

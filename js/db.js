@@ -40,4 +40,22 @@
     DB.household = { household_id: data, name: n, role: 'owner' };
     return DB.household;
   };
+
+  DB.renameHousehold = async function(name){
+    const n = String(name||'').trim();
+    if(!n) throw new Error('name required');
+    if(!HF.auth) throw new Error('auth not ready');
+    if(HF.auth.mode==='mock'){
+      if(!DB.household) throw new Error('no household');
+      DB.household.name = n;
+      localStorage.setItem('hf_mock_household', JSON.stringify(DB.household));
+      return DB.household;
+    }
+    if(!HF.auth._sb || !DB.household) throw new Error('no household');
+    const sb = HF.auth._sb;
+    const { error } = await sb.from('households').update({ name: n }).eq('id', DB.household.household_id);
+    if(error) throw error;
+    DB.household.name = n;
+    return DB.household;
+  };
 })();
