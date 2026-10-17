@@ -1657,10 +1657,10 @@ V.Expenses = function(state, nav, filter){
           example:'Mu\u1ed1n bi\u1ebft c\u00e1ch d\u00f9ng Family Planner? \u0110\u1ecdc m\u1ee5c 12.'
         }],
         ['\u25B6\uFE0F','Video h\u01b0\u1edbng d\u1eabn',{
-          what:'Video demo t\u1eebng t\u00ednh n\u0103ng c\u1ee7a HomeFlow.',
-          when:'Khi mu\u1ed1n xem HomeFlow ho\u1ea1t \u0111\u1ed9ng tr\u1ef1c quan.',
-          steps:['Video demo ch\u01b0a c\u00f3 trong phi\u00ean b\u1ea3n n\u00e0y.','B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 kh\u00e1m ph\u00e1 qua c\u00e1c m\u1ee5c h\u01b0\u1edbng d\u1eabn b\u00ean tr\u00ean \u2014 m\u1ed7i m\u1ee5c ch\u1ec9 m\u1ea5t 30 gi\u00e2y.'],
-          example:'Ch\u01b0a c\u00f3 video \u2014 b\u1ea1n c\u00f3 th\u1ec3 d\u00f9ng \u201cN\u00f3i v\u1edbi HomeFlow\u201d \u0111\u1ec3 th\u1eed ngay c\u00e1ch ghi vi\u1ec7c.'
+          what:'Xem video h\u01b0\u1edbng d\u1eabn HomeFlow tr\u1ef1c quan.',
+          when:'Khi mu\u1ed1n xem HomeFlow ho\u1ea1t \u0111\u1ed9ng tr\u01b0\u1edbc khi t\u1ef1 d\u00f9ng.',
+          steps:['Ch\u1ecdn video b\u00ean d\u01b0\u1edbi.','B\u1ea5m n\u00fat ph\u00e1t \u0111\u1ec3 xem.','Xem xong, b\u1ea5m n\u00fat \u201cTh\u1eed ngay\u201d \u0111\u1ec3 d\u00f9ng th\u1eed t\u00ednh n\u0103ng.'],
+          example:'Video \u201cHomeFlow d\u00e0nh cho c\u1ea3 gia \u0111\u00ecnh\u201d h\u01b0\u1edbng d\u1eabn t\u1eebng b\u01b0\u1edbc trong 2 ph\u00fat r\u01b0\u1ee1i.'
         }],
         ['\u{1F4AC}','G\u1eedi ph\u1ea3n h\u1ed3i',{
           what:'G\u1eedi \u00fd ki\u1ebfn \u0111\u1ec3 HomeFlow ng\u00e0y c\u00e0ng h\u1eefu \u00edch h\u01a1n.',
@@ -1676,10 +1676,28 @@ V.Expenses = function(state, nav, filter){
       s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),label]));
       s.push(el('div',{class:'card compact'}, topics.map(([ico,title,doc])=>{
         const isManual = title==='H\u01b0\u1edbng d\u1eabn s\u1eed d\u1ee5ng HomeFlow';
+        const isVideo = title==='Video h\u01b0\u1edbng d\u1eabn';
         const extra = title==='C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p' ? faqBlocks() : null;
-        const body = isManual ? manualNodes() : (doc ? helpDoc(doc, nav) : null);
+        const body = isManual ? manualNodes() : (isVideo ? videoSection(state, nav) : (doc ? helpDoc(doc, nav) : null));
         return helpTopic(ico, title, [body, extra].filter(Boolean));
       })));
+    }
+
+    function videoSection(state, nav){
+      const VIDEOS = [
+        { ico:'\u{1F49C}', title:'HomeFlow d\u00e0nh cho c\u1ea3 gia \u0111\u00ecnh', desc:'T\u1eebng b\u01b0\u1edbc c\u00f9ng c\u1ea3 nh\u00e0: n\u00f3i vi\u1ec7c, ph\u00e2n vai, c\u00e2n b\u1eb1ng v\u00e0 chi ph\u00ed.', dur:'2:30', src:'assets/videos/homeflow-family-guide.mp4', endLabel:'\u2728 Th\u1eed n\u00f3i v\u1edbi HomeFlow', endNav:['dump'] },
+        { ico:'\u2B50', title:'HomeFlow d\u00e0nh cho con', desc:'Video ng\u1eafn gi\u00fap con t\u1ef1 l\u00e0m nh\u1eefng vi\u1ec7c nh\u1ecf m\u1ed7i ng\u00e0y.', dur:'1:14', src:'assets/videos/homeflow-kids-guide.mp4', endLabel:'\u2B50 Xem nhi\u1ec7m v\u1ee5 c\u1ee7a con', endNav:['missions'] }
+      ];
+      return el('div',{}, VIDEOS.map(v=>{
+        return el('div',{class:'video-row',onclick:()=>HF.playVideo({src:v.src, title:v.title, endLabel:v.endLabel, endNav:v.endNav, nav:nav})},[
+          el('span',{class:'video-thumb'},[v.ico]),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'video-title'},[v.title]),
+            el('div',{class:'video-sub'},[v.desc])
+          ]),
+          el('span',{class:'video-dur'},['\u25B6 '+v.dur])
+        ]);
+      }));
     }
 
     function faqBlocks(){
