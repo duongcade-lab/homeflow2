@@ -1387,6 +1387,17 @@ V.Settings = function(state, nav, params){
             });
           }},['\u{1F6AA} \u0110\u0103ng xu\u1ea5t'])
         ]));
+      } else if(HF.auth && HF.auth.mode==='off'){
+        s.push(el('div',{class:'card compact'},[
+          el('div',{class:'set-head'},[
+            el('span',{class:'set-ico'},['\u{1F527}']),
+            el('div',{style:'flex:1;min-width:0'},[
+              el('div',{class:'set-t'},['\u0110\u0103ng nh\u1eadp']),
+              el('div',{class:'set-s'},['\u0110\u0103ng nh\u1eadp ch\u01b0a \u0111\u01b0\u1ee3c c\u1ea5u h\u00ecnh cho m\u00f4i tr\u01b0\u1eddng n\u00e0y.'])
+            ])
+          ]),
+          el('div',{class:'set-s',style:'margin-top:8px'},['Thi\u1ebft l\u1eadp SUPABASE_URL v\u00e0 SUPABASE_ANON_KEY \u0111\u1ec3 b\u1eadt \u0111\u0103ng nh\u1eadp Google.'])
+        ]));
       }
 
       s.push(el('div',{class:'card compact set-menu'},[

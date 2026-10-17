@@ -103,6 +103,32 @@
     speakFab.style.display='none';
 
     const googleIcon = '<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.4 6.1 29.5 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.4 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.2 5.2C36.9 40.4 44 35 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>';
+    const spinner = '<span class="spin" aria-hidden="true"></span>';
+
+    const st = HF.auth.state;
+    let actionArea;
+    if(HF.auth.mode==='supabase' || HF.auth.mode==='mock'){
+      const busy = st==='logging_in' || st==='signing_out';
+      const btnAttrs = {class:'login-google'+(busy?' busy':''),onclick:async()=>{
+        try{ await HF.auth.signIn(); }
+        catch(e){ /* state 'error' already emitted — UI reflects it */ }
+      }};
+      if(busy) btnAttrs.disabled = true;
+      actionArea = el('div',{style:'width:100%'},[
+        el('button',btnAttrs,[
+          el('span',{html:busy?spinner:googleIcon}),
+          el('span',{},[busy ? (st==='signing_out'?'\u0110ang \u0111\u0103ng xu\u1ea5t...':'\u0110ang \u0111\u0103ng nh\u1eadp...') : 'Ti\u1ebfp t\u1ee5c v\u1edbi Google'])
+        ]),
+        st==='error' ? el('div',{class:'login-err'},['\u0110\u0103ng nh\u1eadp ch\u01b0a th\u00e0nh c\u00f4ng, th\u1eed l\u1ea1i nh\u00e9']) : null,
+        HF.auth.mode==='mock' ? el('div',{class:'login-dev'},['\u2699\uFE0F Ch\u1ebf \u0111\u1ed9 demo \u2014 ch\u01b0a c\u1ea5u h\u00ecnh Supabase']) : null
+      ]);
+    } else {
+      actionArea = el('div',{class:'login-unconfigured'},[
+        el('div',{class:'login-err-ico'},['\u{1F527}']),
+        el('div',{style:'font-weight:800;font-size:13.5px'},['\u0110\u0103ng nh\u1eadp ch\u01b0a \u0111\u01b0\u1ee3c c\u1ea5u h\u00ecnh cho m\u00f4i tr\u01b0\u1eddng n\u00e0y.']),
+        el('div',{class:'login-dev'},['Thi\u1ebft l\u1eadp SUPABASE_URL v\u00e0 SUPABASE_ANON_KEY \u0111\u1ec3 b\u1eadt \u0111\u0103ng nh\u1eadp Google.'])
+      ]);
+    }
 
     const box = el('div',{class:'login-wrap'},[
       el('div',{class:'login-card'},[
@@ -110,21 +136,8 @@
         el('div',{class:'login-brand'},['HomeFlow']),
         el('div',{class:'login-tag'},['Share the load. Enjoy the moments.']),
         el('div',{class:'login-sub'},['\u201CC\u00f9ng nhau chia s\u1ebb nh\u1eefng vi\u1ec7c c\u1ea7n nh\u1edb.\u201D']),
-        el('button',{class:'login-google',onclick:async()=>{
-          const btn = box.querySelector('.login-google');
-          btn.classList.add('busy');
-          btn.disabled = true;
-          try{
-            await HF.auth.signIn();
-          }catch(e){
-            HF.toast('\u0110\u0103ng nh\u1eadp ch\u01b0a th\u00e0nh c\u00f4ng, th\u1eed l\u1ea1i nh\u00e9','\u{1F914}');
-            btn.classList.remove('busy');
-            btn.disabled = false;
-          }
-        }},[
-          el('span',{style:'display:inline-flex;align-items:center'},[googleIcon]),
-          el('span',{},['Continue with Google'])
-        ]),
+        el('div',{class:'login-sec'},['\u0110\u0103ng nh\u1eadp \u0111\u1ec3 gia \u0111\u00ecnh b\u1ea1n c\u00f3 m\u1ed9t kh\u00f4ng gian ri\u00eang v\u00e0 c\u00f9ng nhau chia s\u1ebb c\u00f4ng vi\u1ec7c.']),
+        actionArea,
         el('div',{class:'login-foot'},['\u{1F49C} HomeFlow \u2014 c\u1ea3 nh\u00e0 nh\u1eb9 nh\u00e0ng h\u01a1n'])
       ])
     ]);
