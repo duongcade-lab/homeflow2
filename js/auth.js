@@ -49,7 +49,10 @@
       try{
         const { error } = await AUTH._sb.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: AUTH.redirectTo() }
+          options: {
+            redirectTo: AUTH.redirectTo(),
+            queryParams: { prompt: 'select_account' }
+          }
         });
         if(error){ setState('error', error.message); throw error; }
       }catch(e){
