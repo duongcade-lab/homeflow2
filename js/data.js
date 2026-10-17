@@ -390,7 +390,47 @@ const KEY = 'homeflow_state_v1';
   };
 
   HF.uid = function(prefix){
-    return (prefix||'t') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    const c = (typeof crypto!=='undefined' && crypto.randomUUID) ? crypto.randomUUID() :
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, ch=>{
+        const r = Math.random()*16|0;
+        return (ch==='x'?r:(r&0x3|0x8)).toString(16);
+      });
+    return c;
+  };
+
+  HF.sanitizeIds = function(state){
+    const isUuid = s=>typeof s==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+    const map = new Map();
+    const remap = id => {
+      if(id==null || id==='') return id;
+      if(isUuid(id)) return id;
+      if(map.has(id)) return map.get(id);
+      const nu = HF.uid();
+      map.set(id, nu);
+      return nu;
+    };
+    const remapRef = id => {
+      if(id==null || id==='') return null;
+      if(map.has(id)) return map.get(id);
+      return isUuid(id) ? id : null;
+    };
+    if(Array.isArray(state.members)) state.members.forEach(m=>{ if(m) m.id = remap(m.id); });
+    if(Array.isArray(HF.MEMBERS)) HF.MEMBERS.forEach(m=>{ if(m) m.id = remap(m.id); });
+    if(Array.isArray(state.tasks)) state.tasks.forEach(t=>{
+      t.id = remap(t.id);
+      if(t.owner!=null) t.owner = remapRef(t.owner);
+      if(t.planner!=null) t.planner = remapRef(t.planner);
+    });
+    if(state.expenses && Array.isArray(state.expenses.records)) state.expenses.records.forEach(e=>{
+      e.id = remap(e.id);
+      if(e.memberId!=null) e.memberId = remapRef(e.memberId);
+    });
+    if(Array.isArray(state.growth)) state.growth.forEach(r=>{ r.id = remap(r.id); if(r.kidId!=null) r.kidId = remapRef(r.kidId); });
+    if(state.history){
+      ['health','study'].forEach(k=>{
+        (state.history[k]||[]).forEach(r=>{ r.id = remap(r.id); if(r.kidId!=null) r.kidId = remapRef(r.kidId); });
+      });
+    }
   };
 
   const PLAN_ITEMS = {

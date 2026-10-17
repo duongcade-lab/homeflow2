@@ -27,6 +27,10 @@
     }
     state = HF.loadState();
     HF.prefs = state.prefs;
+    if(HF.auth.mode!=='off' && HF.db && HF.db.household){
+      HF.sanitizeIds(state);
+      HF.saveState(state);
+    }
     return state;
   }
 
