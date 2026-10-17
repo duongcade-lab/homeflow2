@@ -36,7 +36,7 @@
       if(t.id==='dump'){
         bar.appendChild(el('button',{class:'fab-btn','aria-label':'N\u00f3i v\u1edbi HomeFlow',onclick:()=>navigate('dump')},[
           el('span',{class:'fab-ring'}),
-          '\u{1F399}\uFE0F'
+          '\u{1F9E0}'
         ]));
         return;
       }
