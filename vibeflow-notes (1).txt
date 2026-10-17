@@ -1,0 +1,58 @@
+# Hướng dẫn xây dựng Application bằng VibeFlow
+
+## Các bước thực hiện
+
+1. **Tạo Project** - từ Git repo hoặc upload thư mục local (Dashboard -> New project).
+2. **Start Sandbox** - mở workspace chạy thật (container chứa file của bạn), nơi agent làm việc.
+3. **Mô tả ứng dụng trong Chat** - nói rõ ý tưởng bằng ngôn ngữ tự nhiên, ví dụ: *"Tạo app quản lý danh mục prompts, có màn hình List/Create/Edit/Delete, dùng Angular + Material"*. Agent sẽ đọc code, viết code, chạy thử và stream kết quả.
+4. **Chọn chế độ**: `Shift+Tab` để chuyển Plan (chỉ đọc, lên kế hoạch) <-> Build (được phép sửa code).
+5. **Xem kết quả qua các tab**: IDE (soạn thảo song song), Changes (xem diff, commit, mở Pull Request), Preview (chạy app live), Galaxy (3D code graph).
+6. **Commit & mở PR** từ tab Changes khi hoàn tất.
+
+---
+
+## Skill (`/`) hỗ trợ từng giai đoạn
+
+| Giai đoạn | Skill |
+|---|---|
+| Lên ý tưởng / làm rõ yêu cầu | `/idea-refine`, `/interview-me`, `/spec-driven-development`, `/speckit-...` (spec -> plan -> tasks) |
+| Thiết kế | `/drawio-design` (sơ đồ kiến trúc/UML), `/frontend-design` (UI đẹp, không "AI slop"), `/api-and-interface-design` |
+| Lập kế hoạch | `/planning-and-task-breakdown`, `/workflow` (Dynamic Workflow - tự chia việc, chạy subagent song song) |
+| Viết code | `/incremental-implementation`, `/test-driven-development`, `/source-driven-development` |
+| Kiểm thử & chất lượng | `/test-case`, `/webapp-testing`, `/code-review-and-quality`, `/debugging-and-error-recovery` |
+| Chạy & xem thử | `/app-preview` (chạy preview live) |
+| Xử lý dữ liệu/tài liệu | `/xlsx`, `/docx`, `/pdf`, `/pptx`, `/document-to-md` |
+| Hoàn thiện & phát hành | `/ci-cd-and-automation`, `/security-and-hardening`, `/shipping-and-launch`, `/slide-craft` (deck thuyết trình) |
+
+---
+
+## Agent (`!`) - chuyên gia theo vai trò
+
+- **Lập kế hoạch**: `!business-analyst` (SRS, user story), `!solution-architect` (thiết kế hệ thống, ADR), `!project-manager` (WBS, tiến độ, rủi ro)
+- **Triển khai**: `!backend-dev`, `!frontend-dev`, `!dba-expert` (database), `!cloud-expert`, `!migration-expert`
+- **Kiểm tra**: `!reviewer` (review code/tài liệu), `!security-auditor` (bảo mật), `!tester` (viết & chạy test case bằng Playwright)
+- **Tài liệu/thuyết trình**: `!document-to-md`, `!slide-craft`
+
+---
+
+## Workflow (`#`) - quy trình đóng gói sẵn
+
+- **`#Full-Stack Development`** - kiến trúc -> backend // frontend -> integration test -> review: phù hợp nhất khi xây app mới hoàn chỉnh.
+- **`#Feature Development`** - thiết kế -> backend // frontend -> review.
+- **`#Bug Fix Pipeline`** - phân tích -> sửa -> viết test // review.
+- **`#Code Review Pipeline`** - review tĩnh // review ngữ nghĩa -> tổng hợp.
+- **`#RFP to Demo`** - từ tài liệu yêu cầu -> demo chạy được + slide.
+- **`#DB Migration Pipeline`**, **`#Safe Refactor`** - khi cần migration/refactor an toàn.
+
+---
+
+## Chọn gì khi nào?
+
+| Bạn muốn... | Dùng |
+|---|---|
+| Hỏi/trò chuyện mở | Chat thường |
+| 1 việc cần 1 chuyên gia | Agent `!` |
+| Quy trình lặp lại nhiều bước đã biết trước | Workflow `#` |
+| Khả năng đóng gói sẵn (slide, convert, research) | Skill `/` |
+| Việc lớn, chưa biết các bước | `/workflow` (Dynamic) |
+| Tự thiết kế workflow tái sử dụng | Canvas (rồi chạy bằng `#`) |

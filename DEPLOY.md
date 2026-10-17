@@ -71,11 +71,12 @@ Source: **https://github.com/duongcade-lab/homeflow2** (branch `main`, public).
 
 ### 3.3 Environment variables
 
-**Currently none are required** — the app is fully static and stores data in the browser's `localStorage`.
+**Required for the LLM-powered brain-dump parsing** (`api/parse` Vercel Function):
+
+- `GEMINI_API_KEY` — Google AI Studio key (free tier). Set in Vercel → Project → Settings → Environment Variables → Production. Without it, `api/parse` returns 503 and the app silently falls back to the on-device rule-based parser.
 
 Reserved for future use (names only — never commit values):
 
-- `LLM_API_KEY` — if a real LLM backend is added for brain-dump parsing.
 - `DATABASE_URL` — if a backend/database is added for accounts and family sharing.
 
 ---

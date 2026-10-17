@@ -1,0 +1,12 @@
+{
+  "name": "homeflow",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@ai-sdk/google": "^4.0.99",
+    "ai": "^7.0.143",
+    "zod": "^4.6.7"
+  }
+}

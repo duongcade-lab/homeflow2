@@ -267,7 +267,6 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
   V.Dump = function(state, nav){
     const screen = [];
-    let parsed = null;
     let editing = false;
 
     const header = el('div',{},[
@@ -373,11 +372,53 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         ta.focus();
         return;
       }
-      parsed = HF.parseBrainDump(text);
-      runAI(parsed);
+      const tasksPromise = (async ()=>{
+        const llm = await tryLLM(text);
+        return llm || HF.parseBrainDump(text);
+      })();
+      runAI(tasksPromise);
     });
 
-    function runAI(parsedTasks){
+    async function tryLLM(text){
+      try{
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(), 9000);
+        const resp = await fetch('/api/parse', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            text,
+            members: HF.MEMBERS.map(m=>({id:m.id, name:m.name, role:m.role, kind:m.kind}))
+          }),
+          signal: ctrl.signal
+        });
+        clearTimeout(t);
+        if(!resp.ok) return null;
+        const data = await resp.json();
+        if(!data.tasks || !data.tasks.length) return null;
+        return normalizeLLMTasks(data.tasks);
+      }catch(e){ return null; }
+    }
+
+    function normalizeLLMTasks(llmTasks){
+      const validMembers = new Set(HF.MEMBERS.map(m=>m.id));
+      const validCats = Object.keys(HF.CATEGORIES);
+      return llmTasks.map(t=>{
+        const cat = validCats.includes(t.category) ? t.category : 'home';
+        const owner = validMembers.has(t.owner) ? t.owner : 'me';
+        const planner = t.planner && validMembers.has(t.planner) ? t.planner : owner;
+        let due = t.date ? new Date(t.date+'T00:00:00') : HF.dayOffset(1);
+        if(isNaN(due.getTime())) due = HF.dayOffset(1);
+        return {
+          title: String(t.title||'').trim(),
+          cat, due, time: t.time||'',
+          owner, planner, shared: !!t.shared,
+          mental: true, status:'open', pts:1, src:'llm'
+        };
+      }).filter(t=>t.title);
+    }
+
+    function runAI(tasksPromise){
       dumpCard.style.display='none';
       stageBox.style.display='';
       stageBox.innerHTML='';
@@ -403,9 +444,10 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       let idx = 0;
       function advance(){
         if(idx >= rows.length){
-          setTimeout(()=>{
+          setTimeout(async ()=>{
             stageBox.style.display='none';
-            renderResults(parsedTasks);
+            const tasks = await tasksPromise;
+            renderResults(tasks);
           }, 320);
           return;
         }
@@ -522,7 +564,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
               shared: !!t.shared,
               status: 'open',
               pts: t.pts || 1,
-              src: 'brain',
+              src: t.src || 'brain',
               createdAt: now
             });
           }
