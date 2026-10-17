@@ -41,9 +41,23 @@
     return `${WEEKDAYS[d.getDay()]} ${dd}/${mm}`;
   };
 
+  let _vnFmt = null;
+  function vnParts(){
+    if(!_vnFmt){
+      _vnFmt = new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Ho_Chi_Minh', year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric', hourCycle:'h23' });
+    }
+    const p = {};
+    _vnFmt.formatToParts(new Date()).forEach(x=>{ if(x.type!=='literal') p[x.type]=parseInt(x.value,10); });
+    return p;
+  }
+
+  HF.vnHour = function(){
+    return vnParts().hour;
+  };
+
   HF.dayOffset = function(n){
-    const d = new Date();
-    d.setHours(0,0,0,0);
+    const p = vnParts();
+    const d = new Date(p.year, p.month-1, p.day);
     d.setDate(d.getDate()+n);
     return d;
   };

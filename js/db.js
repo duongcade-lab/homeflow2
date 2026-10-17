@@ -223,8 +223,8 @@
     }));
 
     const expenses = (ex.data||[]).map(r=>({
-      id: r.id, title: r.title, amount: Number(r.amount), date: r.date,
-      category: r.category, memberId: r.member_id, status: r.status, note: r.note||''
+      id: r.id, name: r.title, amount: Number(r.amount), date: r.date,
+      catId: r.category, memberId: r.member_id, status: r.status, note: r.note||''
     }));
 
     const growth = (gr.data||[]).map(r=>({ id:r.id, kidId:r.kid_id, date:r.date, weight:r.weight, height:r.height, note:r.note||'' }));
@@ -290,8 +290,8 @@
 
     // expenses
     const expRows = ((state.expenses&&state.expenses.records)||[]).map(e=>({
-      id: e.id, household_id: hid, title: e.title, amount: e.amount,
-      date: e.date, category: e.category, member_id: e.memberId||null,
+      id: e.id, household_id: hid, title: e.name, amount: e.amount,
+      date: e.date, category: e.catId, member_id: e.memberId||null,
       status: e.status||'pending', note: e.note||''
     }));
     const de = del('expenses', cur.expenses);

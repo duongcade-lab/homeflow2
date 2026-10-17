@@ -205,7 +205,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
   }
 
   function monthCalendar(state, nav){
-    const now = new Date();
+    const now = HF.dayOffset(0);
     const cursor = calCursor || new Date(now.getFullYear(), now.getMonth(), 1);
     const year = cursor.getFullYear(), month = cursor.getMonth();
     const weekStart = (HF.prefs && HF.prefs.weekStart==='sun') ? 0 : 1;
@@ -652,10 +652,10 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
             if(t.kind==='expense'){
               state.expenses.records.push({
                 id: HF.uid('e'),
-                title: t.title,
+                name: t.title,
                 amount: t.amount,
                 date: HF.isoDate(t.date),
-                category: t.category,
+                catId: t.category,
                 memberId: t.memberId||null,
                 status: 'paid',
                 note: ''
@@ -731,13 +731,24 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
     function showSuccess(items){
       const tc = items.filter(t=>t.kind!=='expense').length;
-      const ec = items.length - tc;
-      const msg = ec && tc ? '\u0110\u00e3 th\u00eam '+tc+' vi\u1ec7c v\u00e0 '+ec+' kho\u1ea3n chi v\u00e0o HomeFlow'
-        : (ec ? '\u0110\u00e3 th\u00eam '+ec+' kho\u1ea3n chi v\u00e0o HomeFlow' : '\u0110\u00e3 th\u00eam '+tc+' vi\u1ec7c v\u00e0o HomeFlow');
+      const exps = items.filter(t=>t.kind==='expense');
+      const ec = exps.length;
+      const names = exps.map(t=>t.title).slice(0,3).join(', ');
+      let msg, sub;
+      if(ec && tc){
+        msg = '\u0110\u00e3 th\u00eam '+tc+' vi\u1ec7c v\u00e0 '+ec+' kho\u1ea3n chi v\u00e0o HomeFlow';
+        sub = 'Chi ph\u00ed: '+names+(ec>3?'\u2026':'')+' \u2014 xem \u1edf tab Chi ph\u00ed';
+      }else if(ec){
+        msg = '\u0110\u00e3 th\u00eam '+ec+' kho\u1ea3n chi v\u00e0o Chi ph\u00ed';
+        sub = names+(ec>3?'\u2026':'')+' \u2014 xem \u1edf tab Chi ph\u00ed';
+      }else{
+        msg = '\u0110\u00e3 th\u00eam '+tc+' vi\u1ec7c v\u00e0o HomeFlow';
+        sub = 'HomeFlow s\u1ebd nh\u1eafc c\u1ea3 nh\u00e0 \u0111\u00fang l\u00fac \u2014 gi\u1edd th\u00ec nh\u1eb9 \u0111\u1ea7u h\u01a1n r\u1ed3i \u2728';
+      }
       const ov = el('div',{class:'success-overlay'},[
         el('div',{class:'success-check',html:'<svg viewBox="0 0 64 64" width="86" height="86"><circle cx="32" cy="32" r="29" fill="none" stroke="#7FA98B" stroke-width="4"/><path d="M19 33 L28 42 L46 23" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>'}),
         el('div',{class:'success-t'},[msg]),
-        el('div',{class:'success-s'},['HomeFlow s\u1ebd nh\u1eafc c\u1ea3 nh\u00e0 \u0111\u00fang l\u00fac \u2014 gi\u1edd th\u00ec nh\u1eb9 \u0111\u1ea7u h\u01a1n r\u1ed3i \u2728'])
+        el('div',{class:'success-s'},[sub])
       ]);
       document.body.appendChild(ov);
       requestAnimationFrame(()=>ov.classList.add('show'));
@@ -1196,7 +1207,7 @@ V.Expenses = function(state, nav, filter){
     }
 
     function periodRange(f){
-      const now = new Date();
+      const now = HF.dayOffset(0);
       if(f==='today'){
         const d0 = HF.dayOffset(0); d0.setHours(0,0,0,0);
         const d1 = new Date(d0); d1.setDate(d1.getDate()+1);
@@ -1298,7 +1309,7 @@ V.Expenses = function(state, nav, filter){
   function openExpenseSheet(state, nav, exp){
     const isEdit = !!exp;
     const e = exp ? Object.assign({}, exp) : {
-      name:'', amount:'', date:HF.isoDate(new Date()),
+      name:'', amount:'', date:HF.isoDate(HF.dayOffset(0)),
       catId:(state.expenses.categories[0]||{}).id||'', memberId:'', status:'paid', note:''
     };
     const cur = state.expenses.currency || 'VND';

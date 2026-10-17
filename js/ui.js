@@ -285,19 +285,19 @@
   };
 
   HF.todayGreeting = function(){
-    const h = new Date().getHours();
+    const h = HF.vnHour ? HF.vnHour() : new Date().getHours();
     if(h<11) return 'Ch\u00e0o bu\u1ed5i s\u00e1ng';
     if(h<18) return 'Ch\u00e0o bu\u1ed5i chi\u1ec1u';
     return 'Ch\u00e0o bu\u1ed5i t\u1ed1i';
   };
 
   HF.todayEmptyMsg = function(){
-    const d = new Date();
+    const d = HF.dayOffset(0);
     const day = d.getDay();
     if(day===0 || day===6){
       return {ico:'\u{1F49C}', t:'Cu\u1ed1i tu\u1ea7n th\u1ea3nh th\u01a1i', s:'T\u1eadn h\u01b0\u1edfng th\u1eddi gian b\u00ean nhau nh\u00e9.'};
     }
-    const h = d.getHours();
+    const h = HF.vnHour ? HF.vnHour() : d.getHours();
     if(h < 12){
       return {ico:'\u{1F324}\uFE0F', t:'H\u00f4m nay ch\u01b0a c\u00f3 vi\u1ec7c n\u00e0o c\u1ea7n nh\u1edb', s:'C\u1ea3 nh\u00e0 m\u00ecnh c\u1ee9 thong th\u1ea3 nh\u00e9.'};
     }
