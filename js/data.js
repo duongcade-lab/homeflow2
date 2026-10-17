@@ -310,8 +310,16 @@ const KEY = 'homeflow_state_v1';
   };
 
   HF.deleteTask = function(state, id){
+    const t = state.tasks.find(x=>x.id===id);
+    let removed = 0;
+    if(t && t.batchId){
+      const before = state.expenses.records.length;
+      state.expenses.records = state.expenses.records.filter(r=>r.batchId!==t.batchId);
+      removed = before - state.expenses.records.length;
+    }
     state.tasks = state.tasks.filter(x=>x.id!==id);
     HF.saveState(state);
+    return removed;
   };
 
   HF.addHistory = function(state, type, rec){

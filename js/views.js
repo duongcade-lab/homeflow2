@@ -647,6 +647,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
       confirmBtn.addEventListener('click', ()=>{
         const now = new Date();
+        const bid = HF.uid('b');
         const doAdd = ()=>{
           for(const t of parsedTasks){
             if(t.kind==='expense'){
@@ -658,7 +659,8 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
                 catId: t.category,
                 memberId: t.memberId||null,
                 status: 'paid',
-                note: ''
+                note: '',
+                batchId: bid
               });
               continue;
             }
@@ -676,7 +678,8 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
               pts: t.pts || 1,
               src: t.src || 'brain',
               note: t.note || '',
-              createdAt: now
+              createdAt: now,
+              batchId: bid
             });
           }
           state.dumpCount = (state.dumpCount||0)+1;
@@ -1685,11 +1688,11 @@ V.Expenses = function(state, nav, filter){
 
     function videoSection(state, nav){
       const VIDEOS = [
-        { ico:'\u{1F49C}', title:'HomeFlow d\u00e0nh cho c\u1ea3 gia \u0111\u00ecnh', desc:'T\u1eebng b\u01b0\u1edbc c\u00f9ng c\u1ea3 nh\u00e0: n\u00f3i vi\u1ec7c, ph\u00e2n vai, c\u00e2n b\u1eb1ng v\u00e0 chi ph\u00ed.', dur:'2:30', src:'assets/videos/homeflow-family-guide.mp4', endLabel:'\u2728 Th\u1eed n\u00f3i v\u1edbi HomeFlow', endNav:['dump'] },
-        { ico:'\u2B50', title:'HomeFlow d\u00e0nh cho con', desc:'Video ng\u1eafn gi\u00fap con t\u1ef1 l\u00e0m nh\u1eefng vi\u1ec7c nh\u1ecf m\u1ed7i ng\u00e0y.', dur:'1:14', src:'assets/videos/homeflow-kids-guide.mp4', endLabel:'\u2B50 Xem nhi\u1ec7m v\u1ee5 c\u1ee7a con', endNav:['missions'] }
+        { ico:'\u{1F49C}', title:'HomeFlow d\u00e0nh cho c\u1ea3 gia \u0111\u00ecnh', desc:'T\u1eebng b\u01b0\u1edbc c\u00f9ng c\u1ea3 nh\u00e0: n\u00f3i vi\u1ec7c, ph\u00e2n vai, c\u00e2n b\u1eb1ng v\u00e0 chi ph\u00ed.', dur:'2:30', srcs:[{src:'assets/videos/homeflow-family-guide-h264.mp4', codecs:'avc1.42E01E'},{src:'assets/videos/homeflow-family-guide.mp4', codecs:'vp9'}], endLabel:'\u2728 Th\u1eed n\u00f3i v\u1edbi HomeFlow', endNav:['dump'] },
+        { ico:'\u2B50', title:'HomeFlow d\u00e0nh cho con', desc:'Video ng\u1eafn gi\u00fap con t\u1ef1 l\u00e0m nh\u1eefng vi\u1ec7c nh\u1ecf m\u1ed7i ng\u00e0y.', dur:'1:14', srcs:[{src:'assets/videos/homeflow-kids-guide-h264.mp4', codecs:'avc1.42E01E'},{src:'assets/videos/homeflow-kids-guide.mp4', codecs:'vp9'}], endLabel:'\u2B50 Xem nhi\u1ec7m v\u1ee5 c\u1ee7a con', endNav:['missions'] }
       ];
       return el('div',{}, VIDEOS.map(v=>{
-        return el('div',{class:'video-row',onclick:()=>HF.playVideo({src:v.src, title:v.title, endLabel:v.endLabel, endNav:v.endNav, nav:nav})},[
+        return el('div',{class:'video-row',onclick:()=>HF.playVideo({srcs:v.srcs, title:v.title, endLabel:v.endLabel, endNav:v.endNav, nav:nav})},[
           el('span',{class:'video-thumb'},[v.ico]),
           el('div',{style:'flex:1;min-width:0'},[
             el('div',{class:'video-title'},[v.title]),
@@ -1724,14 +1727,7 @@ V.Expenses = function(state, nav, filter){
     return s;
   }
 
-  HF.openHelp = function(state, nav){
-    HF.sheet({
-      title:'Tr\u1ee3 gi\u00fap',
-      body:()=>el('div',{style:'display:flex;flex-direction:column;gap:14px'}, helpCenterNodes(state, nav))
-    });
-  };
-
-V.Settings = function(state, nav, params){
+  V.Settings = function(state, nav, params){
     params = params||{};
     const path = params.path||[];
     const root = el('div',{});
@@ -1862,8 +1858,8 @@ V.Settings = function(state, nav, params){
         title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+t.title+'\u201d?',
         message:'Vi\u1ec7c n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi HomeFlow.',
         onConfirm:()=>{
-          HF.deleteTask(state, t.id);
-          HF.toast('\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
+          const removed = HF.deleteTask(state, t.id);
+          HF.toast(removed ? '\u0110\u00e3 x\u00f3a vi\u1ec7c v\u00e0 '+removed+' kho\u1ea3n chi li\u00ean quan' : '\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
           rerender();
         }
       });
@@ -1909,8 +1905,8 @@ V.Settings = function(state, nav, params){
           title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+draft.title+'\u201d?',
           message:'Vi\u1ec7c n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi HomeFlow.',
           onConfirm:()=>{
-            HF.deleteTask(state, draft.id);
-            HF.toast('\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
+            const removed = HF.deleteTask(state, draft.id);
+            HF.toast(removed ? '\u0110\u00e3 x\u00f3a vi\u1ec7c v\u00e0 '+removed+' kho\u1ea3n chi li\u00ean quan' : '\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
             rerender();
           }
         });
@@ -2776,12 +2772,14 @@ function buildReminders(){
       const isEdit = !!cat;
       const c = cat ? Object.assign({}, cat) : {name:'', emoji:'\u{1F4E6}'};
       const EMOJIS = ['\u{1F3E0}','\u{1F35C}','\u{1F393}','\u{1FA7A}','\u{1F6D2}','\u{1F697}','\u{1F381}','\u{1F389}','\u{1F4E6}','\u{1F3AC}','\u{1F6B2}','\u{1F4B8}'];
+      const EMOJI_NAMES = {'\u{1F3E0}':'Nh\u00e0 c\u1eeda','\u{1F35C}':'\u0102n u\u1ed1ng','\u{1F393}':'Gi\u00e1o d\u1ee5c','\u{1FA7A}':'S\u1ee9c kh\u1ecfe','\u{1F6D2}':'Mua s\u1eafm','\u{1F697}':'Di chuy\u1ec3n','\u{1F381}':'Qu\u00e0 t\u1eb7ng','\u{1F389}':'Gi\u1ea3i tr\u00ed','\u{1F4E6}':'Kh\u00e1c','\u{1F3AC}':'Gi\u1ea3i tr\u00ed','\u{1F6B2}':'Di chuy\u1ec3n','\u{1F4B8}':'Ti\u1ec1n b\u1ea1c'};
       const name = el('input',{class:'input',value:c.name,placeholder:'T\u00ean danh m\u1ee5c (VD: Th\u00fa c\u01b0ng)'});
       const emojiBtns = EMOJIS.map(em=>{
         const b = el('button',{class:'ava-pick'+(em===c.emoji?' on':''),onclick:()=>{
           c.emoji=em;
           emojiBtns.forEach(x=>x.classList.remove('on'));
           b.classList.add('on');
+          if(!isEdit && !name.value.trim()) name.value = EMOJI_NAMES[em]||'';
         }},[em]);
         return b;
       });

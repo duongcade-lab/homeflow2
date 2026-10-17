@@ -9,14 +9,36 @@
   }
 
   HF.playVideo = function(opts){
-    const src = opts.src, title = opts.title||'Video';
+    const srcs = (Array.isArray(opts.srcs) && opts.srcs.length) ? opts.srcs : [{src:opts.src}];
+    const title = opts.title||'Video';
     const endLabel = opts.endLabel||'';
     const endNav = opts.endNav||null;
     const nav = opts.nav||null;
 
     const overlay = el('div',{class:'video-overlay'});
     const player = el('div',{class:'video-player'});
-    const video = el('video',{class:'video-el', src:src, playsInline:'', preload:'auto', 'webkit-playsinline':''});
+    const video = el('video',{class:'video-el', playsInline:'', preload:'auto', 'webkit-playsinline':''});
+
+    let srcIdx = 0;
+    function pickSrc(){
+      const probe = document.createElement('video');
+      for(let i=0;i<srcs.length;i++){
+        const s = srcs[i];
+        try{
+          const sig = (s.mime||'video/mp4') + (s.codecs ? '; codecs="'+s.codecs+'"' : '');
+          if(probe.canPlayType(sig)) return i;
+        }catch(e){}
+      }
+      return 0;
+    }
+    function loadSrc(){
+      if(srcIdx >= srcs.length) return false;
+      video.src = srcs[srcIdx].src;
+      video.load();
+      return true;
+    }
+    srcIdx = pickSrc();
+    loadSrc();
 
     const topBar = el('div',{class:'video-top'},[
       el('div',{class:'video-top-title'},[title]),
@@ -110,7 +132,8 @@
       endOverlay.classList.add('show');
     });
     video.addEventListener('error', ()=>{
-      HF.toast('Không phát được video','\u{1F914}');
+      srcIdx++;
+      if(!loadSrc()) HF.toast('Không phát được video','\u{1F914}');
     });
 
     progWrap.addEventListener('click', seekFromEvent);
