@@ -67,7 +67,7 @@ ${text}`;
   try {
     const provider = createGoogle({ apiKey: key });
     const { object } = await generateObject({
-      model: provider('gemini-2.5-flash'),
+      model: provider('gemini-3.8-flash'),
       schema: z.object({ tasks: z.array(TaskSchema) }),
       prompt
     });
