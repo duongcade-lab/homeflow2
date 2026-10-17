@@ -419,9 +419,11 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         return;
       }
       const tasksPromise = (async ()=>{
-        const llm = await tryLLM(text);
-        const base = llm ? normalizeLLMTasks(llm, text) : HF.parseBrainDump(text);
-        return base.concat(HF.parseExpenses(text));
+        const exps = HF.parseExpenses(text);
+        const taskText = HF.stripExpenseSentences ? HF.stripExpenseSentences(text) : text;
+        const llm = taskText.trim().length >= 8 ? await tryLLM(taskText) : null;
+        const base = llm ? normalizeLLMTasks(llm, taskText) : HF.parseBrainDump(taskText);
+        return base.concat(exps);
       })();
       runAI(tasksPromise);
     }

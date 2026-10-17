@@ -341,6 +341,10 @@
     return out;
   };
 
+  HF.stripExpenseSentences = function(text){
+    return splitSentences(text).filter(s=>!parseExpenseSentence(norm(s))).join('. ');
+  };
+
   function buildTask(low, due, dueKnown){
     const times = parseTimes(low);
     const time = times[0] || '';
