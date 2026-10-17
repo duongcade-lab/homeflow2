@@ -1387,6 +1387,56 @@ V.Expenses = function(state, nav, filter){
     return el('div',{class:'help-a-inner'},blocks);
   }
 
+  function manualNodes(){
+    const S = [
+      ['1. HomeFlow là g\u00ec?','\u1ee8ng d\u1ee5ng gi\u00fap c\u1ea3 gia \u0111\u00ecnh c\u00f9ng chia s\u1ebb nh\u1eefng vi\u1ec7c c\u1ea7n nh\u1edb: vi\u1ec7c nh\u00e0, \u0111\u01b0a \u0111\u00f3n con, h\u00f3a \u0111\u01a1n, l\u1ecbch kh\u00e1m\u2026 M\u1ed7i ng\u01b0\u1eddi chia s\u1ebb m\u1ed9t ch\u00fat, c\u1ea3 nh\u00e0 nh\u1eb9 nh\u00e0ng h\u01a1n \u{1F49C}.'],
+      ['2. B\u1eaft \u0111\u1ea7u s\u1eed d\u1ee5ng','\u0110\u0103ng nh\u1eadp Google \u2192 t\u1ea1o ho\u1eb7c nh\u1eadn l\u1eddi m\u1eddi gia \u0111\u00ecnh \u2192 th\u00eam th\u00e0nh vi\u00ean \u2192 ghi vi\u1ec7c \u0111\u1ea7u ti\u00ean \u2192 xem B\u1ea3n tin tu\u1ea7n.'],
+      ['3. \u0110\u0103ng nh\u1eadp b\u1eb1ng Google','B\u1ea5m \u201cTi\u1ebfp t\u1ee5c v\u1edbi Google\u201d \u2192 ch\u1ecdn t\u00e0i kho\u1ea3n. L\u1ea7n sau t\u1ef1 nh\u1edb b\u1ea1n. \u0110\u1ed5i t\u00e0i kho\u1ea3n: C\u00e0i \u0111\u1eb7t \u2192 T\u00e0i kho\u1ea3n \u2192 \u0110\u0103ng xu\u1ea5t.'],
+      ['4. T\u1ea1o ho\u1eb7c tham gia gia \u0111\u00ecnh','T\u1ea1o m\u1edbi: b\u1ea5m \u201cT\u1ea1o gia \u0111\u00ecnh m\u1edbi\u201d, \u0111\u1eb7t t\u00ean, b\u1ea1n l\u00e0 ch\u1ee7 gia \u0111\u00ecnh. Tham gia: m\u1edf link m\u1eddi \u2192 \u0111\u0103ng nh\u1eadp \u0111\u00fang email \u0111\u01b0\u1ee3c m\u1eddi \u2192 ch\u1ea5p nh\u1eadn.'],
+      ['5. Owner v\u00e0 Adult c\u00f3 th\u1ec3 l\u00e0m g\u00ec?','Ch\u1ee7 gia \u0111\u00ecnh (Owner): m\u1eddi / g\u1ee1 ng\u01b0\u1eddi l\u1edbn, \u0111\u1ed5i t\u00ean gia \u0111\u00ecnh. Ng\u01b0\u1eddi l\u1edbn (Adult): d\u00f9ng chung m\u1ecdi d\u1eef li\u1ec7u, t\u1ea1o/s\u1eeda/ho\u00e0n th\u00e0nh vi\u1ec7c, qu\u1ea3n l\u00fd Nhi\u1ec7m v\u1ee5 c\u1ee7a con v\u00e0 Chi ph\u00ed.'],
+      ['6. M\u1eddi ng\u01b0\u1eddi l\u1edbn v\u00e0o gia \u0111\u00ecnh','C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean \u2192 \u201cM\u1eddi ng\u01b0\u1eddi l\u1edbn\u201d \u2192 nh\u1eadp email \u2192 g\u1eedi link m\u1eddi (h\u1ea1n 7 ng\u00e0y).'],
+      ['7. Home (H\u00f4m nay)','T\u00f3m t\u1eaft m\u1ed9t ng\u00e0y: vi\u1ec7c h\u00f4m nay, ai \u0111ang g\u00e1nh nhi\u1ec1u, nhi\u1ec7m v\u1ee5 c\u1ee7a con, l\u1eddi \u0111\u1ed9ng vi\u00ean.'],
+      ['8. N\u00f3i v\u1edbi HomeFlow','B\u1ea5m n\u00fat n\u00f3i \u2192 k\u1ec3 vi\u1ec7c t\u1ef1 nhi\u00ean \u2192 \u201cHomeFlow hi\u1ec3u gi\u00fap\u201d \u2192 ki\u1ec3m tra \u2192 \u201cTh\u00eam v\u00e0o HomeFlow\u201d.'],
+      ['9. Th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng','Vi\u1ec7c nh\u00e0 \u2192 \u201c+\u201d \u2192 nh\u1eadp t\u00ean, ng\u00e0y, ng\u01b0\u1eddi lo, ng\u01b0\u1eddi l\u00e0m \u2192 L\u01b0u.'],
+      ['10. C\u1ea3nh b\u00e1o vi\u1ec7c tr\u00f9ng','Th\u00eam vi\u1ec7c gi\u1ed1ng vi\u1ec7c \u0111\u00e3 c\u00f3 (c\u00f9ng t\u00ean, ng\u00e0y, gi\u1edd) s\u1ebd hi\u1ec7n c\u1ea3nh b\u00e1o: Ch\u1ec9nh s\u1eeda ho\u1eb7c V\u1eabn th\u00eam.'],
+      ['11. S\u1eeda, ho\u00e0n th\u00e0nh v\u00e0 x\u00f3a vi\u1ec7c','B\u1ea5m v\u00e0o vi\u1ec7c \u0111\u1ec3 s\u1eeda. B\u1ea5m \u2713 \u0111\u1ec3 ho\u00e0n th\u00e0nh. X\u00f3a c\u00f3 x\u00e1c nh\u1eadn.'],
+      ['12. Family Planner: Ng\u00e0y / Tu\u1ea7n / Th\u00e1ng','Ba ch\u1ebf \u0111\u1ed9 xem trong tab Vi\u1ec7c nh\u00e0. \u1ede Th\u00e1ng, b\u1ea5m v\u00e0o ng\u00e0y \u0111\u1ec3 xem ho\u1eb7c th\u00eam vi\u1ec7c.'],
+      ['13. Planning Owner v\u00e0 Task Owner','Ng\u01b0\u1eddi lo (Planning Owner) = nh\u1edb, chu\u1ea9n b\u1ecb, l\u00ean k\u1ebf ho\u1ea1ch. Ng\u01b0\u1eddi l\u00e0m (Task Owner) = tr\u1ef1c ti\u1ebfp th\u1ef1c hi\u1ec7n. Hai ng\u01b0\u1eddi c\u00f3 th\u1ec3 kh\u00e1c nhau.'],
+      ['14. Family Balance','Tab C\u00e2n b\u1eb1ng hi\u1ec3n th\u1ecb bi\u1ec3u \u0111\u1ed3 vi\u1ec7c lo / vi\u1ec7c l\u00e0m c\u1ee7a t\u1eebng ng\u01b0\u1eddi.'],
+      ['15. Smart Rebalance','HomeFlow g\u1ee3i \u00fd chuy\u1ec3n vi\u1ec7c t\u1eeb ng\u01b0\u1eddi g\u00e1nh nhi\u1ec1u sang ng\u01b0\u1eddi r\u1ea3nh h\u01a1n \u2014 b\u1ea5m \u201c\u0110\u1ed3ng \u00fd\u201d \u0111\u1ec3 \u00e1p d\u1ee5ng.'],
+      ['16. Nhi\u1ec7m v\u1ee5 c\u1ee7a con','Giao vi\u1ec7c nh\u1ecf cho con: m\u1edf \u2B50 Nhi\u1ec7m v\u1ee5 c\u1ee7a con \u2192 \u201c+ Th\u00eam nhi\u1ec7m v\u1ee5 cho con\u201d \u2192 con b\u1ea5m \u201cXong r\u1ed3i! \u2B50\u201d.'],
+      ['17. Weekly Family Brief','Tab B\u1ea3n tin t\u1ed5ng k\u1ebft tu\u1ea7n: vi\u1ec7c \u0111\u00e3 xong, vi\u1ec7c s\u1eafp t\u1edbi v\u00e0 \u0111i\u1ec1u c\u1ea7n nh\u1edb.'],
+      ['18. Chi ph\u00ed gia \u0111\u00ecnh','Tab Chi ph\u00ed: \u201c+\u201d \u0111\u1ec3 ghi kho\u1ea3n chi (t\u00ean, s\u1ed1 ti\u1ec1n, danh m\u1ee5c, ng\u00e0y), \u0111\u00e1nh d\u1ea5u \u201c\u0110\u00e3 thanh to\u00e1n\u201d khi tr\u1ea3.'],
+      ['19. Th\u00e0nh vi\u00ean gia \u0111\u00ecnh','C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean: th\u00eam / s\u1eeda / x\u00f3a th\u00e0nh vi\u00ean, m\u1edf h\u1ed3 s\u01a1 con.'],
+      ['20. Ph\u00e1t tri\u1ec3n c\u1ee7a con','Trong h\u1ed3 s\u01a1 con, tab Ph\u00e1t tri\u1ec3n ghi chi\u1ec1u cao, c\u00e2n n\u1eb7ng v\u00e0 v\u1ebd bi\u1ec3u \u0111\u1ed3.'],
+      ['21. S\u1ee9c kh\u1ecfe','Trong h\u1ed3 s\u01a1 con, tab S\u1ee9c kh\u1ecfe ghi c\u00e1c l\u1ea7n kh\u00e1m v\u00e0 ghi ch\u00fa s\u1ee9c kh\u1ecfe.'],
+      ['22. H\u1ecdc t\u1eadp','Trong h\u1ed3 s\u01a1 con, tab H\u1ecdc t\u1eadp ghi \u0111i\u1ec3m s\u1ed1 v\u00e0 th\u00e0nh t\u00edch c\u1ee7a con.'],
+      ['23. C\u00e0i \u0111\u1eb7t','G\u1ed3m: Vi\u1ec7c nh\u00e0, Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean, Nh\u1eafc vi\u1ec7c (s\u1eafp c\u00f3), L\u1ecbch & Hi\u1ec3n th\u1ecb, Chi ph\u00ed, Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i, D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0.'],
+      ['24. Tr\u1ee3 gi\u00fap','N\u00fat \u201c\u2753 Tr\u1ee3 gi\u00fap\u201d \u1edf H\u00f4m nay ho\u1eb7c C\u00e0i \u0111\u1eb7t \u2192 Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i \u2014 c\u00f9ng m\u1edf m\u1ed9t Help Center.'],
+      ['25. G\u1eedi ph\u1ea3n h\u1ed3i','Ch\u1ecdn m\u1ee9c h\u1eefu \u00edch \u2192 ch\u1ecdn khu v\u1ef1c \u2192 m\u00f4 t\u1ea3 th\u00eam \u2192 \u201cG\u1eedi ph\u1ea3n h\u1ed3i\u201d. Phi\u00ean b\u1ea3n th\u1eed nghi\u1ec7m: l\u01b0u tr\u00ean thi\u1ebft b\u1ecb, ch\u01b0a g\u1eedi l\u00ean m\u00e1y ch\u1ee7.'],
+      ['26. \u0110\u0103ng xu\u1ea5t','C\u00e0i \u0111\u1eb7t \u2192 T\u00e0i kho\u1ea3n \u2192 \u201c\u0110\u0103ng xu\u1ea5t\u201d \u2192 x\u00e1c nh\u1eadn.'],
+      ['27. C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p','Xem m\u1ee5c \u201cC\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p\u201d trong Help Center n\u00e0y.']
+    ];
+    const child = [
+      ['\u{1F4CB} Xem vi\u1ec7c c\u1ee7a con','M\u1edf \u2B50 Nhi\u1ec7m v\u1ee5 c\u1ee7a con \u0111\u1ec3 xem vi\u1ec7c con c\u1ea7n l\u00e0m.'],
+      ['\u{1F9E0} Nh\u1edb vi\u1ec7c c\u1ea7n l\u00e0m','\u0110\u1ecdc t\u00ean vi\u1ec7c v\u00e0 ng\u00e0y l\u00e0m. V\u00ed d\u1ee5: \u{1F392} T\u1ef1 chu\u1ea9n b\u1ecb c\u1eb7p \u2014 t\u1ed1i nay.'],
+      ['\u{1F528} Chu\u1ea9n b\u1ecb','\u0110\u1ecdc d\u00f2ng \u201cCon c\u1ea7n chu\u1ea9n b\u1ecb g\u00ec?\u201d \u0111\u1ec3 bi\u1ebft c\u1ea7n mang g\u00ec.'],
+      ['\u2705 \u0110\u00e1nh d\u1ea5u \u0111\u00e3 xong','L\u00e0m xong th\u00ec b\u1ea5m \u201cXong r\u1ed3i! \u2B50\u201d \u2014 c\u1ea3 nh\u00e0 c\u00f9ng vui!'],
+      ['\u{1F49C} C\u00f9ng c\u1ea3 nh\u00e0 chia s\u1ebb','M\u1ed7i ng\u01b0\u1eddi l\u00e0m m\u1ed9t ch\u00fat, c\u1ea3 nh\u00e0 nh\u1eb9 nh\u00e0ng h\u01a1n.']
+    ];
+    return el('div',{class:'help-a-inner'},[
+      ...S.map(([t,x])=>el('div',{},[
+        el('div',{class:'manual-h'},[t]),
+        el('div',{class:'manual-t'},[x])
+      ])),
+      el('div',{class:'manual-child-head'},['\u2B50 H\u01af\u1edaNG D\u1eaaN NHANH CHO CON']),
+      ...child.map(([t,x])=>el('div',{},[
+        el('div',{class:'manual-h'},[t]),
+        el('div',{class:'manual-t'},[x])
+      ]))
+    ]);
+  }
+
   function helpCenterNodes(state, nav){
     const s = [];
 
@@ -1523,11 +1573,11 @@ V.Expenses = function(state, nav, filter){
           steps:['\u0110\u1ecdc c\u00e2u h\u1ecfi b\u00ean d\u01b0\u1edbi.','B\u1ea5m v\u00e0o c\u00e2u h\u1ecfi \u0111\u1ec3 xem c\u00e2u tr\u1ea3 l\u1eddi.'],
           example:'\u201cD\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?\u201d \u2014 c\u00e2u tr\u1ea3 l\u1eddi n\u1eb1m ngay b\u00ean d\u01b0\u1edbi.'
         }],
-        ['\u{1F4D6}','User Manual',{
-          what:'To\u00e0n b\u1ed9 h\u01b0\u1edbng d\u1eabn HomeFlow t\u1eadp h\u1ee3p trong m\u1ed9t n\u01a1i.',
+        ['\u{1F4D6}','H\u01b0\u1edbng d\u1eabn s\u1eed d\u1ee5ng HomeFlow',{
+          what:'To\u00e0n b\u1ed9 h\u01b0\u1edbng d\u1eabn s\u1eed d\u1ee5ng HomeFlow \u2014 t\u1eeb b\u1eaft \u0111\u1ea7u \u0111\u1ebfn t\u1eebng t\u00ednh n\u0103ng.',
           when:'Khi mu\u1ed1n t\u00ecm hi\u1ec3u k\u1ef9 m\u1ed9t t\u00ednh n\u0103ng c\u1ee5 th\u1ec3.',
-          steps:['Ch\u1ecdn m\u1ee5c ph\u00f9 h\u1ee3p \u1edf c\u00e1c ph\u1ea7n tr\u00ean (B\u1eaft \u0111\u1ea7u, Vi\u1ec7c nh\u00e0, Chi ph\u00ed\u2026).','B\u1ea5m v\u00e0o m\u1ee5c \u0111\u1ec3 m\u1edf h\u01b0\u1edbng d\u1eabn chi ti\u1ebft.'],
-          example:'Mu\u1ed1n bi\u1ebft c\u00e1ch d\u00f9ng Family Planner? M\u1edf m\u1ee5c \u201cFamily Planner\u201d \u1edf ph\u1ea7n Vi\u1ec7c nh\u00e0.'
+          steps:['M\u1edf m\u1ee5c ph\u00f9 h\u1ee3p b\u00ean d\u01b0\u1edbi.','\u0110\u1ecdc h\u01b0\u1edbng d\u1eabn t\u1eebng b\u01b0\u1edbc.'],
+          example:'Mu\u1ed1n bi\u1ebft c\u00e1ch d\u00f9ng Family Planner? \u0110\u1ecdc m\u1ee5c 12.'
         }],
         ['\u25B6\uFE0F','Video h\u01b0\u1edbng d\u1eabn',{
           what:'Video demo t\u1eebng t\u00ednh n\u0103ng c\u1ee7a HomeFlow.',
@@ -1548,8 +1598,9 @@ V.Expenses = function(state, nav, filter){
     function renderSection(label, topics){
       s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),label]));
       s.push(el('div',{class:'card compact'}, topics.map(([ico,title,doc])=>{
+        const isManual = title==='H\u01b0\u1edbng d\u1eabn s\u1eed d\u1ee5ng HomeFlow';
         const extra = title==='C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p' ? faqBlocks() : null;
-        const body = doc ? helpDoc(doc, nav) : null;
+        const body = isManual ? manualNodes() : (doc ? helpDoc(doc, nav) : null);
         return helpTopic(ico, title, [body, extra].filter(Boolean));
       })));
     }
