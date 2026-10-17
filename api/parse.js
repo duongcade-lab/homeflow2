@@ -66,7 +66,7 @@ ${text}`;
 
   try {
     const { object } = await generateObject({
-      model: google('gemini-2.5-flash'),
+      model: google('gemini-2.5-flash', { apiKey: key }),
       schema: z.object({ tasks: z.array(TaskSchema) }),
       prompt
     });
