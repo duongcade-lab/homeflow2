@@ -237,7 +237,7 @@ create policy households_update_owner on public.households
   for update using (
     exists (
       select 1 from public.household_memberships hm
-      where hm.household_id = id and hm.user_id = auth.uid() and hm.role = 'owner'
+      where hm.household_id = households.id and hm.user_id = auth.uid() and hm.role = 'owner'
     )
   );
 
