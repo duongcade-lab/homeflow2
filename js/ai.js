@@ -205,6 +205,7 @@
         t = t.replace(new RegExp('(?<!\\p{L})'+HF.memberById(doer.kid).name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?!\\p{L})','giu'),' ');
       }
       t = t.replace(/(\u0111\u01b0a|ch\u1edf|\u0111\u00f3n)\s+(con|b\u00e9)?\s*/g,' ');
+      t = t.replace(/(^|\s)\u0111i(?=[\s,.]*$)/g,'$1');
       t = t.replace(/\s+/g,' ').trim();
       t = t ? '\u0110\u01b0a '+kidName+' '+t : '\u0110\u01b0a '+kidName;
     }else{
