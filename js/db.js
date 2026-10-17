@@ -232,9 +232,9 @@
 
     const state = {
       tasks, lastDump:null, dumpCount:0,
-      history: { growth, health, study },
+      history: { growth: [], health, study },
       family:{ name: DB.household.name, avatar:'' },
-      feedback:[], growth:[],
+      feedback:[], growth,
       members,
       prefs:{ defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true },
       expenses:{ currency:'VND', categories: HF.CATEGORIES ? Object.values(HF.CATEGORIES).map(c=>({id:c.label, label:c.label, emoji:c.emoji})) : [], records: expenses }
@@ -255,7 +255,7 @@
       tasks: idSet(state.tasks),
       members: idSet(HF.MEMBERS),
       expenses: idSet(state.expenses && state.expenses.records),
-      growth: idSet(state.history && state.history.growth),
+      growth: idSet(state.growth),
       health: idSet(state.history && state.history.health),
       study: idSet(state.history && state.history.study)
     };
@@ -298,7 +298,7 @@
     if(de.length) await sb().from('expenses').delete().in('id', de);
 
     // records
-    const gRows = ((state.history&&state.history.growth)||[]).map(r=>({ id:r.id, household_id:hid, kid_id:r.kidId, date:r.date, weight:r.weight, height:r.height, note:r.note||'' }));
+    const gRows = (state.growth||[]).map(r=>({ id:r.id, household_id:hid, kid_id:r.kidId, date:r.date, weight:r.weight, height:r.height, note:r.note||'' }));
     const hRows = ((state.history&&state.history.health)||[]).map(r=>({ id:r.id, household_id:hid, kid_id:r.kidId, date:r.date, note:r.note||'' }));
     const sRows = ((state.history&&state.history.study)||[]).map(r=>({ id:r.id, household_id:hid, kid_id:r.kidId, date:r.date, subject:r.subject||'', grade:r.grade||'', note:r.note||'' }));
     const dg = del('growth', cur.growth), dh = del('health', cur.health), ds = del('study', cur.study);
