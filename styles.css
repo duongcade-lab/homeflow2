@@ -637,6 +637,20 @@ textarea.input{resize:none;line-height:1.6}
 .cal-cell.empty{cursor:pointer;transition:background .15s,transform .12s}
 .cal-cell.empty:hover{background:rgba(142,116,130,.09)}
 .cal-cell.empty:active{transform:scale(.97)}
+.cal-cell.has-tasks{cursor:pointer;transition:background .15s,transform .12s}
+.cal-cell.has-tasks:hover{background:rgba(142,116,130,.075)}
+.cal-cell.has-tasks:active{transform:scale(.97)}
+.day-task{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:12px;background:rgba(142,116,130,.055);
+  cursor:pointer;transition:background .15s,transform .12s;
+}
+.day-task:active{transform:scale(.98)}
+.day-task-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.day-task-t{font-size:13.5px;font-weight:700;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.day-task-t.done{color:var(--muted);text-decoration:line-through}
+.day-task-m{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.day-task-done{color:var(--sage);font-weight:800;flex:none}
 .cal-day{
   font-size:11px;font-weight:700;color:var(--ink-soft);
   width:22px;height:22px;display:flex;align-items:center;justify-content:center;
@@ -846,6 +860,19 @@ textarea.input{resize:none;line-height:1.6}
   padding:11px 8px;border-radius:12px;transition:all .15s;
 }
 .exp-status-btn.on{border-color:var(--primary);color:var(--primary-deep);background:var(--primary-soft)}
+
+.issue-overlay{
+  position:fixed;inset:0;z-index:65;background:rgba(69,41,57,.35);
+  opacity:0;transition:opacity .25s;
+}
+.issue-overlay.show{opacity:1}
+.issue-box{
+  position:fixed;z-index:66;left:50%;top:42%;transform:translate(-50%,-50%) scale(.94);
+  width:min(88vw,360px);background:#fff;border-radius:20px;padding:18px;
+  box-shadow:0 24px 60px rgba(69,41,57,.28);
+  opacity:0;transition:opacity .25s,transform .25s cubic-bezier(.22,1,.36,1);
+}
+.issue-box.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
 .bal-summary{
   display:flex;align-items:center;gap:12px;

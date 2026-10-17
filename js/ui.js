@@ -340,6 +340,30 @@
     body.querySelector('.btn-danger').addEventListener('click', ()=>{ sheet.close(); opts.onConfirm(); });
   };
 
+  HF.confirmIssue = function(opts){
+    const overlay = el('div',{class:'issue-overlay'});
+    const box = el('div',{class:'issue-box'},[
+      el('div',{style:'font-size:13.5px;font-weight:800'},[opts.title||'C\u00f3 v\u1ebb ch\u01b0a \u1ed5n']),
+      opts.message ? el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px'},[opts.message]) : null,
+      opts.note ? el('div',{style:'font-size:11.5px;color:#B96A43;background:#FBE9E0;border-radius:10px;padding:9px 11px;line-height:1.5;font-weight:600;margin-top:10px'},[opts.note]) : null,
+      el('div',{style:'display:flex;gap:10px;margin-top:14px'},[
+        el('button',{class:'btn btn-ghost',style:'flex:1;padding:13px 10px;font-size:13.5px'},['\u0110\u1ed5i']),
+        el('button',{class:'btn btn-primary',style:'flex:1;padding:13px 10px;font-size:13.5px'},['V\u1eabn th\u00eam'])
+      ])
+    ]);
+    document.body.appendChild(overlay);
+    document.body.appendChild(box);
+    requestAnimationFrame(()=>{ overlay.classList.add('show'); box.classList.add('show'); });
+    function close(){
+      overlay.classList.remove('show');
+      box.classList.remove('show');
+      setTimeout(()=>{ overlay.remove(); box.remove(); }, 300);
+    }
+    overlay.addEventListener('click', close);
+    box.querySelector('.btn-ghost').addEventListener('click', ()=>{ close(); opts.onChange && opts.onChange(); });
+    box.querySelector('.btn-primary').addEventListener('click', ()=>{ close(); opts.onKeep && opts.onKeep(); });
+  };
+
   HF.openHelp = function(){
     HF.sheet({
       title:'Tr\u1ee3 gi\u00fap',

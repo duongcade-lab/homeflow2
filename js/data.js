@@ -258,6 +258,21 @@
     return null;
   };
 
+  HF.isPastDate = function(due){
+    const now = new Date(); now.setHours(0,0,0,0);
+    const d = new Date(due); d.setHours(0,0,0,0);
+    return d < now;
+  };
+
+  HF.timeConflict = function(state, task){
+    if(!task.time) return null;
+    const d = new Date(task.due);
+    return state.tasks.find(t=>
+      t.id!==task.id && t.status==='open' && t.time===task.time &&
+      HF.isSameDay(new Date(t.due), d)
+    ) || null;
+  };
+
   function serialize(t){
     return Object.assign({}, t, {
       due: t.due instanceof Date ? t.due.toISOString() : t.due,

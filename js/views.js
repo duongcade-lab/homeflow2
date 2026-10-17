@@ -153,6 +153,30 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     const sheet = HF.sheet({title:task.title, body:()=>body});
   }
 
+  function openDaySheet(state, nav, year, month, day){
+    const d = new Date(year, month, day);
+    const dayTasks = state.tasks.filter(t=>HF.isSameDay(new Date(t.due), d))
+      .sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+    const body = el('div',{style:'display:flex;flex-direction:column;gap:8px'},[
+      ...dayTasks.map(t=>{
+        const cat = HF.categoryById(t.cat);
+        const owner = HF.memberById(t.owner);
+        return el('div',{class:'day-task',onclick:()=>openTaskSheet(state, nav, t)},[
+          el('span',{class:'day-task-ico',style:'background:'+cat.soft},[cat.emoji]),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'day-task-t'+(t.status==='done'?' done':'')},[t.title]),
+            el('div',{class:'day-task-m'},[(t.time?'\u23F0 '+t.time+' \u00b7 ':'')+owner.short+' l\u00e0m'])
+          ]),
+          t.status==='done' ? el('span',{class:'day-task-done'},['\u2713']) : null
+        ]);
+      }),
+      el('button',{class:'btn btn-soft',style:'width:100%;margin-top:6px',onclick:()=>openAddSheet(state, nav, d, 'month')},[
+        '+ Th\u00eam vi\u1ec7c'
+      ])
+    ]);
+    const sheet = HF.sheet({title:HF.formatDay(d), body:()=>body});
+  }
+
   function openEmptyDaySheet(state, nav, year, month, day){
     const d = new Date(year, month, day);
     const body = el('div',{style:'display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;padding:6px 0 2px'},[
@@ -209,7 +233,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       if(c.tasks.length>2){
         chips.push(el('div',{class:'cal-more'},['+'+(c.tasks.length-2)+' n\u1eefa']));
       }
-      return el('div',{class:'cal-cell'+(c.inMonth?'':' out')+(c.inMonth&&c.tasks.length===0?' empty':''),onclick:c.inMonth&&c.tasks.length===0?()=>openEmptyDaySheet(state, nav, year, month, c.day):null},[
+      return el('div',{class:'cal-cell'+(c.inMonth?'':' out')+(c.inMonth&&c.tasks.length===0?' empty':(c.inMonth&&c.tasks.length>0?' has-tasks':'')),onclick:c.inMonth?(c.tasks.length===0?()=>openEmptyDaySheet(state, nav, year, month, c.day):()=>openDaySheet(state, nav, year, month, c.day)):null},[
         el('div',{class:'cal-day'+(c.isToday?' today':'')},[c.day]),
         ...chips
       ]);
@@ -588,9 +612,25 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         if(dupTask){
           const existing = HF.findDuplicateTask(state, {title:dupTask.title, due:dupTask.due, time:dupTask.time, owner:dupTask.owner, shared:!!dupTask.shared});
           confirmDuplicate(existing, doAdd);
-        }else{
-          doAdd();
+          return;
         }
+        const issueTask = parsedTasks.find(t=>HF.isPastDate(t.due) || HF.timeConflict(state, t));
+        if(issueTask){
+          const past = HF.isPastDate(issueTask.due);
+          const conflict = HF.timeConflict(state, issueTask);
+          const msgs = [];
+          if(past) msgs.push('\u201c'+issueTask.title+'\u201d c\u00f3 ng\u00e0y \u0111\u00e3 qua ('+HF.formatDay(issueTask.due)+')');
+          if(conflict) msgs.push('\u201c'+issueTask.title+'\u201d tr\u00f9ng gi\u1edd v\u1edbi \u201c'+conflict.title+'\u201d ('+conflict.time+')');
+          HF.confirmIssue({
+            head: past&&conflict ? 'C\u00f3 v\u1ebb ch\u01b0a \u1ed5n' : (past ? 'Ng\u00e0y \u0111\u00e3 qua' : 'Gi\u1edd b\u1ecb tr\u00f9ng'),
+            title: msgs.join('. ')+'.',
+            note: 'B\u1ea1n c\u00f3 mu\u1ed1n ch\u1ec9nh s\u1eeda tr\u01b0\u1edbc khi th\u00eam kh\u00f4ng?',
+            onChange: ()=>{ setEditing(true); },
+            onKeep: doAdd
+          });
+          return;
+        }
+        doAdd();
       });
     }
 
@@ -1223,7 +1263,7 @@ V.Settings = function(state, nav, params){
       saveBtn.addEventListener('click', ()=>{
         const nt = title.value.trim();
         if(!nt){ HF.toast('Nh\u1eadp t\u00ean vi\u1ec7c tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
-        HF.updateTask(state, draft.id, {
+        const patch = {
           title: nt,
           cat: catSel.value,
           due: draft.due,
@@ -1231,10 +1271,29 @@ V.Settings = function(state, nav, params){
           planner: draft.planner,
           owner: doerSel.value==='__shared__' ? draft.owner : doerSel.value,
           shared: doerSel.value==='__shared__'
-        });
-        HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt vi\u1ec7c','\u270F\uFE0F');
-        sheet.close();
-        rerender();
+        };
+        const doSave = ()=>{
+          HF.updateTask(state, draft.id, patch);
+          HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt vi\u1ec7c','\u270F\uFE0F');
+          sheet.close();
+          rerender();
+        };
+        const past = HF.isPastDate(patch.due);
+        const conflict = HF.timeConflict(state, Object.assign({id:draft.id}, patch));
+        if(past || conflict){
+          const msgs = [];
+          if(past) msgs.push('Ng\u00e0y n\u00e0y \u0111\u00e3 qua ('+HF.formatDay(patch.due)+')');
+          if(conflict) msgs.push('\u0110\u00e3 c\u00f3 vi\u1ec7c \u201c'+conflict.title+'\u201d v\u00e0o '+conflict.time+' h\u00f4m \u0111\u00f3');
+          HF.confirmIssue({
+            head: past&&conflict ? 'C\u00f3 v\u1ebb ch\u01b0a \u1ed5n' : (past ? 'Ng\u00e0y \u0111\u00e3 qua' : 'Gi\u1edd b\u1ecb tr\u00f9ng'),
+            title: msgs.join('. ')+'.',
+            note: 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u1ed5i ng\u00e0y/gi\u1edd kh\u00f4ng?',
+            onChange: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y/gi\u1edd kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
+            onKeep: doSave
+          });
+          return;
+        }
+        doSave();
       });
     }
 
@@ -2240,8 +2299,23 @@ function buildReminders(){
             document.getElementById('sheetLayer').innerHTML='';
           };
           const dup = HF.findDuplicateTask(state, candidate);
-          if(dup) confirmDuplicate(dup, doAdd);
-          else doAdd();
+          if(dup){ confirmDuplicate(dup, doAdd); return; }
+          const past = HF.isPastDate(candidate.due);
+          const conflict = HF.timeConflict(state, candidate);
+          if(past || conflict){
+            const msgs = [];
+            if(past) msgs.push('Ng\u00e0y n\u00e0y \u0111\u00e3 qua ('+HF.formatDay(candidate.due)+')');
+            if(conflict) msgs.push('\u0110\u00e3 c\u00f3 vi\u1ec7c \u201c'+conflict.title+'\u201d v\u00e0o '+conflict.time+' h\u00f4m \u0111\u00f3');
+            HF.confirmIssue({
+              head: past&&conflict ? 'C\u00f3 v\u1ebb ch\u01b0a \u1ed5n' : (past ? 'Ng\u00e0y \u0111\u00e3 qua' : 'Gi\u1edd b\u1ecb tr\u00f9ng'),
+              title: msgs.join('. ')+'.',
+              note: 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u1ed5i ng\u00e0y/gi\u1edd kh\u00f4ng?',
+              onChange: ()=>{ HF.toast('Ch\u1ecdn ng\u00e0y/gi\u1edd kh\u00e1c nh\u00e9','\u{1F5D3}\uFE0F'); },
+              onKeep: doAdd
+            });
+            return;
+          }
+          doAdd();
         });
         return body;
       }
