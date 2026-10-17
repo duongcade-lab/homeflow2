@@ -305,6 +305,21 @@
     ];
   };
 
+  HF.confirmDelete = function(opts){
+    const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+      el('div',{style:'font-size:13.5px;font-weight:800'},[opts.title||'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a?']),
+      opts.message ? el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.6'},[opts.message]) : null,
+      opts.note ? el('div',{style:'font-size:11.5px;color:var(--danger);background:var(--danger-soft);border-radius:10px;padding:9px 11px;line-height:1.5'},[opts.note]) : null,
+      el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
+        el('button',{class:'btn btn-ghost',style:'flex:1;padding:13px 10px;font-size:13.5px'},['H\u1ee7y']),
+        el('button',{class:'btn btn-danger',style:'flex:1;padding:13px 10px;font-size:13.5px'},['X\u00f3a'])
+      ])
+    ]);
+    const sheet = HF.sheet({title:opts.head||'X\u00f3a?', body:()=>body});
+    body.querySelector('.btn-ghost').addEventListener('click', ()=>sheet.close());
+    body.querySelector('.btn-danger').addEventListener('click', ()=>{ sheet.close(); opts.onConfirm(); });
+  };
+
   HF.openHelp = function(){
     HF.sheet({
       title:'Tr\u1ee3 gi\u00fap',

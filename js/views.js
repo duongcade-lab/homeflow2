@@ -649,7 +649,6 @@ V.Settings = function(state, nav, params){
     params = params||{};
     const path = params.path||[];
     const root = el('div',{});
-    const confirmIds = new Set();
     let taskLimit = 8;
     let profileTab = 'overview';
 
@@ -735,16 +734,16 @@ V.Settings = function(state, nav, params){
     }
 
     function confirmDeleteTask(t){
-      if(confirmIds.has(t.id)){
-        confirmIds.delete(t.id);
-        HF.deleteTask(state, t.id);
-        HF.toast('\u0110\u00e3 x\u00f3a \u201c'+t.title+'\u201d','\u{1F5D1}\uFE0F');
-        rerender();
-      }else{
-        confirmIds.add(t.id);
-        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00e1c nh\u1eadn x\u00f3a','\u26A0\uFE0F');
-        setTimeout(()=>confirmIds.delete(t.id), 3500);
-      }
+      HF.confirmDelete({
+        head:'X\u00f3a vi\u1ec7c n\u00e0y?',
+        title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+t.title+'\u201d?',
+        message:'Vi\u1ec7c n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi HomeFlow.',
+        onConfirm:()=>{
+          HF.deleteTask(state, t.id);
+          HF.toast('\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
+          rerender();
+        }
+      });
     }
 
     function openEditSheet(t){
@@ -782,16 +781,16 @@ V.Settings = function(state, nav, params){
 
       const delBtn = body.querySelector('.btn-danger');
       delBtn.addEventListener('click', ()=>{
-        if(delBtn.dataset.confirm){
-          HF.deleteTask(state, draft.id);
-          HF.toast('\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
-          sheet.close();
-          rerender();
-        }else{
-          delBtn.dataset.confirm='1';
-          delBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn x\u00f3a?';
-          setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='\u{1F5D1}\uFE0F X\u00f3a'; }, 3000);
-        }
+        HF.confirmDelete({
+          head:'X\u00f3a vi\u1ec7c n\u00e0y?',
+          title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+draft.title+'\u201d?',
+          message:'Vi\u1ec7c n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi HomeFlow.',
+          onConfirm:()=>{
+            HF.deleteTask(state, draft.id);
+            HF.toast('\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
+            rerender();
+          }
+        });
       });
 
       const saveBtn = body.querySelector('.btn-primary');
@@ -855,16 +854,21 @@ V.Settings = function(state, nav, params){
     }
 
     function confirmRemoveMember(m){
-      if(confirmIds.has('m'+m.id)){
-        confirmIds.delete('m'+m.id);
-        HF.removeMember(m.id, state);
-        HF.toast('\u0110\u00e3 x\u00f3a '+m.name,'\u{1F5D1}\uFE0F');
-        rerender();
-      }else{
-        confirmIds.add('m'+m.id);
-        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00f3a '+m.name+' \u2014 vi\u1ec7c c\u1ee7a '+m.name+' s\u1ebd chuy\u1ec3n cho M\u1eb9','\u26A0\uFE0F');
-        setTimeout(()=>confirmIds.delete('m'+m.id), 4000);
-      }
+      const taskCount = state.tasks.filter(t=>t.owner===m.id || t.planner===m.id).length;
+      const notes = [];
+      if(taskCount>0) notes.push(taskCount+' vi\u1ec7c \u0111ang li\u00ean quan s\u1ebd \u0111\u01b0\u1ee3c chuy\u1ec3n cho M\u1eb9.');
+      if(m.kind==='kid') notes.push('L\u1ecbch s\u1eed s\u1ee9c kh\u1ecfe, h\u1ecdc t\u1eadp v\u00e0 ch\u1ec9 s\u1ed1 ph\u00e1t tri\u1ec3n c\u1ee7a '+m.name+' s\u1ebd b\u1ecb x\u00f3a.');
+      HF.confirmDelete({
+        head:'X\u00f3a th\u00e0nh vi\u00ean?',
+        title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+m.name+'\u201d?',
+        message:'Th\u00e0nh vi\u00ean n\u00e0y s\u1ebd b\u1ecb x\u00f3a kh\u1ecfi gia \u0111\u00ecnh.',
+        note: notes.join(' '),
+        onConfirm:()=>{
+          HF.removeMember(m.id, state);
+          HF.toast('\u0110\u00e3 x\u00f3a '+m.name,'\u{1F5D1}\uFE0F');
+          rerender();
+        }
+      });
     }
 
     function openMemberSheet(member){
@@ -992,8 +996,16 @@ V.Settings = function(state, nav, params){
             r.note ? el('div',{class:'hist-note'},[r.note]) : null
           ]),
           el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>{
-            HF.deleteHistory(state, type, r.id);
-            rerender();
+            HF.confirmDelete({
+              head:'X\u00f3a ghi ch\u00fa?',
+              title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+r.title+'\u201d?',
+              message:'Ghi ch\u00fa n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi l\u1ecbch s\u1eed.',
+              onConfirm:()=>{
+                HF.deleteHistory(state, type, r.id);
+                HF.toast('\u0110\u00e3 x\u00f3a ghi ch\u00fa','\u{1F5D1}\uFE0F');
+                rerender();
+              }
+            });
           }},['\u{1F5D1}\uFE0F'])
         ]);
       }
@@ -1071,16 +1083,16 @@ V.Settings = function(state, nav, params){
       const delBtn = body.querySelector('.btn-danger');
       if(delBtn){
         delBtn.addEventListener('click', ()=>{
-          if(delBtn.dataset.confirm){
-            HF.deleteGrowth(state, rec.id);
-            HF.toast('\u0110\u00e3 x\u00f3a ch\u1ec9 s\u1ed1','\u{1F5D1}\uFE0F');
-            sheet.close();
-            rerender();
-          }else{
-            delBtn.dataset.confirm='1';
-            delBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn x\u00f3a?';
-            setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='\u{1F5D1}\uFE0F X\u00f3a'; }, 3000);
-          }
+          HF.confirmDelete({
+            head:'X\u00f3a ch\u1ec9 s\u1ed1?',
+            title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a ch\u1ec9 s\u1ed1 ng\u00e0y '+fmtDate(rec.date)+'?',
+            message:'Ch\u1ec9 s\u1ed1 n\u00e0y s\u1ebd b\u1ecb x\u00f3a kh\u1ecfi l\u1ecbch s\u1eed ph\u00e1t tri\u1ec3n.',
+            onConfirm:()=>{
+              HF.deleteGrowth(state, rec.id);
+              HF.toast('\u0110\u00e3 x\u00f3a ch\u1ec9 s\u1ed1','\u{1F5D1}\uFE0F');
+              rerender();
+            }
+          });
         });
       }
 
@@ -1105,16 +1117,16 @@ V.Settings = function(state, nav, params){
     }
 
     function confirmDeleteGrowth(rec){
-      if(confirmIds.has('g'+rec.id)){
-        confirmIds.delete('g'+rec.id);
-        HF.deleteGrowth(state, rec.id);
-        HF.toast('\u0110\u00e3 x\u00f3a ch\u1ec9 s\u1ed1','\u{1F5D1}\uFE0F');
-        rerender();
-      }else{
-        confirmIds.add('g'+rec.id);
-        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00f3a ch\u1ec9 s\u1ed1 n\u00e0y','\u26A0\uFE0F');
-        setTimeout(()=>confirmIds.delete('g'+rec.id), 3500);
-      }
+      HF.confirmDelete({
+        head:'X\u00f3a ch\u1ec9 s\u1ed1?',
+        title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a ch\u1ec9 s\u1ed1 ng\u00e0y '+fmtDate(rec.date)+'?',
+        message:'Ch\u1ec9 s\u1ed1 n\u00e0y s\u1ebd b\u1ecb x\u00f3a kh\u1ecfi l\u1ecbch s\u1eed ph\u00e1t tri\u1ec3n.',
+        onConfirm:()=>{
+          HF.deleteGrowth(state, rec.id);
+          HF.toast('\u0110\u00e3 x\u00f3a ch\u1ec9 s\u1ed1','\u{1F5D1}\uFE0F');
+          rerender();
+        }
+      });
     }
 
     function trendChart(points, color, unit){
@@ -1615,16 +1627,16 @@ function buildReminders(){
         HF.toast('Danh m\u1ee5c \u201c'+cat.name+'\u201d \u0111ang \u0111\u01b0\u1ee3c '+used+' kho\u1ea3n chi s\u1eed d\u1ee5ng \u2014 kh\u00f4ng th\u1ec3 x\u00f3a','\u26A0\uFE0F');
         return;
       }
-      if(confirmIds.has('cat'+cat.id)){
-        confirmIds.delete('cat'+cat.id);
-        HF.deleteExpenseCat(state, cat.id);
-        HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
-        rerender();
-      }else{
-        confirmIds.add('cat'+cat.id);
-        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00f3a \u201c'+cat.name+'\u201d','\u26A0\uFE0F');
-        setTimeout(()=>confirmIds.delete('cat'+cat.id), 3500);
-      }
+      HF.confirmDelete({
+        head:'X\u00f3a danh m\u1ee5c?',
+        title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+cat.name+'\u201d?',
+        message:'Danh m\u1ee5c n\u00e0y s\u1ebd b\u1ecb x\u00f3a kh\u1ecfi c\u1ea5u h\u00ecnh chi ph\u00ed.',
+        onConfirm:()=>{
+          HF.deleteExpenseCat(state, cat.id);
+          HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
+          rerender();
+        }
+      });
     }
 
     function openCatSheet(cat){
@@ -1653,16 +1665,16 @@ function buildReminders(){
       const delBtn = body.querySelector('.btn-danger');
       if(delBtn){
         delBtn.addEventListener('click', ()=>{
-          if(delBtn.dataset.confirm){
-            HF.deleteExpenseCat(state, c.id);
-            HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
-            sheet.close();
-            rerender();
-          }else{
-            delBtn.dataset.confirm='1';
-            delBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn x\u00f3a?';
-            setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='\u{1F5D1}\uFE0F X\u00f3a'; }, 3000);
-          }
+          HF.confirmDelete({
+            head:'X\u00f3a danh m\u1ee5c?',
+            title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+c.name+'\u201d?',
+            message:'Danh m\u1ee5c n\u00e0y s\u1ebd b\u1ecb x\u00f3a kh\u1ecfi c\u1ea5u h\u00ecnh chi ph\u00ed.',
+            onConfirm:()=>{
+              HF.deleteExpenseCat(state, c.id);
+              HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
+              rerender();
+            }
+          });
         });
       }
 
