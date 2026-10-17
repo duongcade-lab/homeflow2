@@ -1,4 +1,4 @@
-# CLAUDE.md
+# vibeflow.md
 
 ## Product Vision
 
