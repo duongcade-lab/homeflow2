@@ -1,8 +1,18 @@
 (async function(){
   const HF = window.HF = window.HF || {};
 
-  const state = HF.loadState();
-  HF.prefs = state.prefs;
+  let state = null;
+  let householdChecked = false;
+
+  function loadAppState(){
+    if(state) return state;
+    if(HF.auth.mode!=='off' && HF.db && HF.db.household){
+      HF.setStateKey('homeflow_state_hh_'+HF.db.household.household_id);
+    }
+    state = HF.loadState();
+    HF.prefs = state.prefs;
+    return state;
+  }
 
   const TABS = [
     {id:'today', ico:'\u{1F31E}', label:'H\u00f4m nay'},
@@ -73,6 +83,7 @@
   }
 
   function render(){
+    if(!state) loadAppState();
     const route = routeFromHash();
     const screen = document.getElementById('screen');
     screen.innerHTML='';
@@ -152,12 +163,11 @@
     render();
   }
 
-  let householdChecked = false;
-
   async function checkHousehold(){
     if(HF.auth.mode==='off' || !HF.auth.user){ householdChecked = true; renderOrLogin(); return; }
     await HF.db.getMyHousehold();
     householdChecked = true;
+    if(HF.db.household) loadAppState();
     renderOrLogin();
   }
 
@@ -203,6 +213,7 @@
             createBtn.textContent = '\u0110ang t\u1ea1o...';
             try{
               await HF.db.createHousehold(n);
+              loadAppState();
               sheet.close();
               HF.toast('\u0110\u00e3 t\u1ea1o gia \u0111\u00ecnh '+n+' \u{1F49C}','\u{1F3E0}');
               householdChecked = true;
@@ -228,6 +239,7 @@
   await HF.auth.init();
   if(HF.auth.mode!=='off'){
     HF.auth.onChange(()=>{
+      state = null;
       householdChecked = false;
       checkHousehold();
     });

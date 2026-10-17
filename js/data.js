@@ -178,24 +178,82 @@
     HF.saveState(state);
   };
 
-  const KEY = 'homeflow_state_v1';
+const KEY = 'homeflow_state_v1';
+  let _activeKey = KEY;
 
-  const MEMBER_COLORS = ['#8B6FB8','#5B9BD5','#F2A65A','#EF8FA3','#7FA98B','#E8936F','#E05D5D','#6BB5A9'];
-  const ADULT_EMOJI = ['\u{1F469}','\u{1F468}','\u{1F475}','\u{1F474}'];
-  const KID_EMOJI = ['\u{1F9D2}','\u{1F467}','\u{1F466}','\u{1F476}'];
+  HF.setStateKey = function(k){ _activeKey = k || KEY; };
+  HF.stateKey = function(){ return _activeKey; };
 
-  HF.addMember = function(profile){
-    const used = new Set(HF.MEMBERS.map(m=>m.color));
-    const color = MEMBER_COLORS.find(c=>!used.has(c)) || MEMBER_COLORS[MEMBER_COLORS.length-1];
-    const pool = profile.kind==='kid' ? KID_EMOJI : ADULT_EMOJI;
-    const emoji = profile.emoji || pool[HF.MEMBERS.filter(m=>m.kind===profile.kind).length % pool.length];
-    const m = Object.assign({
-      id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),
-      name:profile.name, short:profile.name, color, soft:color+'26', emoji,
-      kind:profile.kind, role:profile.role||'Kh\u00e1c', dob:profile.dob||'', gender:profile.gender||''
-    }, profile.id?{id:profile.id}:{});
-    HF.MEMBERS.push(m);
-    return m;
+  HF.emptyState = function(){
+    return {
+      tasks: [], lastDump:null, dumpCount:0,
+      history: {growth:[], health:[], study:[]},
+      family:{name:'', avatar:''},
+      feedback:[], growth:[], members:[],
+      prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true},
+      expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}
+    };
+  };
+
+  function seedState(){
+    return {
+      tasks: SEED.slice().map(t=>Object.assign({},t)),
+      lastDump:null, dumpCount:0,
+      history: JSON.parse(JSON.stringify(SEED_HISTORY)),
+      family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''},
+      feedback:[], growth:[], members:[],
+      prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true},
+      expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:seedExpenses()}
+    };
+  }
+
+  HF.loadState = function(key){
+    const k = key || _activeKey;
+    try{
+      const raw = localStorage.getItem(k);
+      if(raw){
+        const s = JSON.parse(raw);
+        s.tasks = s.tasks.map(hydrate);
+        s.lastDump = s.lastDump||null;
+        s.history = s.history || (k===KEY ? JSON.parse(JSON.stringify(SEED_HISTORY)) : {growth:[],health:[],study:[]});
+        s.family = s.family || {name:'', avatar:''};
+        s.feedback = s.feedback || [];
+        s.growth = s.growth || [];
+        s.prefs = s.prefs || {defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true};
+        s.expenses = s.expenses || {currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]};
+        if(s.members && s.members.length){
+          HF.MEMBERS.length = 0;
+          HF.MEMBERS.push(...s.members);
+        }else{
+          HF.MEMBERS.length = 0;
+        }
+        return s;
+      }
+    }catch(e){}
+    const fresh = (k===KEY) ? seedState() : HF.emptyState();
+    try{ localStorage.setItem(k, JSON.stringify(fresh)); }catch(e){}
+    return fresh;
+  };
+
+  HF.saveState = function(state){
+    try{
+      localStorage.setItem(_activeKey, JSON.stringify({
+        tasks: state.tasks.map(serialize),
+        lastDump: state.lastDump,
+        dumpCount: state.dumpCount||0,
+        history: state.history||{health:[],study:[]},
+        members: HF.MEMBERS,
+        family: state.family||{name:'', avatar:''},
+        feedback: state.feedback||[],
+        growth: state.growth||[],
+        prefs: state.prefs||{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true},
+        expenses: state.expenses||{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}
+      }));
+    }catch(e){}
+  };
+
+  HF.resetState = function(){
+    try{ localStorage.removeItem(_activeKey); }catch(e){}
   };
 
   HF.updateMember = function(id, patch, state){
@@ -317,55 +375,6 @@
       {id:'s2', kidId:'bin', date:HF.dayOffset(-70), title:'Cu\u1ed1i k\u1ef3 m\u00f4n To\u00e1n 9/10', note:''},
       {id:'s3', kidId:'su', date:HF.dayOffset(-20), title:'Ho\u00e0n th\u00e0nh kh\u00f3a b\u01a1i c\u01a1 b\u1ea3n', note:'B\u01a1i \u0111\u01b0\u1ee3c 25m'}
     ]
-  };
-
-  HF.loadState = function(){
-    try{
-      const raw = localStorage.getItem(KEY);
-      if(raw){
-        const s = JSON.parse(raw);
-        s.tasks = s.tasks.map(hydrate);
-        s.lastDump = s.lastDump||null;
-        s.history = s.history || JSON.parse(JSON.stringify(SEED_HISTORY));
-        s.family = s.family || {name:'Gia \u0111\u00ecnh HomeFlow', avatar:''};
-        s.feedback = s.feedback || [];
-        s.growth = s.growth || [];
-        s.prefs = s.prefs || {defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true};
-        s.expenses = s.expenses || {currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]};
-        if(!s.expenses.records || !s.expenses.records.length){
-          s.expenses.records = seedExpenses();
-        }
-        if(s.members && s.members.length){
-          HF.MEMBERS.length = 0;
-          HF.MEMBERS.push(...s.members);
-        }
-        return s;
-      }
-    }catch(e){}
-    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:seedExpenses()}};
-    try{ localStorage.setItem(KEY, JSON.stringify(fresh)); }catch(e){}
-    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:seedExpenses()}};
-  };
-
-  HF.saveState = function(state){
-    try{
-      localStorage.setItem(KEY, JSON.stringify({
-        tasks: state.tasks.map(serialize),
-        lastDump: state.lastDump,
-        dumpCount: state.dumpCount||0,
-        history: state.history||{health:[],study:[]},
-        members: HF.MEMBERS,
-        family: state.family||{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''},
-        feedback: state.feedback||[],
-        growth: state.growth||[],
-        prefs: state.prefs||{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true},
-        expenses: state.expenses||{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}
-      }));
-    }catch(e){}
-  };
-
-  HF.resetState = function(){
-    try{ localStorage.removeItem(KEY); }catch(e){}
   };
 
   HF.uid = function(prefix){

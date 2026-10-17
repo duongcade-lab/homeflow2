@@ -2074,10 +2074,13 @@ V.Settings = function(state, nav, params){
     }
 
     function openResetConfirm(){
+      const isAuthed = HF.auth && HF.auth.mode!=='off' && HF.db && HF.db.household;
       const body = el('div',{style:'display:flex;flex-direction:column;gap:14px'},[
-        el('div',{style:'font-size:13.5px;font-weight:800'},['B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n reset d\u1eef li\u1ec7u HomeFlow?']),
+        el('div',{style:'font-size:13.5px;font-weight:800'},['B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n reset d\u1eef li\u1ec7u?']),
         el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.6'},[
-          'To\u00e0n b\u1ed9 vi\u1ec7c nh\u00e0, l\u1ecbch s\u1eed s\u1ee9c kh\u1ecfe & h\u1ecdc t\u1eadp, ch\u1ec9 s\u1ed1 ph\u00e1t tri\u1ec3n, th\u00e0nh vi\u00ean m\u1edbi, c\u1ea5u h\u00ecnh chi ph\u00ed v\u00e0 c\u00e0i \u0111\u1eb7t s\u1ebd \u0111\u01b0\u1ee3c \u0111\u1eb7t l\u1ea1i v\u1ec1 b\u1ed9 d\u1eef li\u1ec7u demo ban \u0111\u1ea7u.'
+          isAuthed
+            ? 'To\u00e0n b\u1ed9 d\u1eef li\u1ec7u c\u1ee7a gia \u0111\u00ecnh s\u1ebd \u0111\u01b0\u1ee3c \u0111\u1eb7t l\u1ea1i v\u1ec1 tr\u1ea1ng th\u00e1i tr\u1ed1ng \u2014 b\u1ea1n s\u1ebd b\u1eaft \u0111\u1ea7u t\u1ea1o d\u1eef li\u1ec7u m\u1edbi cho gia \u0111\u00ecnh.'
+            : 'To\u00e0n b\u1ed9 vi\u1ec7c nh\u00e0, l\u1ecbch s\u1eed s\u1ee9c kh\u1ecfe & h\u1ecdc t\u1eadp, ch\u1ec9 s\u1ed1 ph\u00e1t tri\u1ec3n, th\u00e0nh vi\u00ean m\u1edbi, c\u1ea5u h\u00ecnh chi ph\u00ed v\u00e0 c\u00e0i \u0111\u1eb7t s\u1ebd \u0111\u01b0\u1ee3c \u0111\u1eb7t l\u1ea1i v\u1ec1 b\u1ed9 d\u1eef li\u1ec7u demo ban \u0111\u1ea7u.'
         ]),
         el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
           el('button',{class:'btn btn-ghost',style:'flex:1;padding:13px 10px;font-size:13.5px'},['H\u1ee7y']),
