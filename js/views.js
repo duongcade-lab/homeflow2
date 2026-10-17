@@ -634,15 +634,77 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     return screen;
   };
 
-  V.Settings = function(state, nav){
+V.Settings = function(state, nav, params){
+    params = params||{};
+    const path = params.path||[];
     const root = el('div',{});
     const confirmIds = new Set();
     let taskLimit = 8;
+    let profileTab = 'overview';
 
     function field(label, control){
       return el('div',{class:'rs-field'},[el('span',{},[label]), control]);
     }
 
+    function ageFrom(dob){
+      if(!dob) return '';
+      const d = new Date(dob);
+      const now = new Date();
+      let age = now.getFullYear()-d.getFullYear();
+      if(now.getMonth()<d.getMonth() || (now.getMonth()===d.getMonth() && now.getDate()<d.getDate())) age--;
+      return age>=0 ? age+' tu\u1ed5i' : '';
+    }
+
+    function fmtDate(iso){
+      if(!iso) return '';
+      const d = new Date(iso);
+      return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    }
+
+    function backRow(label, target, targetParams){
+      return el('div',{class:'back-row',onclick:()=>nav(target, targetParams)},[
+        el('span',{class:'back-chev'},['\u2039']),
+        el('span',{},[label])
+      ]);
+    }
+
+    function placeholderToast(){
+      HF.toast('S\u1eafp ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi \u2728','\u{1F4A1}');
+    }
+
+    // ---------------- Landing ----------------
+    function menuRow(ico, label, sub, onClick){
+      return el('div',{class:'set-row',onclick:onClick},[
+        el('span',{class:'set-ico'},[ico]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'set-row-t'},[label]),
+          sub ? el('div',{class:'set-row-s'},[sub]) : null
+        ]),
+        el('span',{class:'set-chev'},['\u203A'])
+      ]);
+    }
+
+    function buildLanding(){
+      const s = [];
+      s.push(el('div',{class:'eyebrow'},['C\u00e0i \u0111\u1eb7t']));
+      s.push(el('h1',{class:'page-title',style:'margin-top:4px'},['C\u00e0i \u0111\u1eb7t']));
+      s.push(el('div',{class:'sub'},['Qu\u1ea3n l\u00fd gia \u0111\u00ecnh v\u00e0 \u1ee9ng d\u1ee5ng']));
+
+      s.push(el('div',{class:'card compact set-menu'},[
+        menuRow('\u{1F4CB}','Vi\u1ec7c nh\u00e0','Ch\u1ec9nh s\u1eeda, x\u00f3a vi\u1ec7c', ()=>nav('settings',{path:['tasks']})),
+        menuRow('\u{1F46B}','Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean','T\u00ean gia \u0111\u00ecnh, th\u00e0nh vi\u00ean, h\u1ed3 s\u01a1 con', ()=>nav('settings',{path:['family']})),
+        menuRow('\u{1F514}','Nh\u1eafc vi\u1ec7c','Th\u1eddi gian v\u00e0 c\u00e1ch nh\u1eafc nh\u1edf', placeholderToast),
+        menuRow('\u{1F5D3}\uFE0F','L\u1ecbch & Hi\u1ec3n th\u1ecb','Ng\u00f4n ng\u1eef, giao di\u1ec7n', placeholderToast),
+        menuRow('\u{1F4B0}','Chi ph\u00ed','Theo d\u00f5i chi ti\u00eau gia \u0111\u00ecnh', placeholderToast),
+        menuRow('\u2753','Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i','C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p, li\u00ean h\u1ec7', placeholderToast),
+        menuRow('\u{1F510}','D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0','Xu\u1ea5t d\u1eef li\u1ec7u, b\u1ea3o m\u1eadt', placeholderToast)
+      ]));
+
+      s.push(el('div',{class:'footer-note'},['\u{1F49C} HomeFlow']));
+      return s;
+    }
+
+    // ---------------- Task management (preserved) ----------------
     function taskRow(t){
       const cat = HF.categoryById(t.cat);
       const d = new Date(t.due);
@@ -740,15 +802,44 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       });
     }
 
+    function buildTasks(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Vi\u1ec7c nh\u00e0']));
+      s.push(el('div',{class:'sub'},['Ch\u1ec9nh s\u1eeda ho\u1eb7c x\u00f3a vi\u1ec7c \u0111ang m\u1edf']));
+      const openTasks = state.tasks.filter(t=>t.status!=='done').sort((a,b)=>a.due-b.due);
+      const visible = taskLimit>=openTasks.length ? openTasks : openTasks.slice(0,taskLimit);
+      const listCard = el('div',{class:'card compact'}, openTasks.length===0
+        ? [el('div',{style:'color:var(--muted);font-size:13px'},['Kh\u00f4ng c\u00f3 vi\u1ec7c n\u00e0o \u0111ang m\u1edf'])]
+        : visible.map(taskRow));
+      if(openTasks.length>taskLimit){
+        listCard.appendChild(el('button',{class:'btn btn-ghost',style:'width:100%;margin-top:10px;padding:11px;font-size:13px',onclick:()=>{taskLimit=999; rerender();}},[
+          'Xem t\u1ea5t c\u1ea3 '+openTasks.length+' vi\u1ec7c \u25BE'
+        ]));
+      }
+      s.push(listCard);
+      return s;
+    }
+
+    // ---------------- Family & Members ----------------
     function memberRow(m){
       const canRemove = HF.MEMBERS.length>1;
-      return el('div',{class:'mgmt-row'},[
-        el('span',{class:'avatar',style:`background:${m.color}`},[m.short]),
+      const isKid = m.kind==='kid';
+      return el('div',{class:'mgmt-row set-member',onclick:()=>{
+        if(isKid) nav('settings',{path:['family', m.id]});
+        else openMemberSheet(m);
+      }},[
+        el('span',{class:'avatar',style:`background:${m.color}`},[m.emoji]),
         el('div',{style:'flex:1;min-width:0'},[
-          el('div',{class:'mgmt-title'},[m.emoji+' '+m.name]),
-          el('div',{class:'kind-tag'},[m.kind==='kid'?'Con c\u00e1i':'Ng\u01b0\u1eddi l\u1edbn'])
+          el('div',{class:'mgmt-title'},[m.name]),
+          el('div',{class:'kind-tag'},[(m.role||(m.kind==='kid'?'Con':'Kh\u00e1c'))+(m.dob?' \u00b7 '+ageFrom(m.dob):'')])
         ]),
-        canRemove ? el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>confirmRemoveMember(m)},['\u{1F5D1}\uFE0F']) : null
+        el('button',{class:'icon-btn',style:'color:var(--primary-deep)',onclick:(e)=>{e.stopPropagation(); openMemberSheet(m);}},[
+          '\u270F\uFE0F'
+        ]),
+        canRemove ? el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:(e)=>{e.stopPropagation(); confirmRemoveMember(m);}},[
+          '\u{1F5D1}\uFE0F'
+        ]) : null
       ]);
     }
 
@@ -765,24 +856,104 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       }
     }
 
-    function addMemberForm(){
-      const name = el('input',{class:'input',placeholder:'T\u00ean th\u00e0nh vi\u00ean m\u1edbi\u2026',style:'flex:1;min-width:0'});
-      const kind = el('select',{class:'input',style:'width:auto'});
-      kind.appendChild(el('option',{value:'adult'},['Ng\u01b0\u1eddi l\u1edbn']));
-      kind.appendChild(el('option',{value:'kid'},['Con c\u00e1i']));
-      const btn = el('button',{class:'btn btn-soft',style:'padding:10px 14px;font-size:13px'},['+ Th\u00eam']);
-      btn.addEventListener('click', ()=>{
+    function openMemberSheet(member){
+      const isEdit = !!member;
+      const m = member ? Object.assign({}, member) : {name:'', role:'Kh\u00e1c', dob:'', gender:'', emoji:''};
+      const AVATARS = ['\u{1F469}','\u{1F468}','\u{1F9D2}','\u{1F467}','\u{1F466}','\u{1F475}','\u{1F474}','\u{1F476}'];
+
+      const name = el('input',{class:'input',value:m.name,placeholder:'H\u1ecd v\u00e0 t\u00ean'});
+      const dob = el('input',{class:'input',type:'date',value:m.dob||''});
+      const role = el('select',{class:'input'});
+      HF.ROLES.forEach(r=>role.appendChild(el('option',{value:r},[r])));
+      role.value = m.role||'Kh\u00e1c';
+      const gender = el('select',{class:'input'});
+      gender.appendChild(el('option',{value:''},['\u2014']));
+      ['Nam','N\u1eef'].forEach(g=>gender.appendChild(el('option',{value:g},[g])));
+      gender.value = m.gender||'';
+
+      const emojiBtns = AVATARS.map(em=>{
+        const b = el('button',{class:'ava-pick'+(em===m.emoji?' on':''),onclick:()=>{
+          m.emoji=em;
+          emojiBtns.forEach(x=>x.classList.remove('on'));
+          b.classList.add('on');
+        }},[em]);
+        return b;
+      });
+
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+        field('\u{1F464} \u1ea2nh \u0111\u1ea1i di\u1ec7n', el('div',{class:'ava-row'},emojiBtns)),
+        field('H\u1ecd v\u00e0 t\u00ean', name),
+        el('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:12px'},[
+          field('Ng\u00e0y sinh', dob),
+          field('Gi\u1edbi t\u00ednh', gender)
+        ]),
+        field('Vai tr\u00f2 trong gia \u0111\u00ecnh', role),
+        el('div',{style:'font-size:11.5px;color:var(--muted);line-height:1.5'},[
+          isEdit ? 'Thay \u0111\u1ed5i t\u00ean s\u1ebd c\u1eadp nh\u1eadt \u1edf m\u1ecdi n\u01a1i trong HomeFlow.' : ''
+        ]),
+        el('button',{class:'btn btn-primary'},[isEdit?'\u{1F4BE} L\u01b0u thay \u0111\u1ed5i':'+ Th\u00eam th\u00e0nh vi\u00ean'])
+      ]);
+
+      const sheet = HF.sheet({title:isEdit?'Ch\u1ec9nh s\u1eeda th\u00e0nh vi\u00ean':'Th\u00eam th\u00e0nh vi\u00ean', body:()=>body});
+
+      body.querySelector('.btn-primary').addEventListener('click', ()=>{
         const n = name.value.trim();
-        if(!n){ HF.toast('Nh\u1eadp t\u00ean th\u00e0nh vi\u00ean tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
-        if(HF.MEMBERS.some(m=>m.name===n)){ HF.toast('\u0110\u00e3 c\u00f3 th\u00e0nh vi\u00ean t\u00ean n\u00e0y','\u{1F60A}'); return; }
-        HF.addMember(n, kind.value);
-        HF.saveState(state);
-        HF.toast('\u0110\u00e3 th\u00eam '+n,'\u{1F389}');
+        if(!n){ HF.toast('Nh\u1eadp h\u1ecd t\u00ean tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        if(!isEdit && HF.MEMBERS.some(x=>x.name===n)){ HF.toast('\u0110\u00e3 c\u00f3 th\u00e0nh vi\u00ean t\u00ean n\u00e0y','\u{1F60A}'); return; }
+        const profile = {
+          name:n, role:role.value, dob:dob.value||'', gender:gender.value||'',
+          emoji:m.emoji||AVATARS[0], kind:role.value==='Con'?'kid':'adult'
+        };
+        if(isEdit){
+          HF.updateMember(m.id, profile, state);
+          HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt '+n,'\u270F\uFE0F');
+        }else{
+          HF.addMember(profile);
+          HF.saveState(state);
+          HF.toast('\u0110\u00e3 th\u00eam '+n,'\u{1F389}');
+        }
+        sheet.close();
         rerender();
       });
-      return el('div',{class:'mgmt-add'},[name, kind, btn]);
     }
 
+    function buildFamily(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean']));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Gia \u0111\u00ecnh c\u1ee7a t\u00f4i']));
+      const famName = el('input',{class:'input',value:state.family.name||'',style:'flex:1;min-width:0'});
+      const famCard = el('div',{class:'card compact'},[
+        el('div',{style:'display:flex;gap:12px;align-items:center'},[
+          el('span',{class:'fam-avatar'},[state.family.avatar||'\u{1F3E1}']),
+          el('div',{style:'flex:1;min-width:0'},[
+            famName,
+            el('div',{style:'font-size:11px;color:var(--muted);margin-top:5px'},[HF.MEMBERS.length+' th\u00e0nh vi\u00ean'])
+          ]),
+          el('button',{class:'btn btn-soft',style:'padding:9px 14px;font-size:12.5px'},['L\u01b0u'])
+        ])
+      ]);
+      famCard.querySelector('.btn-soft').addEventListener('click', ()=>{
+        const n = famName.value.trim();
+        if(!n){ HF.toast('Nh\u1eadp t\u00ean gia \u0111\u00ecnh tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        state.family.name = n;
+        HF.saveState(state);
+        HF.toast('\u0110\u00e3 l\u01b0u t\u00ean gia \u0111\u00ecnh','\u2705');
+      });
+      s.push(famCard);
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Th\u00e0nh vi\u00ean']));
+      s.push(el('div',{class:'card compact'},[
+        ...HF.MEMBERS.map(memberRow),
+        el('button',{class:'btn btn-soft',style:'width:100%;margin-top:10px;padding:12px;font-size:13.5px',onclick:()=>openMemberSheet(null)},[
+          '+ Th\u00eam th\u00e0nh vi\u00ean'
+        ])
+      ]));
+      return s;
+    }
+
+    // ---------------- Child profile ----------------
     function historyBlock(kid, type, label, ico){
       const recs = state.history[type].filter(r=>r.kidId===kid.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
 
@@ -802,7 +973,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
       const list = el('div',{class:'card compact hist-card'},[
         el('div',{class:'hist-head'},[
-          el('div',{},[ico+' '+label+' \u2014 '+kid.name]),
+          el('div',{},[ico+' '+label]),
           el('button',{class:'btn btn-soft',style:'padding:7px 12px;font-size:12px'},['+ Th\u00eam'])
         ]),
         ...(recs.length===0 ? [el('div',{class:'hist-empty'},['Ch\u01b0a c\u00f3 ghi ch\u00fa n\u00e0o'])] : recs.map(histRow))
@@ -840,41 +1011,71 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       return list;
     }
 
-    function build(){
+    function buildProfile(kid){
       const s = [];
-      s.push(el('div',{class:'eyebrow'},['C\u00e0i \u0111\u1eb7t']));
-      s.push(el('h1',{class:'page-title',style:'margin-top:4px'},['Qu\u1ea3n l\u00fd gia \u0111\u00ecnh']));
-      s.push(el('div',{class:'sub'},['Ch\u1ec9nh s\u1eeda vi\u1ec7c nh\u00e0, th\u00e0nh vi\u00ean v\u00e0 l\u1ecbch s\u1eed c\u1ee7a c\u00e1c con']));
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Danh s\u00e1ch vi\u1ec7c']));
-      const openTasks = state.tasks.filter(t=>t.status!=='done').sort((a,b)=>a.due-b.due);
-      const visible = taskLimit>=openTasks.length ? openTasks : openTasks.slice(0,taskLimit);
-      const listCard = el('div',{class:'card compact'}, openTasks.length===0
-        ? [el('div',{style:'color:var(--muted);font-size:13px'},['Kh\u00f4ng c\u00f3 vi\u1ec7c n\u00e0o \u0111ang m\u1edf'])]
-        : visible.map(taskRow));
-      if(openTasks.length>taskLimit){
-        listCard.appendChild(el('button',{class:'btn btn-ghost',style:'width:100%;margin-top:10px;padding:11px;font-size:13px',onclick:()=>{taskLimit=999; rerender();}},[
-          'Xem t\u1ea5t c\u1ea3 '+openTasks.length+' vi\u1ec7c \u25BE'
-        ]));
-      }
-      s.push(listCard);
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Th\u00e0nh vi\u00ean']));
-      s.push(el('div',{class:'card compact'},[
-        ...HF.MEMBERS.map(memberRow),
-        addMemberForm()
+      s.push(backRow('Th\u00e0nh vi\u00ean','settings',{path:['family']}));
+      s.push(el('div',{class:'profile-head'},[
+        el('span',{class:'avatar',style:`width:64px;height:64px;font-size:28px;background:${kid.color}`},[kid.emoji]),
+        el('div',{},[
+          el('div',{class:'profile-name'},[kid.name]),
+          el('div',{class:'profile-sub'},[(kid.role||'Con')+(kid.dob?' \u00b7 '+ageFrom(kid.dob):'')])
+        ])
       ]));
 
-      const kids = HF.MEMBERS.filter(m=>m.kind==='kid');
-      if(kids.length){
-        s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'L\u1ecbch s\u1eed c\u1ee7a c\u00e1c con']));
-        for(const kid of kids){
-          s.push(historyBlock(kid, 'health', 'S\u1ee9c kh\u1ecfe', '\u{1F3E5}'));
-          s.push(historyBlock(kid, 'study', 'H\u1ecdc t\u1eadp', '\u{1F392}'));
-        }
+      const tabs = el('div',{class:'prof-tabs'},[
+        ['overview','\u{1F464} T\u1ed5ng quan'],
+        ['growth','\u{1F4C8} Ph\u00e1t tri\u1ec3n'],
+        ['health','\u{1FA7A} S\u1ee9c kh\u1ecfe'],
+        ['study','\u{1F392} H\u1ecdc t\u1eadp']
+      ].map(([id,lbl])=>{
+        return el('button',{class:'prof-tab'+(profileTab===id?' on':''),onclick:()=>{profileTab=id; rerender();}},[lbl]);
+      }));
+      s.push(tabs);
+
+      if(profileTab==='overview'){
+        const rows = [
+          ['Ng\u00e0y sinh', kid.dob ? fmtDate(kid.dob) : '\u2014'],
+          ['Gi\u1edbi t\u00ednh', kid.gender || '\u2014'],
+          ['Vai tr\u00f2', kid.role || 'Con']
+        ];
+        s.push(el('div',{class:'card compact prof-info'}, rows.map(([k,v])=>{
+          return el('div',{class:'prof-row'},[
+            el('span',{class:'prof-k'},[k]),
+            el('span',{class:'prof-v'},[v])
+          ]);
+        })));
+        s.push(el('button',{class:'btn btn-soft',style:'width:100%;margin-top:14px;padding:13px',onclick:()=>openMemberSheet(kid)},[
+          '\u270F\uFE0F Ch\u1ec9nh s\u1eeda h\u1ed3 s\u01a1'
+        ]));
+      }else if(profileTab==='growth'){
+        s.push(el('div',{class:'card compact'},[
+          el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
+            el('span',{style:'font-size:22px'},['\u{1F4C8}']),
+            el('div',{style:'flex:1'},[
+              el('div',{style:'font-weight:800;font-size:14px'},['Ph\u00e1t tri\u1ec3n']),
+              el('div',{class:'sub',style:'font-size:12.5px;margin-top:3px'},['Theo d\u00f5i chi\u1ec1u cao, c\u00e2n n\u1eb7ng v\u00e0 c\u1ed9t m\u1ed1c ph\u00e1t tri\u1ec3n c\u1ee7a '+kid.name+'. T\u00ednh n\u0103ng n\u00e0y s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi \u2728'])
+            ])
+          ])
+        ]));
+      }else if(profileTab==='health'){
+        s.push(historyBlock(kid, 'health', 'S\u1ee9c kh\u1ecfe', '\u{1FA7A}'));
+      }else if(profileTab==='study'){
+        s.push(historyBlock(kid, 'study', 'H\u1ecdc t\u1eadp', '\u{1F392}'));
       }
 
       return s;
+    }
+
+    function build(){
+      if(path[0]==='family'){
+        if(path[1]){
+          const kid = HF.memberById(path[1]);
+          return kid && kid.kind==='kid' ? buildProfile(kid) : buildFamily();
+        }
+        return buildFamily();
+      }
+      if(path[0]==='tasks') return buildTasks();
+      return buildLanding();
     }
 
     function rerender(){

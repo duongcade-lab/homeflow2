@@ -49,14 +49,19 @@
 
   function navigate(name, params){
     let hash = '#/'+name;
-    if(params && params.filter) hash += '?filter='+params.filter;
+    if(params){
+      if(params.path && params.path.length) hash += '/'+params.path.join('/');
+      if(params.filter) hash += '?filter='+params.filter;
+    }
     location.hash = hash;
   }
 
   function routeFromHash(){
     const raw = location.hash.replace(/^#\/?/,'') || 'today';
-    const [name, qs] = raw.split('?');
-    const params = {};
+    const [pathPart, qs] = raw.split('?');
+    const parts = pathPart.split('/').filter(Boolean);
+    const name = parts[0] || 'today';
+    const params = {path: parts.slice(1)};
     if(qs){
       qs.split('&').forEach(p=>{
         const [k,v]=p.split('=');
@@ -78,7 +83,7 @@
       case 'dump': nodes = HF.views.Dump(state, navigate); break;
       case 'balance': nodes = HF.views.Balance(state, navigate); break;
       case 'brief': nodes = HF.views.Brief(state, navigate); break;
-      case 'settings': nodes = HF.views.Settings(state, navigate); break;
+      case 'settings': nodes = HF.views.Settings(state, navigate, route.params); break;
       default: nodes = HF.views.Today(state, navigate); break;
     }
     nodes.forEach(n=>{ if(n) screen.appendChild(n); });

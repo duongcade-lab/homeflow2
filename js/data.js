@@ -3,12 +3,22 @@
 
   const WEEKDAYS = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
 
+  function yearsAgo(years){
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    d.setFullYear(d.getFullYear()-years);
+    return d.toISOString().slice(0,10);
+  }
+
   HF.MEMBERS = [
-    {id:'me',  name:'Mẹ',  short:'Mẹ',  color:'#8B6FB8', soft:'#EFE9F8', emoji:'👩‍🦰', kind:'adult'},
-    {id:'bo',  name:'Bố',  short:'Bố',  color:'#5B9BD5', soft:'#E3F0FB', emoji:'👨‍🦱', kind:'adult'},
-    {id:'bin', name:'Bạn lớn', short:'Bạn lớn', color:'#F2A65A', soft:'#FDF0E0', emoji:'🧑',   kind:'kid'},
-    {id:'su',  name:'Bạn nhỏ', short:'Bạn nhỏ', color:'#EF8FA3', soft:'#FDE9EE', emoji:'👧',   kind:'kid'}
+    {id:'me',  name:'M\u1eb9',  short:'M\u1eb9',  color:'#8B6FB8', soft:'#EFE9F8', emoji:'\u{1F469}', kind:'adult', role:'M\u1eb9',  dob:'',    gender:'N\u1eef'},
+    {id:'bo',  name:'B\u1ed1',  short:'B\u1ed1',  color:'#5B9BD5', soft:'#E3F0FB', emoji:'\u{1F468}', kind:'adult', role:'B\u1ed1',  dob:'',    gender:'Nam'},
+    {id:'bin', name:'B\u1ea1n l\u1edbn', short:'B\u1ea1n l\u1edbn', color:'#F2A65A', soft:'#FDF0E0', emoji:'\u{1F9D2}', kind:'kid', role:'Con', dob:yearsAgo(12), gender:'Nam'},
+    {id:'su',  name:'B\u1ea1n nh\u1ecf', short:'B\u1ea1n nh\u1ecf', color:'#EF8FA3', soft:'#FDE9EE', emoji:'\u{1F467}', kind:'kid', role:'Con', dob:yearsAgo(8), gender:'N\u1eef'}
   ];
+
+  HF.ROLES = ['B\u1ed1','M\u1eb9','Ng\u01b0\u1eddi ch\u0103m s\u00f3c','Con','Kh\u00e1c'];
+  HF.GENDERS = ['', 'Nam', 'N\u1eef'];
 
   HF.CATEGORIES = {
     school:   {label:'Học tập',   emoji:'🎒', color:'#5B9BD5', soft:'#E3F0FB'},
@@ -83,14 +93,27 @@
   const ADULT_EMOJI = ['\u{1F469}','\u{1F468}','\u{1F475}','\u{1F474}'];
   const KID_EMOJI = ['\u{1F9D2}','\u{1F467}','\u{1F466}','\u{1F476}'];
 
-  HF.addMember = function(name, kind){
+  HF.addMember = function(profile){
     const used = new Set(HF.MEMBERS.map(m=>m.color));
     const color = MEMBER_COLORS.find(c=>!used.has(c)) || MEMBER_COLORS[MEMBER_COLORS.length-1];
-    const pool = kind==='kid' ? KID_EMOJI : ADULT_EMOJI;
-    const emoji = pool[HF.MEMBERS.filter(m=>m.kind===kind).length % pool.length];
-    const m = {id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,4), name, short:name, color, soft:color+'26', emoji, kind};
+    const pool = profile.kind==='kid' ? KID_EMOJI : ADULT_EMOJI;
+    const emoji = profile.emoji || pool[HF.MEMBERS.filter(m=>m.kind===profile.kind).length % pool.length];
+    const m = Object.assign({
+      id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),
+      name:profile.name, short:profile.name, color, soft:color+'26', emoji,
+      kind:profile.kind, role:profile.role||'Kh\u00e1c', dob:profile.dob||'', gender:profile.gender||''
+    }, profile.id?{id:profile.id}:{});
     HF.MEMBERS.push(m);
     return m;
+  };
+
+  HF.updateMember = function(id, patch, state){
+    const m = HF.MEMBERS.find(x=>x.id===id);
+    if(!m) return;
+    Object.assign(m, patch);
+    if(patch.name) m.short = patch.name;
+    if(patch.role) m.kind = patch.role==='Con' ? 'kid' : 'adult';
+    HF.saveState(state);
   };
 
   HF.removeMember = function(id, state){
@@ -161,12 +184,17 @@
         s.tasks = s.tasks.map(hydrate);
         s.lastDump = s.lastDump||null;
         s.history = s.history || JSON.parse(JSON.stringify(SEED_HISTORY));
+        s.family = s.family || {name:'Gia \u0111\u00ecnh HomeFlow', avatar:''};
+        if(s.members && s.members.length){
+          HF.MEMBERS.length = 0;
+          HF.MEMBERS.push(...s.members);
+        }
         return s;
       }
     }catch(e){}
-    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY))};
+    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}};
     try{ localStorage.setItem(KEY, JSON.stringify(fresh)); }catch(e){}
-    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY))};
+    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}};
   };
 
   HF.saveState = function(state){
@@ -175,7 +203,9 @@
         tasks: state.tasks.map(serialize),
         lastDump: state.lastDump,
         dumpCount: state.dumpCount||0,
-        history: state.history||{health:[],study:[]}
+        history: state.history||{health:[],study:[]},
+        members: HF.MEMBERS,
+        family: state.family||{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}
       }));
     }catch(e){}
   };
