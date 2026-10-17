@@ -420,7 +420,8 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       }
       const tasksPromise = (async ()=>{
         const llm = await tryLLM(text);
-        return llm || HF.parseBrainDump(text);
+        const base = llm ? normalizeLLMTasks(llm, text) : HF.parseBrainDump(text);
+        return base.concat(HF.parseExpenses(text));
       })();
       runAI(tasksPromise);
     }
@@ -538,15 +539,43 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       resultBox.style.display='';
       resultBox.innerHTML='';
 
+      const taskCount = parsedTasks.filter(t=>t.kind!=='expense').length;
+      const expCount = parsedTasks.length - taskCount;
+      const headline = expCount && taskCount
+        ? 'HomeFlow \u0111\u00e3 hi\u1ec3u '+taskCount+' vi\u1ec7c v\u00e0 '+expCount+' kho\u1ea3n chi'
+        : (expCount ? 'HomeFlow \u0111\u00e3 hi\u1ec3u '+expCount+' kho\u1ea3n chi' : 'HomeFlow \u0111\u00e3 hi\u1ec3u '+taskCount+' vi\u1ec7c');
+
       resultBox.appendChild(el('div',{class:'result-headline'},[
         el('span',{style:'font-size:22px'},['\u2728']),
         el('div',{},[
-          el('div',{class:'result-headline-t'},['HomeFlow \u0111\u00e3 hi\u1ec3u '+parsedTasks.length+' vi\u1ec7c']),
+          el('div',{class:'result-headline-t'},[headline]),
           el('div',{class:'result-headline-s'},['Ki\u1ec3m tra nhanh r\u1ed3i th\u00eam v\u00e0o HomeFlow nh\u00e9'])
         ])
       ]));
 
       const cards = parsedTasks.map((t,i)=>{
+        if(t.kind==='expense'){
+          const ecat = HF.expenseCatById(state, t.category);
+          const payer = t.memberId ? HF.memberById(t.memberId) : null;
+          return el('div',{class:'rcard',style:'animation-delay:'+(i*110)+'ms'},[
+            el('div',{class:'rcard-head'},[
+              el('div',{class:'rcard-emoji',style:'background:#FDE9EE'},['\u{1F4B8}']),
+              el('div',{class:'rcard-main'},[
+                el('div',{class:'rcard-title'},[t.title]),
+                el('div',{class:'rcard-when'},['\u{1F5D3}\uFE0F '+HF.formatDay(t.date)+' \u00b7 '+HF.fmtMoney(t.amount, state.expenses.currency)])
+              ]),
+              el('span',{class:'conf-badge'},['\u2713 \u0110\u00e3 hi\u1ec3u'])
+            ]),
+            el('div',{class:'rcard-roles-wrap'},[
+              el('div',{class:'rcard-roles'},[
+                el('div',{class:'role-block role-do',style:'background:#FDE9EE'},[
+                  el('div',{class:'role-label'},['\u{1F4B8} CHI PH\u00cd \u00b7 '+ecat.emoji+' '+ecat.name]),
+                  el('div',{class:'role-name'},[payer ? payer.short+' chi' : 'Kho\u1ea3n chi'])
+                ])
+              ])
+            ])
+          ]);
+        }
         const cat = HF.categoryById(t.cat);
         const planner = HF.memberById(t.planner || (t.mental ? 'me' : t.owner) || 'me');
         const doer = t.shared ? null : HF.memberById(t.owner);
@@ -618,6 +647,19 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         const now = new Date();
         const doAdd = ()=>{
           for(const t of parsedTasks){
+            if(t.kind==='expense'){
+              state.expenses.records.push({
+                id: HF.uid('e'),
+                title: t.title,
+                amount: t.amount,
+                date: HF.isoDate(t.date),
+                category: t.category,
+                memberId: t.memberId||null,
+                status: 'paid',
+                note: ''
+              });
+              continue;
+            }
             state.tasks.push({
               id: HF.uid('ai'),
               title: t.title,
@@ -638,16 +680,16 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
           state.dumpCount = (state.dumpCount||0)+1;
           state.lastDump = {text: ta.value.trim(), at: now.toISOString(), count: parsedTasks.length};
           HF.saveState(state);
-          showSuccess(parsedTasks.length);
+          showSuccess(parsedTasks);
         };
-        const dupTask = parsedTasks.find(t=>HF.findDuplicateTask(state, {title:t.title, due:t.due, time:t.time, owner:t.owner, shared:!!t.shared}));
+        const dupTask = parsedTasks.find(t=>t.kind!=='expense' && HF.findDuplicateTask(state, {title:t.title, due:t.due, time:t.time, owner:t.owner, shared:!!t.shared}));
         if(dupTask){
           const existing = HF.findDuplicateTask(state, {title:dupTask.title, due:dupTask.due, time:dupTask.time, owner:dupTask.owner, shared:!!dupTask.shared});
           confirmDuplicate(existing, doAdd);
           return;
         }
-        const noDoer = parsedTasks.find(t=>t.doerKnown===false);
-        const noDate = parsedTasks.find(t=>t.dueKnown===false);
+        const noDoer = parsedTasks.find(t=>t.kind!=='expense' && t.doerKnown===false);
+        const noDate = parsedTasks.find(t=>t.kind!=='expense' && t.dueKnown===false);
         if(noDoer || noDate){
           const msgs = [];
           if(noDoer) msgs.push('Kh\u00f4ng r\u00f5 ai l\u00e0m vi\u1ec7c \u201c'+noDoer.title+'\u201d');
@@ -661,7 +703,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
           });
           return;
         }
-        const issueTask = parsedTasks.find(t=>HF.isPastDate(t.due) || HF.timeConflict(state, t));
+        const issueTask = parsedTasks.find(t=>t.kind!=='expense' && (HF.isPastDate(t.due) || HF.timeConflict(state, t)));
         if(issueTask){
           const past = HF.isPastDate(issueTask.due);
           const conflict = HF.timeConflict(state, issueTask);
@@ -685,10 +727,14 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       });
     }
 
-    function showSuccess(count){
+    function showSuccess(items){
+      const tc = items.filter(t=>t.kind!=='expense').length;
+      const ec = items.length - tc;
+      const msg = ec && tc ? '\u0110\u00e3 th\u00eam '+tc+' vi\u1ec7c v\u00e0 '+ec+' kho\u1ea3n chi v\u00e0o HomeFlow'
+        : (ec ? '\u0110\u00e3 th\u00eam '+ec+' kho\u1ea3n chi v\u00e0o HomeFlow' : '\u0110\u00e3 th\u00eam '+tc+' vi\u1ec7c v\u00e0o HomeFlow');
       const ov = el('div',{class:'success-overlay'},[
         el('div',{class:'success-check',html:'<svg viewBox="0 0 64 64" width="86" height="86"><circle cx="32" cy="32" r="29" fill="none" stroke="#7FA98B" stroke-width="4"/><path d="M19 33 L28 42 L46 23" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>'}),
-        el('div',{class:'success-t'},['\u0110\u00e3 th\u00eam '+count+' vi\u1ec7c v\u00e0o HomeFlow']),
+        el('div',{class:'success-t'},[msg]),
         el('div',{class:'success-s'},['HomeFlow s\u1ebd nh\u1eafc c\u1ea3 nh\u00e0 \u0111\u00fang l\u00fac \u2014 gi\u1edd th\u00ec nh\u1eb9 \u0111\u1ea7u h\u01a1n r\u1ed3i \u2728'])
       ]);
       document.body.appendChild(ov);

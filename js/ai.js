@@ -19,6 +19,8 @@
 
   const PLANNER_KW = ['nh\u1edb','\u0111\u1eb7t l\u1ecbch','chu\u1ea9n b\u1ecb','li\u00ean h\u1ec7','g\u1ecdi \u0111i\u1ec7n','t\u00ecm','s\u1eafp x\u1ebfp','book','\u0111\u1eb7t','gi\u1ea5y t\u1edd','\u0111\u01a1n','\u0111\u0103ng k\u00fd','mua qu\u00e0','nh\u1eafc','\u0111\u1eebng qu\u00ean','qu\u00ean'];
   const SHARED_RE = /c\u1ea3 nh\u00e0|c\u1ea3 gia \u0111\u00ecnh|m\u1ecdi ng\u01b0\u1eddi/i;
+  const EXPENSE_KW = /\bh\u1ebft\b|t\u1ed1n|m\u1ea5t|tr\u1ea3|mua|chi\s|chi\b|\u0111\u00f3ng|gi\u00e1|ti\u1ec1n|thanh\s*to\u00e1n|chuy\u1ec3n\s*kho\u1ea3n|n\u1ed9p|order|ship/i;
+  const EXP_CAT_MAP = { school:'c_edu', health:'c_health', event:'c_gift', shopping:'c_shopping', home:'c_home', bill:'c_other', kids:'c_other' };
 
   function wp(word){
     return '(?<!\\p{L})' + word + '(?!\\p{L})';
@@ -194,7 +196,7 @@
     t = t.replace(/\b(v\u00e0o|v\u00e0|l\u00fac|n\u00ean|th\u00ec|s\u1ebd|r\u1ed3i|cho|cho c\u1ea3)\b/g,' ');
     t = t.replace(new RegExp('('+WORD_BO+'|'+WORD_CHA+'|'+WORD_BA+'|'+WORD_ME+'|'+WORD_MA+'|'+WORD_BIN+'|'+WORD_SU+')','giu'),' ');
     t = t.replace(new RegExp('('+WORD_CON+'|'+WORD_BE+')','giu'),' ');
-    t = t.replace(/(c\u1ea3 nh\u00e0|c\u1ea3 gia \u0111\u00ecnh|m\u1ecdi ng\u01b0\u1eddi|\u0111\u1eebng qu\u00ean|nh\u1edb|qu\u00ean|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y)/g,' ');
+    t = t.replace(/(c\u1ea3 nh\u00e0|c\u1ea3 gia \u0111\u00ecnh|m\u1ecdi ng\u01b0\u1eddi|\u0111\u1eebng qu\u00ean|nh\u1edb|qu\u00ean|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y|h\u00f4m nay)/g,' ');
     t = t.replace(FREQ_RE,' ');
     t = t.replace(/\b(s\u00e1ng|tr\u01b0a|chi\u1ec1u|t\u1ed1i|\u0111\u00eam)\s*(nay|mai|h\u00f4m nay)\b/g,' ');
     if(doer.transport && doer.kid){
@@ -280,6 +282,65 @@
     });
   }
 
+  function parseAmount(s){
+    const re = /(\d[\d.,]*)\s*(ngh\u00ecn|tri\u1ec7u|v\u1ea1n|k\b|tr\b|\u0111\u1ed3ng|\u0111\b|\u20ab)?/gi;
+    let total = 0, m;
+    while((m = re.exec(s))){
+      let raw = m[1];
+      if(/^\d{1,3}([.,]\d{3})+$/.test(raw)) raw = raw.replace(/[.,]/g,'');
+      else raw = raw.replace(/,/g,'');
+      const num = raw.includes('.') ? parseFloat(raw) : parseInt(raw,10);
+      if(isNaN(num)) continue;
+      const unit = (m[2]||'').toLowerCase();
+      const mult = unit==='ngh\u00ecn'||unit==='k' ? 1000 : (unit==='tri\u1ec7u'||unit==='tr' ? 1000000 : (unit==='v\u1ea1n' ? 10000 : 1));
+      const val = num * mult;
+      if(val >= 1000 || unit) total += val;
+    }
+    return total || null;
+  }
+
+  function expenseCategory(low, cat){
+    if(/kh\u00e1m|thu\u1ed1c|b\u1ec7nh|b\u00e1c\s*s\u0129|r\u0103ng|ti\u00eam|vitamin/.test(low)) return 'c_health';
+    if(/h\u1ecdc\s*ph\u00ed|ti\u1ec1n\s*h\u1ecdc|h\u1ecdc|tr\u01b0\u1eddng|l\u1edbp|s\u00e1ch|b\u00fat/.test(low)) return 'c_edu';
+    if(/\u0103n|s\u1eefa|\u0111\u1ed3\s*\u0103n|th\u1ee9c\s*\u0103n|ch\u1ee3|si\u00eau\s*th\u1ecb|b\u1eefa/.test(low)) return 'c_food';
+    if(/sinh\s*nh\u1eadt|qu\u00e0|qu\u00e0\s*t\u1eb7ng/.test(low)) return 'c_gift';
+    if(/mua|s\u1eafm|order|ship/.test(low)) return 'c_shopping';
+    return EXP_CAT_MAP[cat] || 'c_other';
+  }
+
+  function parseExpenseSentence(low){
+    if(!EXPENSE_KW.test(low)) return null;
+    const amount = parseAmount(low);
+    if(!amount) return null;
+    const cat = detectCategory(low);
+    const doer = detectDoer(low, cat);
+    const memberId = resolveRole(doer.owner, low) || null;
+    const date = inferDue(low, null);
+    let title = low
+      .replace(/\b(h\u1ebft|t\u1ed1n|m\u1ea5t|tr\u1ea3|chi)\b/gi,' ')
+      .replace(/\d[\d.,]*\s*(ngh\u00ecn|tri\u1ec7u|v\u1ea1n|k\b|tr\b|\u0111\u1ed3ng|\u0111\b|\u20ab)?/gi,' ');
+    title = cleanTitle(title, {transport:false, kid:null});
+    return {
+      kind:'expense',
+      title: title || 'Kho\u1ea3n chi',
+      amount,
+      category: expenseCategory(low, cat),
+      date,
+      memberId,
+      status:'paid',
+      note:''
+    };
+  }
+
+  HF.parseExpenses = function(text){
+    const out = [];
+    for(const s of splitSentences(text)){
+      const e = parseExpenseSentence(norm(s));
+      if(e) out.push(e);
+    }
+    return out;
+  };
+
   function buildTask(low, due, dueKnown){
     const times = parseTimes(low);
     const time = times[0] || '';
@@ -323,6 +384,7 @@
 
     for(const s of sentences){
       let low = norm(s);
+      if(parseExpenseSentence(low)) continue;
       const nParts = low.split(/\s+n\u00ean\s+/);
       if(nParts.length > 1){
         const ctx = nParts[0];
