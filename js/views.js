@@ -18,7 +18,9 @@
     const header = el('div',{},[
       el('div',{class:'eyebrow'},['HomeFlow \u00b7 '+HF.formatDay(HF.dayOffset(0))]),
       el('h1',{class:'page-title',style:'margin-top:4px'},[HF.todayGreeting()+', c\u1ea3 nh\u00e0 \u{1F44B}']),
-      el('div',{class:'sub'},['H\u00f4m nay c\u00f3 '+todays.length+' vi\u1ec7c \u0111ang ch\u1edd \u2014 chia s\u1ebb \u0111\u1ec3 nh\u1eb9 vai h\u01a1n'])
+      el('div',{class:'sub'},[todays.length===0
+        ? 'H\u00f4m nay nh\u1eb9 nh\u00e0ng \u2014 c\u00f9ng nhau t\u1eadn h\u01b0\u1edfng nh\u00e9'
+        : 'H\u00f4m nay c\u00f3 '+todays.length+' vi\u1ec7c \u2014 c\u00f9ng nhau san s\u1ebb nh\u00e9 \u{1F49C}'])
     ]);
 
     const speakCard = el('div',{class:'speak-card',onclick:()=>nav('dump')},[
@@ -35,7 +37,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         el('span',{style:'font-size:9px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;white-space:nowrap'},['lo = nh\u1edb \u00b7 l\u00e0m = th\u1ef1c hi\u1ec7n'])
       ]),
       ...(todays.length===0
-        ? [el('div',{class:'empty'},[el('span',{class:'e-ico'},['\u{1F389}']), el('div',{class:'e-t'},['H\u00f4m nay r\u1ea3nh r\u1ed3i!']), el('div',{class:'e-s'},['T\u1eadn h\u01b0\u1edfng kho\u1ea3nh kh\u1eafc b\u00ean gia \u0111\u00ecnh nh\u00e9'])])]
+        ? [emptyTodayCard(state, nav)]
         : todays.slice(0,2).map((t,i)=>HF.taskCard(t,{compact:true, delay:i*60, onToggle:()=>toggleTask(state,t,nav)}))),
       todays.length>2 ? el('div',{style:'text-align:center;margin-top:10px'},
         el('button',{class:'btn btn-soft',style:'padding:9px 18px;font-size:13px',onclick:()=>nav('tasks')},['Xem t\u1ea5t c\u1ea3 '+todays.length+' vi\u1ec7c'])) : null
@@ -43,7 +45,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
     const maxTotal = Math.max(...HF.MEMBERS.map(m=>load[m.id].total), 1);
     const loadCard = el('div',{class:'card compact',style:'cursor:pointer;padding-top:13px;padding-bottom:13px',onclick:()=>nav('balance')},[
-      el('div',{class:'section-label',style:'margin-bottom:12px'},[el('span',{class:'bar'}),'Family Load']),
+      el('div',{class:'section-label',style:'margin-bottom:12px'},[el('span',{class:'bar'}),'C\u00e2n b\u1eb1ng vi\u1ec7c nh\u00e0']),
       el('div',{class:'stacked-bar'}, HF.MEMBERS.map(m=>
         el('div',{style:`flex:${load[m.id].total};background:${m.color}`})
       )),
@@ -52,8 +54,8 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       )),
       el('div',{class:'load-status'},[
         imb
-          ? '\u2696\uFE0F '+imb.max.member.name+' \u0111ang g\u00e1nh nhi\u1ec1u nh\u1ea5t'
-          : '\u{1F31F} C\u1ea3 nh\u00e0 \u0111ang c\u00e2n b\u1eb1ng t\u1ed1t',
+          ? '\u2696\uFE0F '+imb.max.member.name+' \u0111ang g\u00e1nh nhi\u1ec1u nh\u1ea5t \u2014 c\u00f9ng san s\u1ebb nh\u00e9'
+          : '\u{1F31F} C\u1ea3 nh\u00e0 m\u00ecnh \u0111ang san s\u1ebb r\u1ea5t \u0111\u1ec1u',
         el('span',{style:'color:var(--primary-deep);font-weight:800'},['\u2192'])
       ])
     ]);
@@ -62,7 +64,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       el('div',{style:'display:flex;align-items:center;gap:12px'},[
         el('span',{style:'font-size:30px'},['\u{1F4DD}']),
         el('div',{style:'flex:1'},[
-          el('div',{style:'font-weight:800;font-size:14.5px'},['B\u1ea3n tin tu\u1ea7n \u0111\u00e3 s\u1eb5n s\u00e0ng']),
+          el('div',{style:'font-weight:800;font-size:14.5px'},['B\u1ea3n tin tu\u1ea7n c\u1ee7a c\u1ea3 nh\u00e0 \u0111\u00e3 s\u1eb5n s\u00e0ng']),
           el('div',{class:'sub',style:'font-size:12px'},[brief.doneCount+' vi\u1ec7c \u0111\u00e3 xong, '+brief.openSoonCount+' vi\u1ec7c s\u1eafp t\u1edbi'])
         ]),
         el('span',{style:'color:var(--primary-deep);font-weight:800'},['\u2192'])
@@ -113,7 +115,14 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       el('div',{style:'margin-top:14px'}, filter==='month'
         ? monthCalendar(state, nav)
         : (list.length===0
-          ? el('div',{class:'card empty'},[el('span',{class:'e-ico'},['\u{1F389}']), el('div',{class:'e-t'},['Kh\u00f4ng c\u00f3 vi\u1ec7c n\u00e0o']), el('div',{class:'e-s'},['Th\u00eam vi\u1ec7c m\u1edbi ho\u1eb7c k\u1ec3 HomeFlow nghe'])])
+          ? el('div',{class:'card empty'},[
+              el('span',{class:'e-ico'},[filter==='today' ? HF.todayEmptyMsg().ico : '\u{1F33F}']),
+              el('div',{class:'e-t'},[filter==='today' ? HF.todayEmptyMsg().t : 'Ch\u01b0a c\u00f3 vi\u1ec7c n\u00e0o']),
+              el('div',{class:'e-s'},[filter==='today' ? HF.todayEmptyMsg().s : 'C\u1ea3 nh\u00e0 m\u00ecnh b\u1eaft \u0111\u1ea7u nh\u1eb9 nh\u00e0ng nh\u00e9']),
+              el('button',{class:'btn btn-soft',style:'margin-top:14px;width:100%;padding:12px;font-size:13.5px',onclick:()=>openAddSheet(state,nav)},[
+                '+ Th\u00eam vi\u1ec7c'
+              ])
+            ])
           : list.map((t,i)=>HF.taskCard(t,{delay:i*40, onToggle:()=>toggleTask(state,t,nav)}))))
     ];
 
@@ -211,6 +220,18 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       head,
       el('div',{class:'cal-wd'}, wdNames.map(w=>el('span',{},[w]))),
       grid
+    ]);
+  }
+
+  function emptyTodayCard(state, nav){
+    const em = HF.todayEmptyMsg();
+    return el('div',{class:'card empty'},[
+      el('span',{class:'e-ico'},[em.ico]),
+      el('div',{class:'e-t'},[em.t]),
+      el('div',{class:'e-s'},[em.s]),
+      el('button',{class:'btn btn-soft',style:'margin-top:14px;width:100%;padding:12px;font-size:13.5px',onclick:()=>openAddSheet(state,nav)},[
+        '+ Th\u00eam vi\u1ec7c'
+      ])
     ]);
   }
 
@@ -577,7 +598,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
     if(imb && total>0){
       const rb = el('div',{class:'card rebalance-card'},[
-        el('div',{class:'section-label'},[el('span',{class:'bar'}),'Smart Rebalance']),
+        el('div',{class:'section-label'},[el('span',{class:'bar'}),'G\u1ee3i \u00fd san s\u1ebb vi\u1ec7c']),
         el('div',{class:'sub',style:'font-size:12.5px;margin-top:2px'},['Nh\u1eefng c\u01a1 h\u1ed9i nh\u1ecf \u0111\u1ec3 c\u1ea3 nh\u00e0 chia s\u1ebb vi\u1ec7c nh\u1eb9 nh\u00e0ng h\u01a1n:']),
         ...sug.suggestions.map(s=>{
           const row = el('div',{class:'sug-row'},[
@@ -648,8 +669,8 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         el('div',{style:'display:flex;gap:12px;align-items:center'},[
           el('span',{style:'font-size:28px'},['\u{1F31F}']),
           el('div',{style:'flex:1'},[
-            el('div',{style:'font-weight:800;font-size:14.5px'},['C\u1ea3 nh\u00e0 \u0111ang c\u00e2n b\u1eb1ng r\u1ea5t t\u1ed1t!']),
-            el('div',{class:'sub',style:'font-size:12px'},['Ti\u1ebfp t\u1ee5c duy tr\u00ec nh\u00e9. Xem b\u1ea3n tin tu\u1ea7n \u2192'])
+            el('div',{style:'font-weight:800;font-size:14.5px'},['C\u1ea3 nh\u00e0 m\u00ecnh \u0111ang san s\u1ebb r\u1ea5t \u0111\u1ec1u!']),
+            el('div',{class:'sub',style:'font-size:12px'},['Gi\u1eef nh\u1ecbp nh\u00e9. Xem b\u1ea3n tin tu\u1ea7n \u2192'])
           ])
         ])
       ]));
@@ -665,55 +686,47 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
     const screen = [
       el('div',{},[
-        el('div',{class:'eyebrow'},['Bản tin gia đình']),
+        el('div',{class:'eyebrow'},['B\u1ea3n tin gia \u0111\u00ecnh']),
         el('h1',{class:'page-title',style:'margin-top:4px'},['\u{1F49C} Tu\u1ea7n n\u00e0y c\u1ee7a gia \u0111\u00ecnh']),
         el('div',{class:'sub'},['Tu\u1ea7n '+brief.weekLabel+' \u2014 m\u1ed9t nh\u1ecbp th\u1edf b\u00ecnh y\u00ean'])
       ])
     ];
 
-    const doneList = brief.doneThisWeek.slice(0,4);
-    screen.push(el('div',{class:'card brief-card'},[
-      el('div',{class:'brief-label brief-done'},['\u2713 \u0110\u00c3 HO\u00c0N TH\u00c0NH']),
-      doneList.length===0
-        ? el('div',{class:'brief-empty'},['Tu\u1ea7n n\u00e0y ch\u01b0a c\u00f3 vi\u1ec7c n\u00e0o xong \u2014 kh\u00f4ng sao, c\u00f9ng nhau b\u1eaft \u0111\u1ea7u nh\u00e9'])
-        : doneList.map(t=>el('div',{class:'brief-item brief-done-item'},[
-            el('span',{class:'brief-mark'},['\u2713']),
-            el('span',{class:'brief-text'},[t.title])
-          ])),
-      doneList.length < brief.doneCount
-        ? el('div',{class:'brief-more'},['v\u00e0 '+ (brief.doneCount-doneList.length) +' vi\u1ec7c n\u1eefa \u0111\u00e3 xong \u2728'])
-        : null
+    const doneMsg = brief.doneCount>0
+      ? 'Tu\u1ea7n n\u00e0y c\u1ea3 nh\u00e0 \u0111\u00e3 c\u00f9ng nhau ho\u00e0n th\u00e0nh '+brief.doneCount+' vi\u1ec7c'+(brief.openCount>0 ? ', c\u00f2n '+brief.openCount+' vi\u1ec7c ph\u00eda tr\u01b0\u1edbc' : '')+' \u2014 c\u00f9ng nhau san s\u1ebb nh\u00e9 \u{1F49C}'
+      : 'Tu\u1ea7n n\u00e0y c\u1ea3 nh\u00e0 \u0111ang c\u00f9ng nhau b\u1eaft \u0111\u1ea7u \u2014 c\u00f2n '+brief.openCount+' vi\u1ec7c ph\u00eda tr\u01b0\u1edbc, c\u00f9ng nhau san s\u1ebb nh\u00e9 \u{1F49C}';
+    screen.push(el('div',{class:'card brief-card brief-hello'},[
+      el('div',{class:'brief-hello-t'},['G\u1eedi c\u1ea3 nh\u00e0 y\u00eau th\u01b0\u01a1ng \u{1F49C}']),
+      el('div',{class:'brief-hello-msg'},[doneMsg])
     ]));
 
-    const openList = state.tasks.filter(t=>t.status==='open').sort((a,b)=>a.due-b.due).slice(0,4);
-    screen.push(el('div',{class:'card brief-card'},[
-      el('div',{class:'brief-label brief-open'},['\u2022 C\u00d2N L\u1ea0I']),
-      openList.length===0
-        ? el('div',{class:'brief-empty'},['Kh\u00f4ng c\u00f2n vi\u1ec7c n\u00e0o \u2014 t\u1eadn h\u01b0\u1edfng th\u00f4i!'])
-        : openList.map(t=>el('div',{class:'brief-item'},[
-            el('span',{class:'brief-mark'},['\u2022']),
-            el('span',{class:'brief-text'},[t.title])
-          ])),
-      openList.length < brief.openCount
-        ? el('div',{class:'brief-more'},['c\u00f2n '+ (brief.openCount-openList.length) +' vi\u1ec7c n\u1eefa \u0111ang ch\u1edd'])
-        : null
-    ]));
+    const todayOpen = state.tasks.filter(t=>t.status==='open' && HF.isSameDay(t.due, HF.dayOffset(0)));
+    const tomorrowOpen = state.tasks.filter(t=>t.status==='open' && HF.isSameDay(t.due, HF.dayOffset(1)));
+    const nextWeek = state.tasks.filter(t=>t.status==='open' && t.due > HF.dayOffset(1) && t.due <= HF.dayOffset(7)).sort((a,b)=>a.due-b.due);
 
-    const nextList = brief.nextWeek.slice(0,3);
-    screen.push(el('div',{class:'card brief-card'},[
-      el('div',{class:'brief-label brief-next'},['\u{1F5D3}\uFE0F TU\u1ea6N T\u1edaI C\u1ea6N NH\u1eda']),
-      nextList.length===0
-        ? el('div',{class:'brief-empty'},['Tu\u1ea7n t\u1edbi r\u1ea3nh rang \u2014 c\u00f3 th\u1ec3 l\u00ean k\u1ebf ho\u1ea1ch vui ch\u01a1i!'])
-        : nextList.map(t=>el('div',{class:'brief-item'},[
-            el('span',{class:'brief-mark'},['\u2022']),
-            el('span',{class:'brief-text'},[t.title]),
-            el('span',{class:'brief-when'},[HF.formatDay(t.due)])
-          ]))
-    ]));
+    function briefSection(ico, label, items, showWhen){
+      if(items.length===0) return null;
+      return el('div',{class:'card brief-card'},[
+        el('div',{class:'brief-label brief-next'},[ico+' '+label]),
+        ...items.map(t=>el('div',{class:'brief-item'},[
+          el('span',{class:'brief-mark'},['\u2022']),
+          el('span',{class:'brief-text'},[t.title]),
+          showWhen ? el('span',{class:'brief-when'},[t.time || HF.formatDay(t.due)]) : null
+        ]))
+      ]);
+    }
+    screen.push(briefSection('\u{1F514}','H\u00f4m nay c\u1ea7n ch\u00fa \u00fd', todayOpen, true));
+    screen.push(briefSection('\u{1F324}\uFE0F','Ng\u00e0y mai chu\u1ea9n b\u1ecb', tomorrowOpen, true));
+    screen.push(briefSection('\u{1F4C5}','Tu\u1ea7n t\u1edbi \u0111\u1eebng qu\u00ean', nextWeek, true));
+    if(todayOpen.length===0 && tomorrowOpen.length===0 && nextWeek.length===0){
+      screen.push(el('div',{class:'card brief-card'},[
+        el('div',{class:'brief-empty'},['Kh\u00f4ng c\u00f2n vi\u1ec7c n\u00e0o ph\u00eda tr\u01b0\u1edbc \u2014 c\u1ea3 nh\u00e0 c\u1ee9 t\u1eadn h\u01b0\u1edfng nh\u00e9 \u{1F33F}'])
+      ]));
+    }
 
     const balLine = (imb && !state.rebalanced)
       ? 'Tu\u1ea7n n\u00e0y, ph\u1ea7n l\u1edbn vi\u1ec7c nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch v\u1eabn do '+imb.max.member.name+' g\u00e1nh \u2014 c\u1ea3 nh\u00e0 c\u00f9ng chia s\u1ebb th\u00eam nh\u00e9 \u{1F49C}'
-      : 'Tu\u1ea7n n\u00e0y c\u1ea3 nh\u00e0 \u0111\u00e3 chia s\u1ebb tr\u00e1ch nhi\u1ec7m \u0111\u1ec1u h\u01a1n \u{1F49C}';
+      : 'Tu\u1ea7n n\u00e0y c\u1ea3 nh\u00e0 \u0111\u00e3 chia s\u1ebb tr\u00e1ch nhi\u1ec7m \u0111\u1ec1u h\u01a1n \u2014 gi\u1eef nh\u1ecbp nh\u00e9 \u{1F49C}';
     screen.push(el('div',{class:'card bal-summary'},[
       el('span',{class:'bal-summary-ico'},['\u2696\uFE0F']),
       el('div',{class:'bal-summary-text'},[balLine])

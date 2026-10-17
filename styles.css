@@ -800,6 +800,9 @@ textarea.input{resize:none;line-height:1.6}
 .brief-when{margin-left:auto;flex:none;font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap}
 .brief-more{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:6px}
 .brief-empty{font-size:13px;font-weight:500;color:var(--muted);padding:6px 0;line-height:1.5}
+.brief-hello{background:linear-gradient(135deg,#FFF7E8,#FDE9EE)}
+.brief-hello-t{font-size:16px;font-weight:800;color:var(--primary-deep)}
+.brief-hello-msg{font-size:13.5px;font-weight:600;line-height:1.55;margin-top:7px;color:var(--ink)}
 
 .bal-summary{
   display:flex;align-items:center;gap:12px;

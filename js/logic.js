@@ -131,7 +131,7 @@
   HF.balanceInsight = function(load){
     const totalPlan = HF.MEMBERS.reduce((s,m)=>s+load[m.id].planningCount,0);
     if(totalPlan === 0){
-      return {insight:'C\u1ea3 nh\u00e0 \u0111ang chia s\u1ebb vi\u1ec7c kh\u00e1 \u0111\u1ec1u \u2014 ti\u1ebfp t\u1ee5c nh\u00e9!', suggest:null};
+      return {insight:'C\u1ea3 nh\u00e0 m\u00ecnh \u0111ang san s\u1ebb r\u1ea5t \u0111\u1ec1u \u2014 gi\u1eef nh\u1ecbp nh\u00e9 \u{1F49C}', suggest:null};
     }
     const sorted = HF.MEMBERS.slice().sort((a,b)=>load[b.id].planningCount-load[a.id].planningCount);
     const top = sorted[0];
@@ -139,7 +139,7 @@
     if(share > 0.5){
       return {
         insight: `Tu\u1ea7n n\u00e0y, ph\u1ea7n l\u1edbn vi\u1ec7c ph\u1ea3i nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch \u0111ang t\u1eadp trung v\u00e0o ${top.name}.`,
-        suggest: 'C\u00f9ng chia s\u1ebb m\u1ed9t v\u00e0i vi\u1ec7c \u0111\u1ec3 tu\u1ea7n t\u1edbi nh\u1eb9 nh\u00e0ng h\u01a1n nh\u00e9.'
+        suggest: 'C\u00f9ng nhau san s\u1ebb m\u1ed9t v\u00e0i vi\u1ec7c \u0111\u1ec3 tu\u1ea7n t\u1edbi nh\u1eb9 nh\u00e0ng h\u01a1n nh\u00e9 \u{1F49C}'
       };
     }
     const doer = HF.MEMBERS.slice().sort((a,b)=>load[b.id].doingCount-load[a.id].doingCount)[0];
