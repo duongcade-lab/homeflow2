@@ -54,7 +54,8 @@
       if(params.path && params.path.length) hash += '/'+params.path.join('/');
       if(params.filter) hash += '?filter='+params.filter;
     }
-    location.hash = hash;
+    if(location.hash === hash) render();
+    else location.hash = hash;
   }
 
   function routeFromHash(){

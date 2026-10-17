@@ -80,7 +80,8 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     const segs = [
       {id:'all', label:'T\u1ea5t c\u1ea3'},
       {id:'today', label:'H\u00f4m nay'},
-      {id:'week', label:'Tu\u1ea7n n\u00e0y'}
+      {id:'week', label:'Tu\u1ea7n n\u00e0y'},
+      {id:'month', label:'Th\u00e1ng'}
     ];
     if(showDone) segs.push({id:'done', label:'\u0110\u00e3 xong'});
     if(filter==='done' && !showDone) filter = 'all';
@@ -88,7 +89,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     if(filter==='today') list = list.filter(t=>t.status==='open' && HF.isSameDay(t.due, HF.dayOffset(0)));
     else if(filter==='week') list = list.filter(t=>t.status==='open' && t.due <= HF.dayOffset(7));
     else if(filter==='done') list = list.filter(t=>t.status==='done');
-    else list = list.filter(t=>t.status==='open');
+    else if(filter!=='month') list = list.filter(t=>t.status==='open');
 
     list.sort((a,b)=>{
       if(a.status!==b.status) return a.status==='done'?1:-1;
@@ -109,15 +110,109 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         el('div',{class:'sub'},[openCount+' vi\u1ec7c \u0111ang m\u1edf \u2014 c\u00f9ng ph\u00e2n c\u00f4ng, c\u00f9ng ho\u00e0n th\u00e0nh'])
       ]),
       segBar,
-      el('div',{style:'margin-top:14px'}, list.length===0
-        ? el('div',{class:'card empty'},[el('span',{class:'e-ico'},['\u{1F389}']), el('div',{class:'e-t'},['Kh\u00f4ng c\u00f3 vi\u1ec7c n\u00e0o']), el('div',{class:'e-s'},['Th\u00eam vi\u1ec7c m\u1edbi ho\u1eb7c k\u1ec3 HomeFlow nghe'])])
-        : list.map((t,i)=>HF.taskCard(t,{delay:i*40, onToggle:()=>toggleTask(state,t,nav)})))
+      el('div',{style:'margin-top:14px'}, filter==='month'
+        ? monthCalendar(state, nav)
+        : (list.length===0
+          ? el('div',{class:'card empty'},[el('span',{class:'e-ico'},['\u{1F389}']), el('div',{class:'e-t'},['Kh\u00f4ng c\u00f3 vi\u1ec7c n\u00e0o']), el('div',{class:'e-s'},['Th\u00eam vi\u1ec7c m\u1edbi ho\u1eb7c k\u1ec3 HomeFlow nghe'])])
+          : list.map((t,i)=>HF.taskCard(t,{delay:i*40, onToggle:()=>toggleTask(state,t,nav)}))))
     ];
 
     screen.push(el('div',{style:'margin-top:16px'},
       el('button',{class:'btn btn-soft',style:'width:100%',onclick:()=>openAddSheet(state,nav)},['+ Th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng'])));
     return screen;
   };
+
+  let calCursor = null;
+
+  function openTaskSheet(state, nav, task){
+    const cat = HF.categoryById(task.cat);
+    const done = task.status==='done';
+    const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+      el('div',{style:'display:flex;gap:8px;flex-wrap:wrap'},[
+        el('span',{class:'chip',style:`background:${cat.soft};color:${cat.color}`},[cat.emoji+' '+cat.label]),
+        el('span',{class:'chip ghost'},['\u{1F5D3}\uFE0F '+HF.formatDay(task.due)+(task.time?' \u00b7 '+task.time:'')])
+      ]),
+      HF.contrib(task),
+      el('button',{class:'btn '+(done?'btn-ghost':'btn-primary'),style:'width:100%',onclick:()=>{
+        if(done){ task.status='open'; task.doneAt=null; }
+        else{ task.status='done'; task.doneAt=new Date(); HF.confetti(); }
+        HF.saveState(state);
+        sheet.close();
+        nav('tasks',{filter:'month'});
+      }},[done?'\u21A9\uFE0F M\u1edf l\u1ea1i vi\u1ec7c':'\u2713 \u0110\u00e1nh d\u1ea5u ho\u00e0n th\u00e0nh'])
+    ]);
+    const sheet = HF.sheet({title:task.title, body:()=>body});
+  }
+
+  function monthCalendar(state, nav){
+    const now = new Date();
+    const cursor = calCursor || new Date(now.getFullYear(), now.getMonth(), 1);
+    const year = cursor.getFullYear(), month = cursor.getMonth();
+    const weekStart = (HF.prefs && HF.prefs.weekStart==='sun') ? 0 : 1;
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const daysInPrev = new Date(year, month, 0).getDate();
+    const offset = (new Date(year, month, 1).getDay() - weekStart + 7) % 7;
+    const MONTHS = ['Th\u00e1ng 1','Th\u00e1ng 2','Th\u00e1ng 3','Th\u00e1ng 4','Th\u00e1ng 5','Th\u00e1ng 6','Th\u00e1ng 7','Th\u00e1ng 8','Th\u00e1ng 9','Th\u00e1ng 10','Th\u00e1ng 11','Th\u00e1ng 12'];
+
+    const tasksByDay = {};
+    const showDone = !HF.prefs || HF.prefs.showCompleted !== false;
+    state.tasks.forEach(t=>{
+      if(t.status==='done' && !showDone) return;
+      const d = new Date(t.due);
+      if(d.getFullYear()===year && d.getMonth()===month){
+        (tasksByDay[d.getDate()] = tasksByDay[d.getDate()]||[]).push(t);
+      }
+    });
+
+    const cells = [];
+    for(let i=0;i<42;i++){
+      const n = i - offset + 1;
+      let day, inMonth;
+      if(n<1){ day = daysInPrev + n; inMonth = false; }
+      else if(n>daysInMonth){ day = n - daysInMonth; inMonth = false; }
+      else { day = n; inMonth = true; }
+      const isToday = inMonth && day===now.getDate() && month===now.getMonth() && year===now.getFullYear();
+      const tasks = inMonth ? (tasksByDay[day]||[]) : [];
+      cells.push({day, inMonth, isToday, tasks});
+    }
+
+    const wdNames = weekStart===1 ? ['T2','T3','T4','T5','T6','T7','CN'] : ['CN','T2','T3','T4','T5','T6','T7'];
+
+    const grid = el('div',{class:'cal-grid'}, cells.map(c=>{
+      const chips = c.tasks.slice(0,2).map(t=>{
+        const cat = HF.categoryById(t.cat);
+        return el('div',{class:'cal-chip'+(t.status==='done'?' done':''),style:`background:${cat.soft};color:${cat.color}`,onclick:(e)=>{e.stopPropagation(); openTaskSheet(state, nav, t);}},[cat.emoji+' '+t.title]);
+      });
+      if(c.tasks.length>2){
+        chips.push(el('div',{class:'cal-more'},['+'+(c.tasks.length-2)+' n\u1eefa']));
+      }
+      return el('div',{class:'cal-cell'+(c.inMonth?'':' out')},[
+        el('div',{class:'cal-day'+(c.isToday?' today':'')},[c.day]),
+        ...chips
+      ]);
+    }));
+
+    const head = el('div',{class:'cal-head'},[
+      el('div',{class:'cal-nav'},[
+        el('button',{class:'cal-nav-btn',onclick:()=>{calCursor=new Date(year, month-1, 1); nav('tasks',{filter:'month'});}},[
+          el('span',{},['\u2039'])
+        ]),
+        el('div',{class:'cal-title'},[MONTHS[month]+' '+year]),
+        el('button',{class:'cal-nav-btn',onclick:()=>{calCursor=new Date(year, month+1, 1); nav('tasks',{filter:'month'});}},[
+          el('span',{},['\u203A'])
+        ])
+      ]),
+      el('button',{class:'btn btn-soft',style:'padding:7px 13px;font-size:12px',onclick:()=>{calCursor=null; nav('tasks',{filter:'month'});}},[
+        'H\u00f4m nay'
+      ])
+    ]);
+
+    return el('div',{class:'card compact cal-card'},[
+      head,
+      el('div',{class:'cal-wd'}, wdNames.map(w=>el('span',{},[w]))),
+      grid
+    ]);
+  }
 
   function toggleTask(state, task, nav){
     if(task.status==='done'){
