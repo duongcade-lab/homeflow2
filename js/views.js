@@ -321,27 +321,36 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
       confirmBtn.addEventListener('click', ()=>{
         const now = new Date();
-        for(const t of parsedTasks){
-          state.tasks.push({
-            id: HF.uid('ai'),
-            title: t.title,
-            cat: t.cat,
-            due: t.due,
-            time: t.time,
-            owner: t.owner,
-            planner: t.mental ? (t.planner||'me') : null,
-            mental: t.mental,
-            shared: !!t.shared,
-            status: 'open',
-            pts: t.pts || 1,
-            src: 'brain',
-            createdAt: now
-          });
+        const doAdd = ()=>{
+          for(const t of parsedTasks){
+            state.tasks.push({
+              id: HF.uid('ai'),
+              title: t.title,
+              cat: t.cat,
+              due: t.due,
+              time: t.time,
+              owner: t.owner,
+              planner: t.mental ? (t.planner||'me') : null,
+              mental: t.mental,
+              shared: !!t.shared,
+              status: 'open',
+              pts: t.pts || 1,
+              src: 'brain',
+              createdAt: now
+            });
+          }
+          state.dumpCount = (state.dumpCount||0)+1;
+          state.lastDump = {text: ta.value.trim(), at: now.toISOString(), count: parsedTasks.length};
+          HF.saveState(state);
+          showSuccess(parsedTasks.length);
+        };
+        const dupTask = parsedTasks.find(t=>HF.findDuplicateTask(state, {title:t.title, due:t.due, time:t.time, owner:t.owner, shared:!!t.shared}));
+        if(dupTask){
+          const existing = HF.findDuplicateTask(state, {title:dupTask.title, due:dupTask.due, time:dupTask.time, owner:dupTask.owner, shared:!!dupTask.shared});
+          confirmDuplicate(existing, doAdd);
+        }else{
+          doAdd();
         }
-        state.dumpCount = (state.dumpCount||0)+1;
-        state.lastDump = {text: ta.value.trim(), at: now.toISOString(), count: parsedTasks.length};
-        HF.saveState(state);
-        showSuccess(parsedTasks.length);
       });
     }
 
@@ -1703,6 +1712,40 @@ function buildReminders(){
     return [root];
   };
 
+  function confirmDuplicate(existing, onAdd){
+    const cat = HF.categoryById(existing.cat);
+    const owner = HF.memberById(existing.owner);
+    const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+      el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
+        el('span',{style:'font-size:20px'},['\u{1F49C}']),
+        el('div',{style:'flex:1'},[
+          el('div',{style:'font-weight:800;font-size:14px'},['Vi\u1ec7c n\u00e0y c\u00f3 v\u1ebb \u0111\u00e3 c\u00f3 trong HomeFlow']),
+          el('div',{style:'font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5'},['B\u1ea1n c\u00f3 mu\u1ed1n xem vi\u1ec7c hi\u1ec7n c\u00f3 tr\u01b0\u1edbc, hay v\u1eabn mu\u1ed1n th\u00eam m\u1ed9t vi\u1ec7c t\u01b0\u01a1ng t\u1ef1?'])
+        ])
+      ]),
+      el('div',{class:'dup-preview'},[
+        el('div',{class:'dup-preview-t'},[existing.title]),
+        el('div',{class:'dup-preview-m'},[
+          el('span',{class:'chip',style:`background:${cat.soft};color:${cat.color}`},[cat.emoji+' '+cat.label]),
+          el('span',{class:'chip ghost'},['\u{1F5D3}\uFE0F '+HF.formatDay(existing.due)+(existing.time?' \u00b7 '+existing.time:'')]),
+          existing.shared
+            ? el('span',{class:'chip-lam chip-shared'},['C\u1ea3 nh\u00e0 l\u00e0m'])
+            : el('span',{class:'chip-lam',style:'background:'+owner.color},[owner.short+' l\u00e0m'])
+        ])
+      ]),
+      el('div',{style:'display:flex;flex-direction:column;gap:8px;margin-top:4px'},[
+        el('button',{class:'btn btn-soft',style:'padding:12px;font-size:13.5px'},['\u{1F440} Xem vi\u1ec7c hi\u1ec7n c\u00f3']),
+        el('button',{class:'btn btn-primary',style:'padding:12px;font-size:13.5px'},['V\u1eabn th\u00eam']),
+        el('button',{class:'btn btn-ghost',style:'padding:12px;font-size:13.5px'},['H\u1ee7y'])
+      ])
+    ]);
+    const sheet = HF.sheet({title:'C\u00f3 v\u1ebb tr\u00f9ng l\u1eb7p', body:()=>body});
+    const btns = body.querySelectorAll('.btn');
+    btns[0].addEventListener('click', ()=>{ sheet.close(); nav('tasks'); });
+    btns[1].addEventListener('click', ()=>{ sheet.close(); onAdd(); });
+    btns[2].addEventListener('click', ()=>sheet.close());
+  }
+
   function openAddSheet(state, nav){
     HF.sheet({
       title:'Th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng',
@@ -1731,23 +1774,36 @@ function buildReminders(){
         saveBtn.addEventListener('click', ()=>{
           const t = title.value.trim();
           if(!t){ HF.toast('Nh\u1eadp t\u00ean vi\u1ec7c tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
-          state.tasks.push({
-            id: HF.uid('m'),
+          const candidate = {
             title: t,
-            cat: catSel.value,
             due: new Date(dateSel.value),
             time: '',
             owner: ownerSel.value,
             planner: plannerSel.value,
-            mental: true,
-            status: 'open',
-            pts: 1,
-            src: 'manual'
-          });
-          HF.saveState(state);
-          HF.toast('\u0110\u00e3 th\u00eam \u201c'+t+'\u201d','\u2705');
-          nav('tasks',{filter:'all'});
-          document.getElementById('sheetLayer').innerHTML='';
+            shared: false
+          };
+          const doAdd = ()=>{
+            state.tasks.push({
+              id: HF.uid('m'),
+              title: t,
+              cat: catSel.value,
+              due: new Date(dateSel.value),
+              time: '',
+              owner: ownerSel.value,
+              planner: plannerSel.value,
+              mental: true,
+              status: 'open',
+              pts: 1,
+              src: 'manual'
+            });
+            HF.saveState(state);
+            HF.toast('\u0110\u00e3 th\u00eam \u201c'+t+'\u201d','\u2705');
+            nav('tasks',{filter:'all'});
+            document.getElementById('sheetLayer').innerHTML='';
+          };
+          const dup = HF.findDuplicateTask(state, candidate);
+          if(dup) confirmDuplicate(dup, doAdd);
+          else doAdd();
         });
         return body;
       }

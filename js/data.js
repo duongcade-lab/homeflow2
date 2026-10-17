@@ -201,6 +201,22 @@
     return state.growth.filter(r=>r.kidId===kidId).sort((a,b)=>new Date(a.date)-new Date(b.date));
   };
 
+  HF.findDuplicateTask = function(state, cand){
+    const norm = s=>String(s||'').toLowerCase().trim().replace(/\s+/g,' ');
+    const cTitle = norm(cand.title);
+    if(!cTitle) return null;
+    const cDue = cand.due ? new Date(cand.due) : null;
+    const cTime = cand.time||'';
+    for(const t of state.tasks){
+      if(t.status==='done') continue;
+      if(norm(t.title)!==cTitle) continue;
+      if(cDue && !HF.isSameDay(cDue, new Date(t.due))) continue;
+      if(cTime && t.time && cTime!==t.time) continue;
+      return t;
+    }
+    return null;
+  };
+
   function serialize(t){
     return Object.assign({}, t, {
       due: t.due instanceof Date ? t.due.toISOString() : t.due,
