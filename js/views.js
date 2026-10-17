@@ -548,7 +548,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
       const cards = parsedTasks.map((t,i)=>{
         const cat = HF.categoryById(t.cat);
-        const planner = HF.memberById(t.planner||'me');
+        const planner = HF.memberById(t.planner || (t.mental ? 'me' : t.owner) || 'me');
         const doer = t.shared ? null : HF.memberById(t.owner);
 
         const roleBlocks = el('div',{class:'rcard-roles'},[

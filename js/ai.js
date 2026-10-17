@@ -142,7 +142,8 @@
     const hasKidWord = new RegExp(WORD_CON+'|'+WORD_BE,'iu').test(s);
 
     const parent = hasBo ? 'bo' : (hasMe ? 'me' : null);
-    const kidId = hasBin ? 'bin' : (hasSu ? 'su' : null);
+    const kidByName = (HF.MEMBERS||[]).find(m=>m.kind==='kid' && m.name.toLowerCase().length>1 && s.includes(m.name.toLowerCase()));
+    const kidId = hasBin ? 'bin' : (hasSu ? 'su' : (kidByName ? kidByName.id : null));
 
     if(shared) return {owner:'me', shared:true, kid:kidId, parent, transport, known:true};
     if(parent && (transport || cat==='health')) return {owner:parent, shared:false, kid:kidId, parent, transport, known:true};
@@ -152,6 +153,18 @@
     if(hasKidWord && cat==='health') return {owner:'bo', shared:false, kid:null, parent:null, transport, known:true};
     if(cat==='event' || cat==='shopping') return {owner:'me', shared:true, kid:kidId, parent:null, transport, known:true};
     return {owner:'me', shared:false, kid:kidId, parent:null, transport, known:false};
+  }
+
+  function resolveRole(role, low){
+    const list = HF.MEMBERS||[];
+    if(role && list.some(m=>m.id===role)) return role;
+    const roleKws = {bo:['b\u1ed1','cha','ba'], me:['m\u1eb9','m\u00e1'], bin:['b\u1ea1n l\u1edbn','bin'], su:['b\u1ea1n nh\u1ecf','su']};
+    const kws = roleKws[role]||[];
+    const wantKid = (role==='bin'||role==='su');
+    const byText = list.find(m=>m.kind==='kid'===wantKid && m.name.toLowerCase().length>1 && low.includes(m.name.toLowerCase()));
+    const byKw = list.find(m=>m.kind==='kid'===wantKid && kws.includes(m.name.toLowerCase()));
+    const m = byText || byKw;
+    return m ? m.id : (role==='me' ? 'me' : null);
   }
 
   function detectPlanner(s, doer, cat){
@@ -183,7 +196,18 @@
     t = t.replace(new RegExp('('+WORD_CON+'|'+WORD_BE+')','giu'),' ');
     t = t.replace(/(c\u1ea3 nh\u00e0|c\u1ea3 gia \u0111\u00ecnh|m\u1ecdi ng\u01b0\u1eddi|\u0111\u1eebng qu\u00ean|nh\u1edb|qu\u00ean|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y)/g,' ');
     t = t.replace(FREQ_RE,' ');
-    t = t.replace(/(\u0111\u01b0a|ch\u1edf|\u0111\u00f3n)\s+(con|b\u00e9)?\s*(\u0111i)?\s*/g,' ');
+    t = t.replace(/\b(s\u00e1ng|tr\u01b0a|chi\u1ec1u|t\u1ed1i|\u0111\u00eam)\s*(nay|mai|h\u00f4m nay)\b/g,' ');
+    if(doer.transport && doer.kid){
+      const kidName = doer.kid==='bin' ? 'B\u1ea1n l\u1edbn' : (doer.kid==='su' ? 'B\u1ea1n nh\u1ecf' : (HF.memberById(doer.kid).name || 'con'));
+      if(doer.kid!=='bin' && doer.kid!=='su'){
+        t = t.replace(new RegExp('(?<!\\p{L})'+HF.memberById(doer.kid).name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?!\\p{L})','giu'),' ');
+      }
+      t = t.replace(/(\u0111\u01b0a|ch\u1edf|\u0111\u00f3n)\s+(con|b\u00e9)?\s*/g,' ');
+      t = t.replace(/\s+/g,' ').trim();
+      t = t ? '\u0110\u01b0a '+kidName+' '+t : '\u0110\u01b0a '+kidName;
+    }else{
+      t = t.replace(/(\u0111\u01b0a|ch\u1edf|\u0111\u00f3n)\s+(con|b\u00e9)?\s*/g,' ');
+    }
     t = t.replace(/\s+/g,' ').trim();
     t = t.replace(/^[\s,.\u2013\-]+/,'');
     t = t.replace(/[,\s.]+$/,'').trim();
@@ -196,10 +220,6 @@
         t = t.replace(re, m.name);
       }
     }
-    if(doer.transport && doer.kid && !/^\u0111\u01b0a/i.test(t)){
-      const kidName = doer.kid==='bin' ? 'B\u1ea1n l\u1edbn' : 'B\u1ea1n nh\u1ecf';
-      t = '\u0110\u01b0a '+kidName+' '+t;
-    }
     t = t.charAt(0).toUpperCase() + t.slice(1);
     if(t.length > 60) t = t.slice(0,60).replace(/\s+\S*$/,'') + '\u2026';
     return t;
@@ -208,8 +228,8 @@
   function inferDue(s, weekday){
     const low = s.toLowerCase();
     if(weekday) return weekday;
-    if(/\bh\u00f4m nay\b/.test(low)) return HF.dayOffset(0);
-    if(/\bmai\b|ng\u00e0y mai/.test(low)) return HF.dayOffset(1);
+    if(/\bh\u00f4m nay\b|\b(s\u00e1ng|tr\u01b0a|chi\u1ec1u|t\u1ed1i|\u0111\u00eam)\s*nay\b|\bnay\b/.test(low)) return HF.dayOffset(0);
+    if(/\b(s\u00e1ng|tr\u01b0a|chi\u1ec1u|t\u1ed1i|\u0111\u00eam)\s*mai\b|\bmai\b|ng\u00e0y mai/.test(low)) return HF.dayOffset(1);
     if(/cu\u1ed1i tu\u1ea7n/.test(low)) return HF.dayOffset((7 - new Date().getDay() + 6) % 7 || 7);
     if(/tu\u1ea7n sau/.test(low)) return HF.dayOffset(7);
     if(/tu\u1ea7n n\u00e0y/.test(low)) return HF.dayOffset(3);
@@ -265,13 +285,19 @@
     const time = times[0] || '';
     const cat = detectCategory(low);
     const doer = detectDoer(low, cat);
-    const planner = detectPlanner(low, doer, cat);
+    const doerResolved = {
+      owner: resolveRole(doer.owner, low) || 'me',
+      kid: doer.kid ? resolveRole(doer.kid, low) : null,
+      shared: doer.shared, parent: doer.parent, transport: doer.transport, known: doer.known
+    };
+    const plannerRole = detectPlanner(low, doer, cat);
+    const planner = plannerRole ? (resolveRole(plannerRole, low) || 'me') : null;
     const mental = !!planner;
-    const title = cleanTitle(low, doer);
+    const title = cleanTitle(low, doerResolved);
     let confidence = 0.72;
     if(parseWeekday(low)) confidence += 0.08;
     if(time) confidence += 0.05;
-    if(doer.owner !== 'me' || doer.parent) confidence += 0.07;
+    if(doerResolved.owner !== 'me' || doerResolved.parent) confidence += 0.07;
     if(planner) confidence += 0.05;
     confidence = Math.min(0.98, confidence);
     return {
@@ -280,14 +306,14 @@
       due,
       time,
       times,
-      owner: doer.owner,
-      planner: mental ? (planner || 'me') : null,
+      owner: doerResolved.owner,
+      planner: mental ? planner : null,
       mental,
-      shared: !!doer.shared,
+      shared: !!doerResolved.shared,
       kidOk: ['home','shopping','kids'].includes(cat),
       confidence: Math.round(confidence*100),
       dueKnown: !!dueKnown,
-      doerKnown: !!doer.known
+      doerKnown: !!doerResolved.known
     };
   }
 
@@ -313,7 +339,7 @@
       const rangeDates = parseWeekdayRange(low);
       const freq = detectFrequency(low);
       const dueKnown = !!(weekday || explicitDates.length || rangeDates || freq ||
-        /\bh\u00f4m nay\b|ng\u00e0y mai|\bmai\b|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y/.test(low));
+        /\bh\u00f4m nay\b|\bnay\b|\bmai\b|ng\u00e0y mai|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y/.test(low));
       const sentenceTasks = [];
       if(rangeDates){
         sentenceTasks.push(buildTask(low, rangeDates[0], true));
