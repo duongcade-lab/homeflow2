@@ -1473,6 +1473,209 @@ function buildHelp(){
         el('div',{style:'font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5'},['Phi\u00ean b\u1ea3n th\u1eed nghi\u1ec7m: ph\u1ea3n h\u1ed3i \u0111\u01b0\u1ee3c l\u01b0u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n, ch\u01b0a g\u1eedi l\u00ean m\u00e1y ch\u1ee7.'])
       ]);
     }
+function buildReminders(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Nh\u1eafc vi\u1ec7c']));
+      s.push(el('div',{class:'card compact',style:'background:var(--sun-soft);border-color:rgba(214,168,52,.35)'},[
+        el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
+          el('span',{style:'font-size:20px'},['\u2139\uFE0F']),
+          el('div',{style:'flex:1'},[
+            el('div',{style:'font-weight:800;font-size:13.5px;color:#8A6A10'},['Th\u00f4ng b\u00e1o ch\u01b0a kh\u1ea3 d\u1ee5ng trong b\u1ea3n n\u00e0y']),
+            el('div',{style:'font-size:12px;color:#8A6A10;margin-top:3px;line-height:1.55'},['Phi\u00ean b\u1ea3n hi\u1ec7n t\u1ea1i ch\u01b0a h\u1ed7 tr\u1ee3 th\u00f4ng b\u00e1o \u0111\u1ea9y (push notification). Khi t\u00ednh n\u0103ng s\u1eb5n s\u00e0ng, b\u1ea1n s\u1ebd ch\u1ecdn \u0111\u01b0\u1ee3c th\u1eddi gian nh\u1eafc: 15 ph\u00fat, 1 gi\u1edd ho\u1eb7c 1 ng\u00e0y tr\u01b0\u1edbc gi\u1edd l\u00e0m vi\u1ec7c.'])
+          ])
+        ])
+      ]));
+      const items = [
+        ['\u{1F514}','Nh\u1eafc vi\u1ec7c & s\u1ef1 ki\u1ec7n','Nh\u1eafc tr\u01b0\u1edbc gi\u1edd l\u00e0m vi\u1ec7c'],
+        ['\u23F0','Nh\u1eafc vi\u1ec7c s\u1eafp \u0111\u1ebfn h\u1ea1n','Nh\u1eafc khi vi\u1ec7c g\u1ea7n \u0111\u1ebfn h\u1ea1n'],
+        ['\u{1F4B3}','Nh\u1eafc chi ph\u00ed / h\u00f3a \u0111\u01a1n','Nh\u1eafc h\u1ea1n thanh to\u00e1n h\u00f3a \u0111\u01a1n'],
+        ['\u{1F4DD}','Weekly Family Brief','B\u1ea3n tin t\u1ed5ng k\u1ebft tu\u1ea7n']
+      ];
+      s.push(el('div',{class:'card compact'}, items.map(([ico,lbl,sub])=>{
+        return el('div',{class:'pref-row'},[
+          el('span',{class:'set-ico',style:'width:36px;height:36px;font-size:17px'},[ico]),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'set-row-t'},[lbl]),
+            el('div',{class:'set-row-s'},[sub])
+          ]),
+          el('span',{class:'soon-tag'},['S\u1eafp c\u00f3'])
+        ]);
+      })));
+      return s;
+    }
+
+    function prefToggle(key){
+      const b = el('button',{class:'tg'+(state.prefs[key]?' on':''),role:'switch','aria-checked':state.prefs[key]?'true':'false',onclick:()=>{
+        state.prefs[key] = !state.prefs[key];
+        HF.prefs = state.prefs;
+        HF.saveState(state);
+        rerender();
+        HF.toast(state.prefs[key]?'\u0110\u00e3 b\u1eadt':'\u0110\u00e3 t\u1eaft','\u2705');
+      }},[el('span',{class:'tg-knob'})]);
+      return b;
+    }
+
+    function prefRow(ico, label, sub, control){
+      return el('div',{class:'pref-row'},[
+        el('span',{class:'set-ico',style:'width:36px;height:36px;font-size:17px'},[ico]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'set-row-t'},[label]),
+          sub ? el('div',{class:'set-row-s'},[sub]) : null
+        ]),
+        control
+      ]);
+    }
+
+    function buildDisplay(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['L\u1ecbch & Hi\u1ec3n th\u1ecb']));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'View l\u1ecbch m\u1eb7c \u0111\u1ecbnh']));
+      const viewSeg = el('div',{class:'seg'}, [['day','Ng\u00e0y'],['week','Tu\u1ea7n'],['month','Th\u00e1ng']].map(([id,lbl])=>{
+        return el('button',{class:state.prefs.defaultView===id?'active':'',onclick:()=>{state.prefs.defaultView=id; HF.prefs=state.prefs; HF.saveState(state); rerender();}},[lbl]);
+      }));
+      s.push(el('div',{class:'card compact'},[
+        prefRow('\u{1F5C5}\uFE0F','View l\u1ecbch m\u1eb7c \u0111\u1ecbnh','Ch\u1ecdn c\u00e1ch hi\u1ec3n th\u1ecb l\u1ecbch', viewSeg),
+        el('div',{style:'font-size:11.5px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px dashed var(--hairline)'},['L\u1ecbch gia \u0111\u00ecnh s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi \u2014 l\u1ef1a ch\u1ecdn n\u00e0y s\u1ebd \u0111\u01b0\u1ee3c \u00e1p d\u1ee5ng khi t\u00ednh n\u0103ng c\u00f3 m\u1eb7t.'])
+      ]));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Ng\u00e0y b\u1eaft \u0111\u1ea7u tu\u1ea7n']));
+      const wsSeg = el('div',{class:'seg'}, [['mon','Th\u1ee9 2'],['sun','Ch\u1ee7 nh\u1eadt']].map(([id,lbl])=>{
+        return el('button',{class:state.prefs.weekStart===id?'active':'',onclick:()=>{state.prefs.weekStart=id; HF.prefs=state.prefs; HF.saveState(state); rerender();}},[lbl]);
+      }));
+      s.push(el('div',{class:'card compact'},[
+        prefRow('\u{1F4C5}','Ng\u00e0y b\u1eaft \u0111\u1ea7u tu\u1ea7n','\u00c1p d\u1ee5ng khi L\u1ecbch gia \u0111\u00ecnh ra m\u1eaft', wsSeg)
+      ]));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Hi\u1ec3n th\u1ecb']));
+      s.push(el('div',{class:'card compact'},[
+        prefRow('\u2705','Hi\u1ec3n th\u1ecb vi\u1ec7c \u0111\u00e3 ho\u00e0n th\u00e0nh','\u1ea8n m\u1ee5c \u201c\u0110\u00e3 xong\u201d tr\u00ean trang Vi\u1ec7c nh\u00e0', prefToggle('showCompleted')),
+        prefRow('\u{1F9E0}','Planning Owner','Hi\u1ec7n ng\u01b0\u1eddi l\u1eadp k\u1ebf ho\u1ea1ch (lo) tr\u00ean vi\u1ec7c', prefToggle('showPlanner')),
+        prefRow('\u25CF','Task Owner','Hi\u1ec7n ng\u01b0\u1eddi th\u1ef1c hi\u1ec7n (l\u00e0m) tr\u00ean vi\u1ec7c', prefToggle('showDoer'))
+      ]));
+      return s;
+    }
+
+    function buildExpenses(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Chi ph\u00ed']));
+      s.push(el('div',{class:'sub'},['C\u1ea5u h\u00ecnh ti\u1ec1n t\u1ec7 v\u00e0 danh m\u1ee5c chi ph\u00ed c\u1ee7a gia \u0111\u00ecnh']));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Ti\u1ec1n t\u1ec7']));
+      const curSel = el('select',{class:'input'});
+      HF.CURRENCIES.forEach(([id,lbl])=>curSel.appendChild(el('option',{value:id},[lbl])));
+      curSel.value = state.expenses.currency||'VND';
+      curSel.addEventListener('change', ()=>{
+        state.expenses.currency = curSel.value;
+        HF.saveState(state);
+        HF.toast('\u0110\u00e3 \u0111\u1ed5i ti\u1ec1n t\u1ec7 sang '+curSel.value,'\u{1F4B0}');
+      });
+      s.push(el('div',{class:'card compact'},[
+        el('div',{style:'font-size:12px;color:var(--muted);margin-bottom:8px'},['\u0110\u01a1n v\u1ecb ti\u1ec1n d\u00f9ng khi ghi l\u1ea1i chi ph\u00ed.']),
+        curSel
+      ]));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Danh m\u1ee5c chi ph\u00ed']));
+      const catCard = el('div',{class:'card compact'}, [
+        ...state.expenses.categories.map(catRow),
+        el('button',{class:'btn btn-soft',style:'width:100%;margin-top:10px;padding:12px;font-size:13.5px',onclick:()=>openCatSheet(null)},[
+          '+ Th\u00eam danh m\u1ee5c'
+        ])
+      ]);
+      s.push(catCard);
+      return s;
+    }
+
+    function catRow(cat){
+      return el('div',{class:'mgmt-row'},[
+        el('span',{class:'avatar',style:'background:var(--primary-soft)'},[cat.emoji]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'mgmt-title'},[cat.name])
+        ]),
+        el('button',{class:'icon-btn',style:'color:var(--primary-deep)',onclick:()=>openCatSheet(cat)},['\u270F\uFE0F']),
+        el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>confirmDeleteCat(cat)},['\u{1F5D1}\uFE0F'])
+      ]);
+    }
+
+    function confirmDeleteCat(cat){
+      const used = (state.expenses.records||[]).filter(r=>r.catId===cat.id).length;
+      if(used>0){
+        HF.toast('Danh m\u1ee5c \u201c'+cat.name+'\u201d \u0111ang \u0111\u01b0\u1ee3c '+used+' kho\u1ea3n chi s\u1eed d\u1ee5ng \u2014 kh\u00f4ng th\u1ec3 x\u00f3a','\u26A0\uFE0F');
+        return;
+      }
+      if(confirmIds.has('cat'+cat.id)){
+        confirmIds.delete('cat'+cat.id);
+        HF.deleteExpenseCat(state, cat.id);
+        HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
+        rerender();
+      }else{
+        confirmIds.add('cat'+cat.id);
+        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00f3a \u201c'+cat.name+'\u201d','\u26A0\uFE0F');
+        setTimeout(()=>confirmIds.delete('cat'+cat.id), 3500);
+      }
+    }
+
+    function openCatSheet(cat){
+      const isEdit = !!cat;
+      const c = cat ? Object.assign({}, cat) : {name:'', emoji:'\u{1F4E6}'};
+      const EMOJIS = ['\u{1F3E0}','\u{1F35C}','\u{1F393}','\u{1FA7A}','\u{1F6D2}','\u{1F697}','\u{1F381}','\u{1F389}','\u{1F4E6}','\u{1F3AC}','\u{1F6B2}','\u{1F4B8}'];
+      const name = el('input',{class:'input',value:c.name,placeholder:'T\u00ean danh m\u1ee5c (VD: Th\u00fa c\u01b0ng)'});
+      const emojiBtns = EMOJIS.map(em=>{
+        const b = el('button',{class:'ava-pick'+(em===c.emoji?' on':''),onclick:()=>{
+          c.emoji=em;
+          emojiBtns.forEach(x=>x.classList.remove('on'));
+          b.classList.add('on');
+        }},[em]);
+        return b;
+      });
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+        field('Bi\u1ec3u t\u01b0\u1ee3ng', el('div',{class:'ava-row'},emojiBtns)),
+        field('T\u00ean danh m\u1ee5c', name),
+        el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
+          isEdit ? el('button',{class:'btn btn-danger',style:'flex:0.8;padding:13px 10px;font-size:13.5px'},['\u{1F5D1}\uFE0F X\u00f3a']) : null,
+          el('button',{class:'btn btn-primary',style:'flex:1.6;padding:13px 10px;font-size:13.5px'},[isEdit?'\u{1F4BE} L\u01b0u thay \u0111\u1ed5i':'+ Th\u00eam danh m\u1ee5c'])
+        ])
+      ]);
+      const sheet = HF.sheet({title:isEdit?'Ch\u1ec9nh s\u1eeda danh m\u1ee5c':'Th\u00eam danh m\u1ee5c', body:()=>body});
+
+      const delBtn = body.querySelector('.btn-danger');
+      if(delBtn){
+        delBtn.addEventListener('click', ()=>{
+          if(delBtn.dataset.confirm){
+            HF.deleteExpenseCat(state, c.id);
+            HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
+            sheet.close();
+            rerender();
+          }else{
+            delBtn.dataset.confirm='1';
+            delBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn x\u00f3a?';
+            setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='\u{1F5D1}\uFE0F X\u00f3a'; }, 3000);
+          }
+        });
+      }
+
+      body.querySelector('.btn-primary').addEventListener('click', ()=>{
+        const n = name.value.trim();
+        if(!n){ HF.toast('Nh\u1eadp t\u00ean danh m\u1ee5c tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        if(state.expenses.categories.some(x=>x.name===n && x.id!==c.id)){
+          HF.toast('\u0110\u00e3 c\u00f3 danh m\u1ee5c t\u00ean n\u00e0y','\u{1F60A}');
+          return;
+        }
+        if(isEdit){
+          HF.updateExpenseCat(state, c.id, {name:n, emoji:c.emoji});
+          HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt danh m\u1ee5c','\u270F\uFE0F');
+        }else{
+          HF.addExpenseCat(state, {name:n, emoji:c.emoji});
+          HF.toast('\u0110\u00e3 th\u00eam danh m\u1ee5c','\u2705');
+        }
+        sheet.close();
+        rerender();
+      });
+    }
+
 
     function build(){
       if(path[0]==='family'){
