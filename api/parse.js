@@ -77,6 +77,6 @@ ${text}`;
     return res.status(200).json({ tasks, source: 'llm' });
   } catch (e) {
     console.error('LLM error:', e && e.message ? e.message : e);
-    return res.status(502).json({ error: 'llm_error', fallback: true, detail: String(e && e.message ? e.message : e).slice(0, 400) });
+    return res.status(502).json({ error: 'llm_error', fallback: true, v: 3, detail: String(e && e.message ? e.message : e).slice(0, 400) });
   }
 }
