@@ -185,6 +185,7 @@
         s.lastDump = s.lastDump||null;
         s.history = s.history || JSON.parse(JSON.stringify(SEED_HISTORY));
         s.family = s.family || {name:'Gia \u0111\u00ecnh HomeFlow', avatar:''};
+        s.feedback = s.feedback || [];
         if(s.members && s.members.length){
           HF.MEMBERS.length = 0;
           HF.MEMBERS.push(...s.members);
@@ -205,7 +206,8 @@
         dumpCount: state.dumpCount||0,
         history: state.history||{health:[],study:[]},
         members: HF.MEMBERS,
-        family: state.family||{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}
+        family: state.family||{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''},
+        feedback: state.feedback||[]
       }));
     }catch(e){}
   };

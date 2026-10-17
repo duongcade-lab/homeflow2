@@ -696,7 +696,7 @@ V.Settings = function(state, nav, params){
         menuRow('\u{1F514}','Nh\u1eafc vi\u1ec7c','Th\u1eddi gian v\u00e0 c\u00e1ch nh\u1eafc nh\u1edf', placeholderToast),
         menuRow('\u{1F5D3}\uFE0F','L\u1ecbch & Hi\u1ec3n th\u1ecb','Ng\u00f4n ng\u1eef, giao di\u1ec7n', placeholderToast),
         menuRow('\u{1F4B0}','Chi ph\u00ed','Theo d\u00f5i chi ti\u00eau gia \u0111\u00ecnh', placeholderToast),
-        menuRow('\u2753','Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i','C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p, li\u00ean h\u1ec7', placeholderToast),
+        menuRow('\u2753','Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i','H\u01b0\u1edbng d\u1eabn, c\u00e2u h\u1ecfi, g\u1eedi \u00fd ki\u1ebfn', ()=>nav('settings',{path:['help']})),
         menuRow('\u{1F510}','D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0','Xu\u1ea5t d\u1eef li\u1ec7u, b\u1ea3o m\u1eadt', ()=>nav('settings',{path:['data']}))
       ]));
 
@@ -1114,6 +1114,55 @@ V.Settings = function(state, nav, params){
       return s;
     }
 
+    function buildHelp(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i']));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'H\u01b0\u1edbng d\u1eabn s\u1eed d\u1ee5ng']));
+      s.push(el('div',{class:'card compact help-list'}, HF.helpItems()));
+
+      const FAQ = [
+        ['D\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?','HomeFlow l\u01b0u d\u1eef li\u1ec7u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n (localStorage) \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o.'],
+        ['L\u00e0m sao \u0111\u1ed5i t\u00ean th\u00e0nh vi\u00ean?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean \u2192 b\u1ea5m \u270F\uFE0F b\u00ean c\u1ea1nh th\u00e0nh vi\u00ean. T\u00ean m\u1edbi s\u1ebd c\u1eadp nh\u1eadt \u1edf m\u1ecdi n\u01a1i trong HomeFlow.'],
+        ['L\u00e0m sao \u0111\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0 \u2192 \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo.'],
+        ['Ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m kh\u00e1c nhau th\u1ebf n\u00e0o?','Ng\u01b0\u1eddi lo (\u{1F9E0}) nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch, ng\u01b0\u1eddi l\u00e0m (\u25CF) th\u1ef1c hi\u1ec7n. Hai vi\u1ec7c c\u00f3 th\u1ec3 do hai ng\u01b0\u1eddi kh\u00e1c nhau \u0111\u1ea3m nh\u1eadn \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c.']
+      ];
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p']));
+      const faqCard = el('div',{class:'card compact'}, FAQ.map(([q,a])=>{
+        const ans = el('div',{class:'faq-a',style:'display:none'},[a]);
+        const row = el('div',{class:'faq-q',onclick:()=>{
+          const open = ans.style.display!=='none';
+          ans.style.display = open ? 'none' : 'block';
+          row.classList.toggle('open', !open);
+        }},[
+          el('span',{style:'flex:1'},[q]),
+          el('span',{class:'faq-chev'},['\u25BE'])
+        ]);
+        return el('div',{},[row, ans]);
+      }));
+      s.push(faqCard);
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'G\u1eedi ph\u1ea3n h\u1ed3i']));
+      const fb = el('textarea',{class:'input',rows:3,placeholder:'\u00dd ki\u1ebfn, g\u00f3p \u00fd ho\u1eb7c b\u00e1o l\u1ed7i\u2026'});
+      const send = el('button',{class:'btn btn-primary',style:'margin-top:10px'},['G\u1eedi ph\u1ea3n h\u1ed3i']);
+      send.addEventListener('click', ()=>{
+        const txt = fb.value.trim();
+        if(!txt){ HF.toast('Nh\u1eadp n\u1ed9i dung ph\u1ea3n h\u1ed3i tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        state.feedback = state.feedback||[];
+        state.feedback.push({text:txt, at:new Date().toISOString()});
+        HF.saveState(state);
+        fb.value='';
+        HF.toast('C\u1ea3m \u01a1n ph\u1ea3n h\u1ed3i c\u1ee7a b\u1ea1n!','\u{1F49C}');
+      });
+      s.push(el('div',{class:'card compact'},[
+        el('div',{style:'font-size:12px;color:var(--muted);margin-bottom:8px'},['G\u00f3p \u00fd gi\u00fap HomeFlow t\u1ed1t h\u01a1n cho c\u1ea3 gia \u0111\u00ecnh b\u1ea1n.']),
+        fb,
+        send
+      ]));
+      return s;
+    }
+
     function build(){
       if(path[0]==='family'){
         if(path[1]){
@@ -1124,6 +1173,7 @@ V.Settings = function(state, nav, params){
       }
       if(path[0]==='tasks') return buildTasks();
       if(path[0]==='data') return buildData();
+      if(path[0]==='help') return buildHelp();
       return buildLanding();
     }
 
