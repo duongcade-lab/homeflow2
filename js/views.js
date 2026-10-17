@@ -866,6 +866,200 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     return screen;
   };
 
+V.Expenses = function(state, nav, filter){
+    filter = filter || 'today';
+    const cur = state.expenses.currency || 'VND';
+    const recs = state.expenses.records || [];
+    const CAT_COLORS = ['#8B6FB8','#5B9BD5','#F2A65A','#EF8FA3','#7FA98B','#E8936F','#E05D5D','#6BB5A9'];
+
+    function field(label, control){
+      return el('div',{class:'rs-field'},[el('span',{},[label]), control]);
+    }
+
+    function periodRange(f){
+      const now = new Date();
+      if(f==='today'){
+        const d0 = HF.dayOffset(0); d0.setHours(0,0,0,0);
+        const d1 = new Date(d0); d1.setDate(d1.getDate()+1);
+        return {start:d0, end:d1, label:'h\u00f4m nay'};
+      }
+      if(f==='prev'){
+        const y = now.getFullYear(), m = now.getMonth()-1;
+        return {start:new Date(y,m,1), end:new Date(y,m+1,1), label:'th\u00e1ng tr\u01b0\u1edbc'};
+      }
+      const y = now.getFullYear(), m = now.getMonth();
+      return {start:new Date(y,m,1), end:new Date(y,m+1,1), label:'th\u00e1ng n\u00e0y'};
+    }
+    const range = periodRange(filter);
+    const inPeriod = r=>{
+      const d = new Date(r.date+'T00:00:00');
+      return d>=range.start && d<range.end;
+    };
+    const periodRecs = recs.filter(inPeriod);
+    const paid = periodRecs.filter(r=>r.status==='paid');
+    const pending = periodRecs.filter(r=>r.status==='pending');
+    const totalPaid = paid.reduce((s,r)=>s+(+r.amount||0),0);
+
+    const byCat = {};
+    paid.forEach(r=>{
+      const id = r.catId||'';
+      byCat[id] = (byCat[id]||0) + (+r.amount||0);
+    });
+    const catRows = Object.keys(byCat).map(id=>({cat:HF.expenseCatById(state,id), amt:byCat[id]})).sort((a,b)=>b.amt-a.amt);
+    const maxCat = Math.max(...catRows.map(c=>c.amt), 1);
+
+    function expRow(r){
+      const cat = HF.expenseCatById(state, r.catId);
+      const m = r.memberId ? HF.memberById(r.memberId) : null;
+      return el('div',{class:'exp-row',onclick:()=>openExpenseSheet(state, nav, r)},[
+        el('span',{class:'exp-row-ico'},[cat.emoji]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'exp-row-name'},[r.name]),
+          el('div',{class:'exp-row-meta'},[(m?m.name+' \u00b7 ':'')+HF.formatDay(new Date(r.date+'T00:00:00'))+(r.note?' \u00b7 '+r.note:'')])
+        ]),
+        el('div',{style:'text-align:right;flex:none'},[
+          el('div',{class:'exp-row-amt'},[HF.fmtMoney(r.amount, cur)]),
+          el('div',{class:'exp-row-status '+(r.status==='paid'?'paid':'pending')},[r.status==='paid'?'\u2713 \u0110\u00e3 thanh to\u00e1n':'\u23F3 S\u1eafp thanh to\u00e1n'])
+        ])
+      ]);
+    }
+
+    const segBar = el('div',{class:'seg'}, [['today','H\u00f4m nay'],['month','Th\u00e1ng n\u00e0y'],['prev','Th\u00e1ng tr\u01b0\u1edbc']].map(([id,lbl])=>{
+      return el('button',{class:filter===id?'active':'',onclick:()=>nav('expenses',{filter:id})},[lbl]);
+    }));
+
+    const screen = [
+      el('div',{},[
+        el('div',{class:'eyebrow'},['Chi ti\u00eau gia \u0111\u00ecnh']),
+        el('h1',{class:'page-title',style:'margin-top:4px'},['\u{1F4B0} Chi ph\u00ed']),
+        el('div',{class:'sub'},['C\u00f9ng nh\u00ecn l\u1ea1i \u2014 c\u00f9ng nhau hi\u1ec3u chi ti\u00eau c\u1ee7a c\u1ea3 nh\u00e0'])
+      ]),
+      segBar,
+      el('div',{class:'card compact exp-summary'},[
+        el('div',{class:'exp-sum-label'},['T\u1ed5ng chi '+range.label]),
+        el('div',{class:'exp-sum-amount'},[HF.fmtMoney(totalPaid, cur)]),
+        el('div',{class:'exp-sum-sub'},[paid.length+' kho\u1ea3n \u0111\u00e3 thanh to\u00e1n'+(pending.length?' \u00b7 '+pending.length+' kho\u1ea3n s\u1eafp thanh to\u00e1n':'')])
+      ])
+    ];
+
+    if(catRows.length){
+      screen.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Chi theo danh m\u1ee5c']));
+      screen.push(el('div',{class:'card compact'}, catRows.map((c,i)=>{
+        return el('div',{class:'exp-cat'},[
+          el('span',{class:'exp-cat-ico'},[c.cat.emoji]),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{style:'display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:4px'},[
+              el('span',{},[c.cat.name]),
+              el('span',{},[HF.fmtMoney(c.amt, cur)])
+            ]),
+            el('div',{class:'exp-cat-track'},[el('div',{class:'exp-cat-fill',style:`width:${Math.round(c.amt/maxCat*100)}%;background:${CAT_COLORS[i%CAT_COLORS.length]}`})])
+          ])
+        ]);
+      })));
+    }
+
+    if(pending.length){
+      screen.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'S\u1eafp thanh to\u00e1n']));
+      screen.push(el('div',{class:'card compact'}, pending.map(r=>expRow(r))));
+    }
+
+    screen.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'\u0110\u00e3 thanh to\u00e1n']));
+    screen.push(el('div',{class:'card compact'}, periodRecs.length===0
+      ? el('div',{class:'brief-empty'},['Ch\u01b0a c\u00f3 kho\u1ea3n chi n\u00e0o trong '+range.label+' \u2014 th\u00eam kho\u1ea3n \u0111\u1ea7u ti\u00ean nh\u00e9'])
+      : paid.map(r=>expRow(r))));
+
+    screen.push(el('div',{style:'margin-top:16px'},
+      el('button',{class:'btn btn-soft',style:'width:100%;padding:13px;font-size:13.5px',onclick:()=>openExpenseSheet(state, nav, null)},[
+        '+ Th\u00eam kho\u1ea3n chi'
+      ])));
+
+    return screen;
+  };
+
+  function openExpenseSheet(state, nav, exp){
+    const isEdit = !!exp;
+    const e = exp ? Object.assign({}, exp) : {
+      name:'', amount:'', date:HF.isoDate(new Date()),
+      catId:(state.expenses.categories[0]||{}).id||'', memberId:'', status:'paid', note:''
+    };
+    const cur = state.expenses.currency || 'VND';
+    const name = el('input',{class:'input',value:e.name,placeholder:'VD: H\u1ecdc ph\u00ed ti\u1ebfng Anh'});
+    const amount = el('input',{class:'input',type:'number',min:'0',step:'1000',value:e.amount,placeholder:'VD: 1500000'});
+    const date = el('input',{class:'input',type:'date',value:e.date});
+    const catSel = el('select',{class:'input'});
+    (state.expenses.categories||[]).forEach(c=>catSel.appendChild(el('option',{value:c.id},[c.emoji+' '+c.name])));
+    catSel.value = e.catId;
+    const memberSel = el('select',{class:'input'});
+    memberSel.appendChild(el('option',{value:''},['\u2014 Kh\u00f4ng ch\u1ecdn']));
+    HF.MEMBERS.forEach(m=>memberSel.appendChild(el('option',{value:m.id},[m.emoji+' '+m.name])));
+    memberSel.value = e.memberId||'';
+    const note = el('input',{class:'input',value:e.note||'',placeholder:'Ghi ch\u00fa (t\u00f9y ch\u1ecdn)'});
+    const statusBtns = [['paid','\u2713 \u0110\u00e3 thanh to\u00e1n'],['pending','\u23F3 S\u1eafp thanh to\u00e1n']].map(([id,lbl])=>{
+      const b = el('button',{class:'exp-status-btn'+(e.status===id?' on':''),onclick:()=>{
+        e.status=id;
+        statusBtns.forEach(x=>x.classList.remove('on'));
+        b.classList.add('on');
+      }},[lbl]);
+      return b;
+    });
+
+    const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+      el('div',{class:'rs-field'},[el('span',{},['T\u00ean kho\u1ea3n chi']), name]),
+      el('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:12px'},[
+        el('div',{class:'rs-field'},[el('span',{},['S\u1ed1 ti\u1ec1n ('+cur+')']), amount]),
+        el('div',{class:'rs-field'},[el('span',{},['Ng\u00e0y']), date])
+      ]),
+      el('div',{class:'rs-field'},[el('span',{},['Danh m\u1ee5c']), catSel]),
+      el('div',{class:'rs-field'},[el('span',{},['Th\u00e0nh vi\u00ean li\u00ean quan']), memberSel]),
+      el('div',{class:'rs-field'},[el('span',{},['Tr\u1ea1ng th\u00e1i']), el('div',{class:'exp-status-row'},statusBtns)]),
+      el('div',{class:'rs-field'},[el('span',{},['Ghi ch\u00fa']), note]),
+      el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
+        isEdit ? el('button',{class:'btn btn-danger',style:'flex:0.8;padding:13px 10px;font-size:13.5px'},['\u{1F5D1}\uFE0F X\u00f3a']) : null,
+        el('button',{class:'btn btn-primary',style:'flex:1.6;padding:13px 10px;font-size:13.5px'},['\u{1F4BE} L\u01b0u kho\u1ea3n chi'])
+      ])
+    ]);
+    const sheet = HF.sheet({title:isEdit?'Ch\u1ec9nh s\u1eeda kho\u1ea3n chi':'Th\u00eam kho\u1ea3n chi', body:()=>body});
+
+    const delBtn = body.querySelector('.btn-danger');
+    if(delBtn){
+      delBtn.addEventListener('click', ()=>{
+        HF.confirmDelete({
+          head:'X\u00f3a kho\u1ea3n chi?',
+          title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+e.name+'\u201d?',
+          message:'Kho\u1ea3n chi n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi HomeFlow.',
+          onConfirm:()=>{
+            HF.deleteExpense(state, e.id);
+            HF.toast('\u0110\u00e3 x\u00f3a kho\u1ea3n chi','\u{1F5D1}\uFE0F');
+            nav('expenses',{filter:location.hash.includes('filter=')?location.hash.split('filter=')[1]:'today'});
+          }
+        });
+      });
+    }
+
+    const saveBtn = body.querySelector('.btn-primary');
+    saveBtn.addEventListener('click', ()=>{
+      const n = name.value.trim();
+      const amt = parseFloat(amount.value);
+      if(!n){ HF.toast('Nh\u1eadp t\u00ean kho\u1ea3n chi tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+      if(isNaN(amt)||amt<=0){ HF.toast('Nh\u1eadp s\u1ed1 ti\u1ec1n h\u1ee3p l\u1ec7','\u{1F914}'); return; }
+      if(!date.value){ HF.toast('Ch\u1ecdn ng\u00e0y tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+      const data = {
+        name:n, amount:Math.round(amt), date:date.value,
+        catId:catSel.value, memberId:memberSel.value||'',
+        status:e.status, note:note.value.trim()
+      };
+      if(isEdit){
+        HF.updateExpense(state, e.id, data);
+        HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt kho\u1ea3n chi','\u270F\uFE0F');
+      }else{
+        HF.addExpense(state, data);
+        HF.toast('\u0110\u00e3 th\u00eam kho\u1ea3n chi','\u{1F4B0}');
+      }
+      sheet.close();
+      nav('expenses',{filter:location.hash.includes('filter=')?location.hash.split('filter=')[1]:'today'});
+    });
+  }
+
 V.Settings = function(state, nav, params){
     params = params||{};
     const path = params.path||[];

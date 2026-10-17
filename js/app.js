@@ -7,8 +7,9 @@
   const TABS = [
     {id:'today', ico:'\u{1F31E}', label:'H\u00f4m nay'},
     {id:'tasks', ico:'\u{1F4CB}', label:'Vi\u1ec7c nh\u00e0'},
-    {id:'dump', ico:'\u{1F9E0}', label:'Brain Dump'},
     {id:'balance',ico:'\u2696\uFE0F', label:'C\u00e2n b\u1eb1ng'},
+    {id:'dump', ico:'\u{1F9E0}', label:'Brain Dump'},
+    {id:'expenses',ico:'\u{1F4B0}', label:'Chi ph\u00ed'},
     {id:'brief', ico:'\u{1F4DD}', label:'B\u1ea3n tin'},
     {id:'settings',ico:'\u2699\uFE0F', label:'C\u00e0i \u0111\u1eb7t'}
   ];
@@ -82,6 +83,7 @@
     let nodes;
     switch(route.name){
       case 'tasks': nodes = HF.views.Tasks(state, navigate, route.params.filter||'all'); break;
+      case 'expenses': nodes = HF.views.Expenses(state, navigate, route.params.filter||'today'); break;
       case 'dump': nodes = HF.views.Dump(state, navigate); break;
       case 'balance': nodes = HF.views.Balance(state, navigate); break;
       case 'brief': nodes = HF.views.Brief(state, navigate); break;

@@ -101,6 +101,47 @@
 
   HF.CURRENCIES = [['VND','VND \u20AB'],['USD','USD $'],['EUR','EUR \u20AC'],['JPY','JPY \u00A5'],['GBP','GBP \u00A3'],['CNY','CNY \u00A5']];
 
+  HF.isoDate = function(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  };
+
+  HF.fmtMoney = function(amount, currency){
+    const sym = {'VND':'\u20AB','USD':'$','EUR':'\u20AC','JPY':'\u00A5','GBP':'\u00A3','CNY':'\u00A5'}[currency||'VND'] || '\u20AB';
+    const n = Math.round(Number(amount)||0);
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')+' '+sym;
+  };
+
+  HF.expenseCatById = function(state, id){
+    return (state.expenses.categories||[]).find(c=>c.id===id) || {id:'', name:'Kh\u00e1c', emoji:'\u{1F4E6}'};
+  };
+
+  HF.addExpense = function(state, rec){
+    state.expenses.records.push(Object.assign({id:HF.uid('e')}, rec));
+    HF.saveState(state);
+  };
+
+  HF.updateExpense = function(state, id, patch){
+    const r = state.expenses.records.find(x=>x.id===id);
+    if(!r) return;
+    Object.assign(r, patch);
+    HF.saveState(state);
+  };
+
+  HF.deleteExpense = function(state, id){
+    state.expenses.records = state.expenses.records.filter(x=>x.id!==id);
+    HF.saveState(state);
+  };
+
+  function seedExpenses(){
+    return [
+      {id:'e1', name:'H\u1ecdc ph\u00ed ti\u1ebfng Anh', amount:1500000, date:HF.isoDate(HF.dayOffset(0)), catId:'c_edu', memberId:'bin', status:'paid', note:''},
+      {id:'e2', name:'Kh\u00e1m b\u1ec7nh', amount:500000, date:HF.isoDate(HF.dayOffset(-2)), catId:'c_health', memberId:'bin', status:'paid', note:''},
+      {id:'e3', name:'Qu\u00e0 sinh nh\u1eadt b\u00e0', amount:800000, date:HF.isoDate(HF.dayOffset(3)), catId:'c_gift', memberId:'me', status:'pending', note:''},
+      {id:'e4', name:'\u0110i\u1ec7n n\u01b0\u1edbc th\u00e1ng n\u00e0y', amount:1200000, date:HF.isoDate(HF.dayOffset(5)), catId:'c_home', memberId:'', status:'pending', note:''},
+      {id:'e5', name:'\u0102n t\u1ed1i c\u1ea3 nh\u00e0', amount:450000, date:HF.isoDate(HF.dayOffset(-1)), catId:'c_food', memberId:'', status:'paid', note:''}
+    ];
+  }
+
   HF.addExpenseCat = function(state, profile){
     state.expenses.categories.push(Object.assign({id:'c'+Date.now().toString(36)}, profile));
     HF.saveState(state);
@@ -257,6 +298,9 @@
         s.growth = s.growth || [];
         s.prefs = s.prefs || {defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true};
         s.expenses = s.expenses || {currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]};
+        if(!s.expenses.records || !s.expenses.records.length){
+          s.expenses.records = seedExpenses();
+        }
         if(s.members && s.members.length){
           HF.MEMBERS.length = 0;
           HF.MEMBERS.push(...s.members);
@@ -264,9 +308,9 @@
         return s;
       }
     }catch(e){}
-    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}};
+    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:seedExpenses()}};
     try{ localStorage.setItem(KEY, JSON.stringify(fresh)); }catch(e){}
-    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}};
+    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}, expenses:{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:seedExpenses()}};
   };
 
   HF.saveState = function(state){
