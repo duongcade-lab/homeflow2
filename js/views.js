@@ -71,9 +71,21 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       ])
     ]);
 
+    const kidOpenCount = state.tasks.filter(t=>HF.memberById(t.owner).kind==='kid' && t.status==='open').length;
+    const missionsTeaser = el('div',{class:'card',style:'cursor:pointer;background:linear-gradient(135deg,#FFF3E0,#FDE9EE)',onclick:()=>nav('missions')},[
+      el('div',{style:'display:flex;align-items:center;gap:12px'},[
+        el('span',{style:'font-size:30px'},['\u2B50']),
+        el('div',{style:'flex:1'},[
+          el('div',{style:'font-weight:800;font-size:14.5px'},['Nhi\u1ec7m v\u1ee5 c\u1ee7a con']),
+          el('div',{class:'sub',style:'font-size:12px'},[kidOpenCount>0 ? kidOpenCount+' nhi\u1ec7m v\u1ee5 \u0111ang ch\u1edd con' : 'H\u00f4m nay con ch\u01b0a c\u00f3 nhi\u1ec7m v\u1ee5 n\u00e0o'])
+        ]),
+        el('span',{style:'color:var(--primary-deep);font-weight:800'},['\u2192'])
+      ])
+    ]);
+
     const footer = el('div',{class:'footer-note'},['\u{1F49C} HomeFlow']);
 
-    screen.push(header, speakCard, todayCard, loadCard, briefTeaser, footer);
+    screen.push(header, speakCard, todayCard, loadCard, missionsTeaser, briefTeaser, footer);
     return screen;
   };
 
@@ -938,6 +950,175 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     return screen;
   };
 
+V.Missions = function(state, nav){
+    const kids = HF.MEMBERS.filter(m=>m.kind==='kid');
+    const screen = [
+      el('div',{},[
+        el('div',{class:'eyebrow'},['\u2B50 Nhi\u1ec7m v\u1ee5 c\u1ee7a con']),
+        el('h1',{class:'page-title',style:'margin-top:4px'},['\u2B50 Nhi\u1ec7m v\u1ee5 c\u1ee7a con']),
+        el('div',{class:'sub'},['M\u1ed7i ng\u01b0\u1eddi chia s\u1ebb m\u1ed9t ch\u00fat, c\u1ea3 nh\u00e0 m\u00ecnh nh\u1eb9 nh\u00e0ng h\u01a1n \u{1F49C}'])
+      ])
+    ];
+    if(kids.length===0){
+      screen.push(el('div',{class:'card empty'},[
+        el('span',{class:'e-ico'},['\u{1F476}']),
+        el('div',{class:'e-t'},['Ch\u01b0a c\u00f3 con trong gia \u0111\u00ecnh']),
+        el('div',{class:'e-s'},['Th\u00eam con \u1edf C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean'])
+      ]));
+      return screen;
+    }
+    const all = HF.kidMissions(state);
+    kids.forEach(kid=>{
+      const mine = all.filter(t=>t.owner===kid.id)
+        .sort((a,b)=>(a.status==='done')-(b.status==='done') || new Date(a.due)-new Date(b.due));
+      const open = mine.filter(t=>t.status==='open');
+      const done = mine.filter(t=>t.status==='done');
+      screen.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),kid.emoji+' '+kid.name]));
+      screen.push(el('div',{class:'card compact'},[
+        ...(open.length===0
+          ? [el('div',{class:'mission-empty'},[el('span',{},['\u2B50']), el('span',{},['H\u00f4m nay con ch\u01b0a c\u00f3 nhi\u1ec7m v\u1ee5 n\u00e0o.'])])]
+          : open.map(t=>missionCard(state, nav, t, ()=>nav('missions')))),
+        ...(done.length ? [el('div',{class:'mission-done-head'},['\u2713 \u0110\u00e3 xong']), ...done.slice(0,3).map(t=>missionCard(state, nav, t, ()=>nav('missions')))] : []),
+        el('button',{class:'btn btn-soft',style:'width:100%;margin-top:10px;padding:12px;font-size:13.5px',onclick:()=>openMissionSheet(state, nav, kid, null, ()=>nav('missions'))},[
+          '+ Th\u00eam nhi\u1ec7m v\u1ee5 cho '+kid.name
+        ])
+      ]));
+    });
+    return screen;
+  };
+
+  function missionCard(state, nav, t, onChange){
+    const cat = HF.categoryById(t.cat);
+    const planner = t.planner ? HF.memberById(t.planner) : null;
+    const done = t.status==='done';
+    return el('div',{class:'mission-card'+(done?' done':''),onclick:()=>openMissionSheet(state, nav, null, t, onChange)},[
+      el('div',{style:'display:flex;align-items:center;gap:10px;width:100%'},[
+        el('span',{class:'mission-ico',style:'background:'+cat.soft},[cat.emoji]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'mission-title'},[t.title]),
+          el('div',{class:'mission-meta'},[(planner?'\u{1F9E0} '+planner.short+' lo \u00b7 ':'')+HF.formatDay(t.due)+(t.time?' \u00b7 '+t.time:'')])
+        ]),
+        el('button',{class:'icon-btn',style:'color:var(--primary-deep)',onclick:(e)=>{e.stopPropagation(); openMissionSheet(state, nav, null, t, onChange);}},[
+          '\u270F\uFE0F'
+        ]),
+        el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:(e)=>{e.stopPropagation(); confirmDeleteMission(state, nav, t, onChange);}},[
+          '\u{1F5D1}\uFE0F'
+        ])
+      ]),
+      t.note ? el('div',{class:'mission-note'},['\u{1F4DD} '+t.note]) : null,
+      done
+        ? el('div',{class:'mission-done-line'},['\u2713 Xong r\u1ed3i! \u2B50'])
+        : el('div',{style:'display:flex;flex-direction:column;gap:8px;margin-top:10px'},[
+            el('div',{class:'mission-journey'},[
+              el('span',{class:'mj on'},['NH\u1eda']),
+              el('span',{class:'mj-arrow'},['\u2192']),
+              el('span',{class:'mj on'},['CHU\u1EA8N B\u1ECA']),
+              el('span',{class:'mj-arrow'},['\u2192']),
+              el('span',{class:'mj'},['\u0110\u00c3 XONG'])
+            ]),
+            el('button',{class:'mission-done-btn',onclick:(e)=>{e.stopPropagation(); completeMission(state, nav, t, onChange);}},[
+              '\u2713 Xong r\u1ed3i! \u2B50'
+            ])
+          ])
+    ]);
+  }
+
+  function completeMission(state, nav, t, onChange){
+    t.status='done';
+    t.doneAt=new Date();
+    HF.saveState(state);
+    HF.confetti();
+    HF.toast('Xong r\u1ed3i! \u2B50 +1','\u{1F389}');
+    onChange();
+  }
+
+  function confirmDeleteMission(state, nav, t, onChange){
+    HF.confirmDelete({
+      head:'X\u00f3a nhi\u1ec7m v\u1ee5?',
+      title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+t.title+'\u201d?',
+      message:'Nhi\u1ec7m v\u1ee5 n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi HomeFlow.',
+      onConfirm:()=>{
+        HF.deleteTask(state, t.id);
+        HF.toast('\u0110\u00e3 x\u00f3a nhi\u1ec7m v\u1ee5','\u{1F5D1}\uFE0F');
+        onChange();
+      }
+    });
+  }
+
+  function openMissionSheet(state, nav, kid, mission, onChange){
+    const isEdit = !!mission;
+    const m = mission ? Object.assign({}, mission) : {title:'', cat:'home', due:HF.dayOffset(1), note:''};
+    const EXAMPLES = [
+      ['\u{1F392}','T\u1ef1 chu\u1ea9n b\u1ecb c\u1eb7p'],
+      ['\u{1F331}','T\u01b0\u1edbi c\u00e2y'],
+      ['\u{1F9F8}','Thu d\u1ecdn \u0111\u1ed3 ch\u01a1i'],
+      ['\u{1F37D}\uFE0F','Gi\u00fap chu\u1ea9n b\u1ecb b\u00e0n \u0103n'],
+      ['\u{1F4DA}','S\u1eafp x\u1ebfp s\u00e1ch'],
+      ['\u{1F9FA}','Chu\u1ea9n b\u1ecb qu\u1ea7n \u00e1o']
+    ];
+    const title = el('input',{class:'input',value:m.title,placeholder:'VD: T\u1ef1 chu\u1ea9n b\u1ecb c\u1eb7p'});
+    const kidSel = el('select',{class:'input'});
+    HF.MEMBERS.filter(x=>x.kind==='kid').forEach(k=>kidSel.appendChild(el('option',{value:k.id},[k.emoji+' '+k.name])));
+    kidSel.value = m.owner || (kid?kid.id:'');
+    const dateSel = HF.dateSelect(m.due, ()=>{});
+    const catSel = el('select',{class:'input'});
+    ['home','kids','school'].forEach(k=>catSel.appendChild(el('option',{value:k},[HF.CATEGORIES[k].emoji+' '+HF.CATEGORIES[k].label])));
+    catSel.value = m.cat||'home';
+    const note = el('input',{class:'input',value:m.note||'',placeholder:'Con c\u1ea7n chu\u1ea9n b\u1ecb g\u00ec? (t\u00f9y ch\u1ecdn)'});
+    const exampleChips = el('div',{class:'example-chips'}, EXAMPLES.map(([ico,lbl])=>{
+      return el('button',{class:'example-chip',onclick:()=>{ title.value=lbl; title.focus(); }},[ico+' '+lbl]);
+    }));
+
+    const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+      el('div',{class:'rs-field'},[el('span',{},['T\u00ean nhi\u1ec7m v\u1ee5']), title]),
+      el('div',{style:'font-size:11px;color:var(--muted);font-weight:600'},['G\u1ee3i \u00fd:']),
+      exampleChips,
+      el('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:12px'},[
+        el('div',{class:'rs-field'},[el('span',{},['\u25CF Ng\u01b0\u1eddi th\u1ef1c hi\u1ec7n']), kidSel]),
+        el('div',{class:'rs-field'},[el('span',{},['Ng\u00e0y']), dateSel])
+      ]),
+      el('div',{class:'rs-field'},[el('span',{},['Danh m\u1ee5c']), catSel]),
+      el('div',{class:'rs-field'},[el('span',{},['Ghi ch\u00fa']), note]),
+      el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
+        isEdit ? el('button',{class:'btn btn-danger',style:'flex:0.8;padding:13px 10px;font-size:13.5px'},['\u{1F5D1}\uFE0F X\u00f3a']) : null,
+        el('button',{class:'btn btn-primary',style:'flex:1.6;padding:13px 10px;font-size:13.5px'},['\u{1F4BE} L\u01b0u nhi\u1ec7m v\u1ee5'])
+      ])
+    ]);
+    const sheet = HF.sheet({title:isEdit?'S\u1eeda nhi\u1ec7m v\u1ee5':'Th\u00eam nhi\u1ec7m v\u1ee5 cho con', body:()=>body});
+
+    const delBtn = body.querySelector('.btn-danger');
+    if(delBtn){
+      delBtn.addEventListener('click', ()=>{
+        HF.confirmDelete({
+          head:'X\u00f3a nhi\u1ec7m v\u1ee5?',
+          title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n x\u00f3a \u201c'+m.title+'\u201d?',
+          message:'Nhi\u1ec7m v\u1ee5 n\u00e0y s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi HomeFlow.',
+          onConfirm:()=>{
+            HF.deleteTask(state, m.id);
+            HF.toast('\u0110\u00e3 x\u00f3a nhi\u1ec7m v\u1ee5','\u{1F5D1}\uFE0F');
+            onChange();
+          }
+        });
+      });
+    }
+
+    const saveBtn = body.querySelector('.btn-primary');
+    saveBtn.addEventListener('click', ()=>{
+      const n = title.value.trim();
+      if(!n){ HF.toast('Nh\u1eadp t\u00ean nhi\u1ec7m v\u1ee5 tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+      const data = {title:n, owner:kidSel.value, due:new Date(dateSel.value), cat:catSel.value, note:note.value.trim()};
+      if(isEdit){
+        HF.updateTask(state, m.id, data);
+        HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt nhi\u1ec7m v\u1ee5','\u270F\uFE0F');
+      }else{
+        HF.addMission(state, data);
+        HF.toast('\u0110\u00e3 th\u00eam nhi\u1ec7m v\u1ee5 cho '+HF.memberById(data.owner).name,'\u2B50');
+      }
+      sheet.close();
+      onChange();
+    });
+  }
+
 V.Expenses = function(state, nav, filter){
     filter = filter || 'today';
     const cur = state.expenses.currency || 'VND';
@@ -1495,6 +1676,24 @@ V.Settings = function(state, nav, params){
     }
 
     // ---------------- Child profile ----------------
+    function missionsTab(kid){
+      const s = [];
+      const mine = state.tasks.filter(t=>t.owner===kid.id)
+        .sort((a,b)=>(a.status==='done')-(b.status==='done') || new Date(a.due)-new Date(b.due));
+      const open = mine.filter(t=>t.status==='open');
+      const done = mine.filter(t=>t.status==='done');
+      s.push(el('div',{class:'card compact'},[
+        ...(open.length===0
+          ? [el('div',{class:'mission-empty'},[el('span',{},['\u2B50']), el('span',{},['H\u00f4m nay con ch\u01b0a c\u00f3 nhi\u1ec7m v\u1ee5 n\u00e0o.'])])]
+          : open.map(t=>missionCard(state, nav, t, ()=>rerender()))),
+        ...(done.length ? [el('div',{class:'mission-done-head'},['\u2713 \u0110\u00e3 xong']), ...done.slice(0,3).map(t=>missionCard(state, nav, t, ()=>rerender()))] : []),
+        el('button',{class:'btn btn-soft',style:'width:100%;margin-top:10px;padding:12px;font-size:13.5px',onclick:()=>openMissionSheet(state, nav, kid, null, ()=>rerender())},[
+          '+ Th\u00eam nhi\u1ec7m v\u1ee5 cho '+kid.name
+        ])
+      ]));
+      return s;
+    }
+
     function historyBlock(kid, type, label, ico){
       const recs = state.history[type].filter(r=>r.kidId===kid.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
 
@@ -1759,7 +1958,8 @@ V.Settings = function(state, nav, params){
         ['overview','\u{1F464} T\u1ed5ng quan'],
         ['growth','\u{1F4C8} Ph\u00e1t tri\u1ec3n'],
         ['health','\u{1FA7A} S\u1ee9c kh\u1ecfe'],
-        ['study','\u{1F392} H\u1ecdc t\u1eadp']
+        ['study','\u{1F392} H\u1ecdc t\u1eadp'],
+        ['missions','\u2B50 Nhi\u1ec7m v\u1ee5']
       ].map(([id,lbl])=>{
         return el('button',{class:'prof-tab'+(profileTab===id?' on':''),onclick:()=>{profileTab=id; rerender();}},[lbl]);
       }));
@@ -1786,6 +1986,8 @@ V.Settings = function(state, nav, params){
         s.push(historyBlock(kid, 'health', 'S\u1ee9c kh\u1ecfe', '\u{1FA7A}'));
       }else if(profileTab==='study'){
         s.push(historyBlock(kid, 'study', 'H\u1ecdc t\u1eadp', '\u{1F392}'));
+      }else if(profileTab==='missions'){
+        s.push(...missionsTab(kid));
       }
 
       return s;

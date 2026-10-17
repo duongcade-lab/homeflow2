@@ -132,6 +132,25 @@
     HF.saveState(state);
   };
 
+  HF.isKidTask = function(t){
+    return HF.memberById(t.owner).kind === 'kid';
+  };
+
+  HF.kidMissions = function(state){
+    return state.tasks.filter(t=>HF.isKidTask(t));
+  };
+
+  HF.addMission = function(state, data){
+    state.tasks.push(Object.assign({
+      id: HF.uid('ms'),
+      cat:'home', due: HF.dayOffset(1), time:'',
+      owner:'bin', planner:'me', shared:false,
+      mental:true, kidOk:true, status:'open', pts:1,
+      src:'mission', note:''
+    }, data));
+    HF.saveState(state);
+  };
+
   function seedExpenses(){
     return [
       {id:'e1', name:'H\u1ecdc ph\u00ed ti\u1ebfng Anh', amount:1500000, date:HF.isoDate(HF.dayOffset(0)), catId:'c_edu', memberId:'bin', status:'paid', note:''},

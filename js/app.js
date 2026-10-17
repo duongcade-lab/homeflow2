@@ -82,6 +82,7 @@
     switch(route.name){
       case 'tasks': nodes = HF.views.Tasks(state, navigate, route.params.filter||'all'); break;
       case 'expenses': nodes = HF.views.Expenses(state, navigate, route.params.filter||'today'); break;
+      case 'missions': nodes = HF.views.Missions(state, navigate); break;
       case 'dump': nodes = HF.views.Dump(state, navigate); break;
       case 'balance': nodes = HF.views.Balance(state, navigate); break;
       case 'brief': nodes = HF.views.Brief(state, navigate); break;
