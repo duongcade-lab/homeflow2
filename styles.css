@@ -385,7 +385,11 @@ textarea.input{resize:none;line-height:1.6}
   padding:9px 0;border-bottom:1px solid var(--hairline);
 }
 .mgmt-row:last-child{border-bottom:none}
-.mgmt-title{font-size:13.5px;font-weight:700;line-height:1.35}
+.mgmt-title{
+  font-size:13.5px;font-weight:700;line-height:1.35;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow-wrap:anywhere;
+}
 .kind-tag{font-size:10.5px;font-weight:700;color:var(--ink-soft);margin-top:2px}
 .icon-btn{
   background:none;border:none;cursor:pointer;font-size:16px;padding:8px;
@@ -465,7 +469,7 @@ textarea.input{resize:none;line-height:1.6}
 .ava-pick.on{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(139,111,184,.15)}
 .ava-pick:active{transform:scale(.9)}
 .profile-head{display:flex;align-items:center;gap:14px;margin-top:12px}
-.profile-name{font-size:20px;font-weight:800}
+.profile-name{font-size:20px;font-weight:800;overflow-wrap:anywhere;line-height:1.3}
 .profile-sub{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:2px}
 .prof-tabs{
   display:flex;gap:5px;margin:16px 0 14px;

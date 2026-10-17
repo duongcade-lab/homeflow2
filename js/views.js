@@ -1334,7 +1334,7 @@ V.Settings = function(state, nav, params){
       s.push(backRow('Th\u00e0nh vi\u00ean','settings',{path:['family']}));
       s.push(el('div',{class:'profile-head'},[
         el('span',{class:'avatar',style:`width:64px;height:64px;font-size:28px;background:${kid.color}`},[kid.emoji]),
-        el('div',{},[
+        el('div',{style:'flex:1;min-width:0'},[
           el('div',{class:'profile-name'},[kid.name]),
           el('div',{class:'profile-sub'},[(kid.role||'Con')+(kid.dob?' \u00b7 '+ageFrom(kid.dob):'')])
         ])
