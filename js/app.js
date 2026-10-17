@@ -145,8 +145,78 @@
   }
 
   function renderOrLogin(){
-    if(HF.auth.mode!=='off' && !HF.auth.user) renderLogin();
-    else render();
+    if(HF.auth.mode==='off') return render();
+    if(!HF.auth.user) return renderLogin();
+    if(!householdChecked) return renderSplash();
+    if(!HF.db.household) return renderOnboarding();
+    render();
+  }
+
+  let householdChecked = false;
+
+  async function checkHousehold(){
+    if(HF.auth.mode==='off' || !HF.auth.user){ householdChecked = true; renderOrLogin(); return; }
+    await HF.db.getMyHousehold();
+    householdChecked = true;
+    renderOrLogin();
+  }
+
+  function renderSplash(){
+    const screen = document.getElementById('screen');
+    screen.innerHTML='';
+    document.getElementById('topbar').innerHTML='';
+    document.getElementById('tabbar').innerHTML='';
+    speakFab.style.display='none';
+    screen.appendChild(el('div',{class:'login-wrap'},[
+      el('div',{class:'login-card',style:'padding:34px 26px'},[
+        el('div',{class:'login-logo heartbeat'},['\u{1F49C}']),
+        el('div',{class:'login-dev',style:'margin-top:16px'},['\u0110ang chu\u1ea9n b\u1ecb kh\u00f4ng gian gia \u0111\u00ecnh...'])
+      ])
+    ]));
+  }
+
+  function renderOnboarding(){
+    const screen = document.getElementById('screen');
+    screen.innerHTML='';
+    document.getElementById('topbar').innerHTML='';
+    document.getElementById('tabbar').innerHTML='';
+    speakFab.style.display='none';
+
+    const nameInput = el('input',{class:'input',placeholder:'VD: Gia \u0111\u00ecnh Bin',maxlength:40});
+    const box = el('div',{class:'login-wrap'},[
+      el('div',{class:'login-card'},[
+        el('div',{class:'login-logo heartbeat'},['\u{1F49C}']),
+        el('div',{class:'login-brand'},['Ch\u00e0o m\u1eebng \u0111\u1ebfn HomeFlow \u{1F49C}']),
+        el('div',{class:'login-sec'},['M\u1ed7i gia \u0111\u00ecnh c\u00f3 m\u1ed9t kh\u00f4ng gian ri\u00eang \u0111\u1ec3 c\u00f9ng nhau chia s\u1ebb nh\u1eefng vi\u1ec7c c\u1ea7n nh\u1edb.']),
+        el('button',{class:'btn btn-primary',style:'width:100%;margin-top:22px;padding:14px',onclick:()=>{
+          const sheetBody = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+            el('div',{class:'rs-field'},[el('span',{},['T\u00ean gia \u0111\u00ecnh']), nameInput]),
+            el('div',{style:'font-size:12px;color:var(--muted);font-weight:600'},['B\u1ea1n s\u1ebd tr\u1edf th\u00e0nh ch\u1ee7 gia \u0111\u00ecnh (Owner).']),
+            el('button',{class:'btn btn-primary',style:'width:100%;padding:13px'},['\u{1F3E0} T\u1ea1o gia \u0111\u00ecnh'])
+          ]);
+          const sheet = HF.sheet({title:'\u{1F3E0} T\u1ea1o gia \u0111\u00ecnh m\u1edbi', body:()=>sheetBody});
+          const createBtn = sheetBody.querySelector('.btn-primary');
+          createBtn.addEventListener('click', async ()=>{
+            const n = nameInput.value.trim();
+            if(!n){ HF.toast('Nh\u1eadp t\u00ean gia \u0111\u00ecnh tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+            createBtn.disabled = true;
+            createBtn.textContent = '\u0110ang t\u1ea1o...';
+            try{
+              await HF.db.createHousehold(n);
+              sheet.close();
+              HF.toast('\u0110\u00e3 t\u1ea1o gia \u0111\u00ecnh '+n+' \u{1F49C}','\u{1F3E0}');
+              householdChecked = true;
+              render();
+            }catch(e){
+              createBtn.disabled = false;
+              createBtn.textContent = '\u{1F3E0} T\u1ea1o gia \u0111\u00ecnh';
+              HF.toast('Ch\u01b0a t\u1ea1o \u0111\u01b0\u1ee3c gia \u0111\u00ecnh, th\u1eed l\u1ea1i nh\u00e9','\u{1F914}');
+            }
+          });
+        }},['\u{1F3E0} T\u1ea1o gia \u0111\u00ecnh m\u1edbi'])
+      ])
+    ]);
+    screen.appendChild(box);
   }
 
   window.addEventListener('hashchange', renderOrLogin);
@@ -157,7 +227,10 @@
 
   await HF.auth.init();
   if(HF.auth.mode!=='off'){
-    HF.auth.onChange(()=>{ renderOrLogin(); });
+    HF.auth.onChange(()=>{
+      householdChecked = false;
+      checkHousehold();
+    });
   }
-  renderOrLogin();
+  checkHousehold();
 })();

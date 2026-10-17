@@ -80,6 +80,14 @@ Source: **https://github.com/duongcade-lab/homeflow2** (branch `main`, public).
 - `SUPABASE_URL` — Supabase project URL.
 - `SUPABASE_ANON_KEY` — Supabase public anon key (safe to expose to clients; RLS protects data). Served to the client via the `api/config` Function — never hardcoded in source.
 
+**Database (Login MVP — STEP 2A, Household Foundation)**:
+
+Apply `supabase/migrations/20261017_household_foundation.sql` in Supabase Dashboard → SQL Editor. It creates `profiles`, `households`, `household_memberships`, `family_members`, `tasks`, `expenses`, `child_growth_records`, `health_records`, `education_records` with RLS enforcing household isolation (a user can only touch rows of their own household, enforced in the database, not the frontend). After applying, run the isolation test:
+
+```bash
+node supabase/isolation-test.js
+```
+
 Setup: create a Supabase project → Authentication → Providers → enable **Google** (needs a Google OAuth Client ID/Secret from Google Cloud Console) → add the app URL + Vercel preview domains to **Redirect URLs** (Site URL + Additional Redirect URLs). Without these two env vars the app runs in its previous no-login mode (existing pilot users are unaffected).
 
 Dev/testing without a configured Supabase project: open the app with `?mock=1` (or set `localStorage.hf_mock_auth=1`) to use the built-in mock auth flow.

@@ -1370,12 +1370,14 @@ V.Settings = function(state, nav, params){
 
       if(HF.auth && HF.auth.mode!=='off' && HF.auth.user){
         const u = HF.auth.user;
+        const hh = HF.db && HF.db.household;
         s.push(el('div',{class:'card compact'},[
           el('div',{class:'set-head'},[
             el('span',{class:'set-ico'},[u.avatar ? el('img',{src:u.avatar,style:'width:34px;height:34px;border-radius:50%',alt:''}) : '\u{1F464}']),
             el('div',{style:'flex:1;min-width:0'},[
               el('div',{class:'set-t'},['T\u00e0i kho\u1ea3n']),
-              el('div',{class:'set-s',style:'overflow-wrap:anywhere'},[u.name+(u.email?' \u00b7 '+u.email:'')])
+              el('div',{class:'set-s',style:'overflow-wrap:anywhere'},[u.name+(u.email?' \u00b7 '+u.email:'')]),
+              hh ? el('div',{class:'set-s',style:'margin-top:3px'},['\u{1F3E0} '+hh.name+' \u00b7 '+(hh.role==='owner'?'Ch\u1ee7 gia \u0111\u00ecnh':'Th\u00e0nh vi\u00ean')]) : null
             ])
           ]),
           el('button',{class:'btn btn-ghost',style:'width:100%;margin-top:10px;color:var(--danger)',onclick:()=>{
