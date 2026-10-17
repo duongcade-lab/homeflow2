@@ -920,6 +920,53 @@ textarea.input{resize:none;line-height:1.6}
   margin:6px 0 8px;text-transform:uppercase;
 }
 
+.login-wrap{
+  min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  padding:28px 22px;
+  background:
+    radial-gradient(900px 420px at 110% -8%, rgba(155,127,198,.22), transparent 60%),
+    radial-gradient(760px 460px at -12% 108%, rgba(248,187,148,.30), transparent 60%),
+    linear-gradient(180deg,#FDF8F4,#FAF1EB);
+}
+.login-card{
+  width:100%;max-width:380px;background:#fff;
+  border-radius:26px;padding:38px 26px 26px;
+  box-shadow:0 24px 60px rgba(122,92,166,.16),0 4px 14px rgba(158,112,96,.08);
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  border:1px solid rgba(159,126,110,.10);
+}
+.login-logo{
+  width:72px;height:72px;border-radius:24px;
+  background:linear-gradient(145deg,#9B7FC6,#7A5CA6);
+  display:flex;align-items:center;justify-content:center;font-size:36px;
+  box-shadow:0 12px 28px rgba(122,92,166,.35);
+}
+.login-brand{
+  margin-top:18px;font-size:26px;font-weight:900;letter-spacing:-.02em;
+  color:var(--ink);
+}
+.login-tag{
+  margin-top:4px;font-size:13px;font-weight:700;color:var(--primary-deep);
+  letter-spacing:.01em;
+}
+.login-sub{
+  margin-top:14px;font-size:13px;color:var(--muted);font-weight:600;line-height:1.6;
+}
+.login-google{
+  margin-top:26px;width:100%;display:flex;align-items:center;justify-content:center;gap:11px;
+  border:1px solid rgba(115,109,106,.22);background:#fff;cursor:pointer;
+  font-family:var(--font);font-size:15px;font-weight:700;color:#3C4043;
+  padding:14px 16px;border-radius:14px;min-height:50px;
+  box-shadow:0 2px 6px rgba(117,111,106,.10);
+  transition:transform .12s,box-shadow .15s,background .15s;
+}
+.login-google:hover{background:#FBFBFB;box-shadow:0 4px 12px rgba(117,111,106,.16)}
+.login-google:active{transform:scale(.98)}
+.login-google.busy{opacity:.6;pointer-events:none}
+.login-foot{
+  margin-top:22px;font-size:11.5px;color:var(--muted);font-weight:600;
+}
+
 .bal-summary{
   display:flex;align-items:center;gap:12px;
   background:linear-gradient(135deg,#E8F1EA,#FCF3D8);

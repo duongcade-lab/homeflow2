@@ -2,11 +2,11 @@
 
 ## Architecture
 
-Pure static vanilla-JS SPA. No build step, no framework, no backend, no runtime environment variables. Serving the files is sufficient.
+Pure static vanilla-JS SPA. No build step, no framework. Served statically; a small set of Vercel Functions (`api/*.js`) provides the LLM parser and auth config.
 
-**Files**: `index.html`, `styles.css`, `js/{data,ai,logic,ui,views,app}.js`, `.gitignore`.
+**Files**: `index.html`, `styles.css`, `js/{data,ai,logic,ui,auth,views,app}.js`, `js/lib/supabase.min.js`, `api/{parse,config}.js`, `.gitignore`.
 
-**Assets** are loaded with a cache-busting query (`?v=3` in `index.html`). Bump this version when releasing breaking asset changes.
+**Assets** are loaded with a cache-busting query (`?v=4` in `index.html`). Bump this version when releasing breaking asset changes.
 
 ---
 
@@ -74,6 +74,15 @@ Source: **https://github.com/duongcade-lab/homeflow2** (branch `main`, public).
 **Required for the LLM-powered brain-dump parsing** (`api/parse` Vercel Function):
 
 - `GEMINI_API_KEY` — Google AI Studio key (free tier). Set in Vercel → Project → Settings → Environment Variables → Production. Without it, `api/parse` returns 503 and the app silently falls back to the on-device rule-based parser.
+
+**Required for Google Sign-In (Login MVP — STEP 1)**:
+
+- `SUPABASE_URL` — Supabase project URL.
+- `SUPABASE_ANON_KEY` — Supabase public anon key (safe to expose to clients; RLS protects data). Served to the client via the `api/config` Function — never hardcoded in source.
+
+Setup: create a Supabase project → Authentication → Providers → enable **Google** (needs a Google OAuth Client ID/Secret from Google Cloud Console) → add the app URL + Vercel preview domains to **Redirect URLs** (Site URL + Additional Redirect URLs). Without these two env vars the app runs in its previous no-login mode (existing pilot users are unaffected).
+
+Dev/testing without a configured Supabase project: open the app with `?mock=1` (or set `localStorage.hf_mock_auth=1`) to use the built-in mock auth flow.
 
 Reserved for future use (names only — never commit values):
 

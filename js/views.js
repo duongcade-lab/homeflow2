@@ -1368,6 +1368,27 @@ V.Settings = function(state, nav, params){
       s.push(el('h1',{class:'page-title',style:'margin-top:4px'},['C\u00e0i \u0111\u1eb7t']));
       s.push(el('div',{class:'sub'},['Qu\u1ea3n l\u00fd gia \u0111\u00ecnh v\u00e0 \u1ee9ng d\u1ee5ng']));
 
+      if(HF.auth && HF.auth.mode!=='off' && HF.auth.user){
+        const u = HF.auth.user;
+        s.push(el('div',{class:'card compact'},[
+          el('div',{class:'set-head'},[
+            el('span',{class:'set-ico'},[u.avatar ? el('img',{src:u.avatar,style:'width:34px;height:34px;border-radius:50%',alt:''}) : '\u{1F464}']),
+            el('div',{style:'flex:1;min-width:0'},[
+              el('div',{class:'set-t'},['T\u00e0i kho\u1ea3n']),
+              el('div',{class:'set-s',style:'overflow-wrap:anywhere'},[u.name+(u.email?' \u00b7 '+u.email:'')])
+            ])
+          ]),
+          el('button',{class:'btn btn-ghost',style:'width:100%;margin-top:10px;color:var(--danger)',onclick:()=>{
+            HF.confirmDelete({
+              head:'\u0110\u0103ng xu\u1ea5t?',
+              title:'B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n \u0111\u0103ng xu\u1ea5t kh\u1ecfi HomeFlow?',
+              message:'B\u1ea1n s\u1ebd c\u1ea7n \u0111\u0103ng nh\u1eadp l\u1ea1i b\u1eb1ng Google \u0111\u1ec3 ti\u1ebfp t\u1ee5c.',
+              onConfirm:()=>HF.auth.signOut()
+            });
+          }},['\u{1F6AA} \u0110\u0103ng xu\u1ea5t'])
+        ]));
+      }
+
       s.push(el('div',{class:'card compact set-menu'},[
         menuRow('\u{1F4CB}','Vi\u1ec7c nh\u00e0','Ch\u1ec9nh s\u1eeda, x\u00f3a vi\u1ec7c', ()=>nav('settings',{path:['tasks']})),
         menuRow('\u{1F46B}','Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean','T\u00ean gia \u0111\u00ecnh, th\u00e0nh vi\u00ean, h\u1ed3 s\u01a1 con', ()=>nav('settings',{path:['family']})),
