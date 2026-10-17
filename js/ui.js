@@ -258,11 +258,15 @@
       const lbl = i===0?'H\u00f4m nay':(i===1?'Ng\u00e0y mai':HF.formatDay(d));
       opts.push({d,lbl});
     }
+    const vISO = new Date(value).toISOString();
+    if(!opts.some(o=>o.d.toISOString()===vISO)){
+      opts.unshift({d:new Date(value), lbl:'\u{1F4C5} '+HF.formatDay(new Date(value))});
+    }
     for(const o of opts){
       const opt = el('option',{value:o.d.toISOString()},[o.lbl]);
       sel.appendChild(opt);
     }
-    sel.value = new Date(value).toISOString();
+    sel.value = vISO;
     sel.addEventListener('change', ()=>onChange(new Date(sel.value)));
     return sel;
   };

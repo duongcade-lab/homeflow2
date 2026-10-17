@@ -620,6 +620,9 @@ textarea.input{resize:none;line-height:1.6}
   display:flex;flex-direction:column;gap:2px;overflow:hidden;
 }
 .cal-cell.out{opacity:.32}
+.cal-cell.empty{cursor:pointer;transition:background .15s,transform .12s}
+.cal-cell.empty:hover{background:rgba(142,116,130,.09)}
+.cal-cell.empty:active{transform:scale(.97)}
 .cal-day{
   font-size:11px;font-weight:700;color:var(--ink-soft);
   width:22px;height:22px;display:flex;align-items:center;justify-content:center;

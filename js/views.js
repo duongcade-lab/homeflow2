@@ -153,6 +153,20 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     const sheet = HF.sheet({title:task.title, body:()=>body});
   }
 
+  function openEmptyDaySheet(state, nav, year, month, day){
+    const d = new Date(year, month, day);
+    const body = el('div',{style:'display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;padding:6px 0 2px'},[
+      el('div',{style:'font-size:42px'},['\u{1F33F}']),
+      el('div',{style:'font-size:15px;font-weight:800'},['Ng\u00e0y n\u00e0y c\u00f2n tr\u1ed1ng, th\u1eadt tho\u1ea3i m\u00e1i']),
+      el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.5'},['Ch\u01b0a c\u00f3 vi\u1ec7c n\u00e0o c\u1ea7n nh\u1edb trong '+HF.formatDay(d)+'.']),
+      el('button',{class:'btn btn-primary',style:'width:100%;margin-top:6px'},['+ Th\u00eam vi\u1ec7c cho ng\u00e0y n\u00e0y'])
+    ]);
+    const sheet = HF.sheet({title:HF.formatDay(d), body:()=>body});
+    body.querySelector('.btn-primary').addEventListener('click', ()=>{
+      openAddSheet(state, nav, d, 'month');
+    });
+  }
+
   function monthCalendar(state, nav){
     const now = new Date();
     const cursor = calCursor || new Date(now.getFullYear(), now.getMonth(), 1);
@@ -195,7 +209,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
       if(c.tasks.length>2){
         chips.push(el('div',{class:'cal-more'},['+'+(c.tasks.length-2)+' n\u1eefa']));
       }
-      return el('div',{class:'cal-cell'+(c.inMonth?'':' out')},[
+      return el('div',{class:'cal-cell'+(c.inMonth?'':' out')+(c.inMonth&&c.tasks.length===0?' empty':''),onclick:c.inMonth&&c.tasks.length===0?()=>openEmptyDaySheet(state, nav, year, month, c.day):null},[
         el('div',{class:'cal-day'+(c.isToday?' today':'')},[c.day]),
         ...chips
       ]);
@@ -1866,7 +1880,7 @@ function buildReminders(){
     btns[2].addEventListener('click', ()=>sheet.close());
   }
 
-  function openAddSheet(state, nav){
+  function openAddSheet(state, nav, presetDate, backFilter){
     HF.sheet({
       title:'Th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng',
       body:()=>{
@@ -1876,7 +1890,7 @@ function buildReminders(){
           catSel.appendChild(el('option',{value:k},[HF.CATEGORIES[k].emoji+' '+HF.CATEGORIES[k].label]));
         });
         const ownerSel = HF.ownerSelect('me',()=>{});
-        const dateSel = HF.dateSelect(HF.dayOffset(1),()=>{});
+        const dateSel = HF.dateSelect(presetDate || HF.dayOffset(1),()=>{});
         const plannerSel = HF.ownerSelect('me',()=>{});
 
         const body = el('div',{},[
@@ -1918,7 +1932,7 @@ function buildReminders(){
             });
             HF.saveState(state);
             HF.toast('\u0110\u00e3 th\u00eam \u201c'+t+'\u201d','\u2705');
-            nav('tasks',{filter:'all'});
+            nav('tasks',{filter:backFilter||'all'});
             document.getElementById('sheetLayer').innerHTML='';
           };
           const dup = HF.findDuplicateTask(state, candidate);
