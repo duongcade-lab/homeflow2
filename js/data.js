@@ -250,6 +250,9 @@ const KEY = 'homeflow_state_v1';
         expenses: state.expenses||{currency:'VND', categories:JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATS)), records:[]}
       }));
     }catch(e){}
+    if(HF.db && HF.db.sync && HF.auth && HF.auth.mode!=='off' && HF.db.household){
+      HF.db.sync(state);
+    }
   };
 
   HF.resetState = function(){

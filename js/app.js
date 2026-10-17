@@ -3,11 +3,27 @@
 
   let state = null;
   let householdChecked = false;
+  let pendingInvite = null;
+  (function(){
+    const m = location.search.match(/[?&]invite=([A-Za-z0-9\-]+)/i);
+    if(m) pendingInvite = m[1];
+  })();
 
-  function loadAppState(){
+  async function loadAppState(){
     if(state) return state;
     if(HF.auth.mode!=='off' && HF.db && HF.db.household){
       HF.setStateKey('homeflow_state_hh_'+HF.db.household.household_id);
+      try{
+        const remote = await HF.db.loadHouseholdData();
+        if(remote){
+          state = remote;
+          HF.prefs = state.prefs;
+          HF.MEMBERS.length = 0;
+          HF.MEMBERS.push(...(remote.members||[]));
+          HF.db.resetSyncBaseline();
+          return state;
+        }
+      }catch(e){ console.warn('loadHouseholdData:', e.message); }
     }
     state = HF.loadState();
     HF.prefs = state.prefs;
@@ -83,7 +99,7 @@
   }
 
   function render(){
-    if(!state) loadAppState();
+    if(!state && HF.auth.mode==='off') loadAppState();
     const route = routeFromHash();
     const screen = document.getElementById('screen');
     screen.innerHTML='';
@@ -167,8 +183,83 @@
     if(HF.auth.mode==='off' || !HF.auth.user){ householdChecked = true; renderOrLogin(); return; }
     await HF.db.getMyHousehold();
     householdChecked = true;
-    if(HF.db.household) loadAppState();
+    if(HF.db.household){ await loadAppState(); renderOrLogin(); return; }
+    if(pendingInvite){ renderAcceptInvite(); return; }
     renderOrLogin();
+  }
+
+  function renderAcceptInvite(){
+    const screen = document.getElementById('screen');
+    screen.innerHTML='';
+    document.getElementById('topbar').innerHTML='';
+    document.getElementById('tabbar').innerHTML='';
+    speakFab.style.display='none';
+    const box = el('div',{class:'login-wrap'},[
+      el('div',{class:'login-card'},[
+        el('div',{class:'login-logo heartbeat'},['\u{1F49C}']),
+        el('div',{class:'login-brand'},['B\u1ea1n \u0111\u01b0\u1ee3c m\u1eddi tham gia m\u1ed9t gia \u0111\u00ecnh']),
+        el('div',{class:'login-sec'},['M\u1ed9t ng\u01b0\u1eddi th\u00e2n \u0111\u00e3 m\u1eddi b\u1ea1n c\u00f9ng chia s\u1ebb vi\u1ec7c nh\u00e0 tr\u00ean HomeFlow \u2764\uFE0F']),
+        el('button',{class:'btn btn-primary',style:'width:100%;margin-top:22px;padding:14px',onclick:async()=>{
+          const btn = box.querySelector('.btn-primary');
+          btn.disabled = true;
+          btn.textContent = '\u0110ang x\u00e1c nh\u1eadn...';
+          try{
+            await HF.db.acceptInvitation(pendingInvite);
+            pendingInvite = null;
+            history.replaceState(null,'',location.pathname);
+            renderFamilyLink();
+          }catch(e){
+            btn.disabled = false;
+            btn.textContent = '\u2713 Ch\u1ea5p nh\u1eadn l\u1eddi m\u1eddi';
+            HF.toast(e.message==='this account already belongs to a household' ? 'T\u00e0i kho\u1ea3n n\u00e0y \u0111\u00e3 thu\u1ed9c m\u1ed9t gia \u0111\u00ecnh kh\u00e1c' : 'L\u1eddi m\u1eddi kh\u00f4ng h\u1ee3p l\u1ec7 ho\u1eb7c \u0111\u00e3 h\u1ebft h\u1ea1n','\u{1F914}');
+          }
+        }},['\u2713 Ch\u1ea5p nh\u1eadn l\u1eddi m\u1eddi'])
+      ])
+    ]);
+    screen.appendChild(box);
+  }
+
+  async function renderFamilyLink(){
+    const screen = document.getElementById('screen');
+    screen.innerHTML='';
+    document.getElementById('topbar').innerHTML='';
+    document.getElementById('tabbar').innerHTML='';
+    speakFab.style.display='none';
+    let adults = [];
+    try{ adults = await HF.db.listAdultProfiles(); }catch(e){}
+    const nameInput = el('input',{class:'input',placeholder:'VD: M\u1eb9',maxlength:30});
+    const box = el('div',{class:'login-wrap'},[
+      el('div',{class:'login-card',style:'align-items:stretch;text-align:left'},[
+        el('div',{class:'login-logo heartbeat',style:'align-self:center'},['\u{1F49C}']),
+        el('div',{class:'login-brand',style:'text-align:center'},['Ch\u00e0o m\u1eebng \u0111\u1ebfn gia \u0111\u00ecnh!']),
+        el('div',{class:'login-sec',style:'text-align:center'},['B\u1ea1n l\u00e0 th\u00e0nh vi\u00ean n\u00e0o trong gia \u0111\u00ecnh?']),
+        el('div',{style:'display:flex;flex-direction:column;gap:8px;margin-top:16px'},[
+          ...adults.map(a=>el('button',{class:'btn btn-soft',style:'width:100%;padding:13px;font-size:14px;text-align:left',onclick:async()=>{
+            try{
+              await HF.db.linkFamilyMember(a.id);
+              await loadAppState();
+              HF.toast('\u0110\u00e3 li\u00ean k\u1ebft h\u1ed3 s\u01a1 '+a.name,'\u2705');
+              render();
+            }catch(e){ HF.toast('Ch\u01b0a li\u00ean k\u1ebft \u0111\u01b0\u1ee3c','\u{1F914}'); }
+          }},[a.emoji+' '+a.name])),
+          el('div',{style:'display:flex;gap:8px;margin-top:4px'},[
+            nameInput,
+            el('button',{class:'btn btn-primary',style:'padding:13px 16px;font-size:13.5px;white-space:nowrap',onclick:async()=>{
+              const n = nameInput.value.trim();
+              if(!n){ HF.toast('Nh\u1eadp t\u00ean h\u1ed3 s\u01a1 nh\u00e9','\u{1F914}'); return; }
+              try{
+                const created = await HF.db.createFamilyMember({ name:n });
+                await HF.db.linkFamilyMember(created.id);
+                await loadAppState();
+                HF.toast('\u0110\u00e3 t\u1ea1o h\u1ed3 s\u01a1 '+n,'\u2705');
+                render();
+              }catch(e){ HF.toast('Ch\u01b0a t\u1ea1o \u0111\u01b0\u1ee3c','\u{1F914}'); }
+            }},['T\u1ea1o h\u1ed3 s\u01a1'])
+          ])
+        ])
+      ])
+    ]);
+    screen.appendChild(box);
   }
 
   function renderSplash(){
@@ -213,7 +304,7 @@
             createBtn.textContent = '\u0110ang t\u1ea1o...';
             try{
               await HF.db.createHousehold(n);
-              loadAppState();
+              await loadAppState();
               sheet.close();
               HF.toast('\u0110\u00e3 t\u1ea1o gia \u0111\u00ecnh '+n+' \u{1F49C}','\u{1F3E0}');
               householdChecked = true;

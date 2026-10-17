@@ -1709,7 +1709,103 @@ V.Settings = function(state, nav, params){
           '+ Th\u00eam th\u00e0nh vi\u00ean'
         ])
       ]));
+
+      if(HF.db && HF.db.household){
+        const isOwner = HF.db.household.role==='owner';
+        s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Ng\u01b0\u1eddi l\u1edbn trong gia \u0111\u00ecnh']));
+        s.push(el('div',{class:'card compact'},[
+          isOwner
+            ? el('button',{class:'btn btn-primary',style:'width:100%;padding:12px;font-size:13.5px',onclick:()=>openInviteSheet()},[
+                '\u2795 M\u1eddi ng\u01b0\u1eddi l\u1edbn v\u00e0o gia \u0111\u00ecnh'
+              ])
+            : el('div',{style:'font-size:12px;color:var(--muted);font-weight:600;line-height:1.5'},['Ch\u1ec9 ch\u1ee7 gia \u0111\u00ecnh m\u1edbi c\u00f3 th\u1ec3 m\u1eddi ng\u01b0\u1eddi l\u1edbn.']),
+          el('div',{class:'invite-list',style:'margin-top:10px'},[])
+        ]));
+        setTimeout(refreshInvites, 50);
+      }
       return s;
+    }
+
+    function refreshInvites(){
+      const box = document.querySelector('.invite-list');
+      if(!box || !HF.db) return;
+      HF.db.listInvitations().then(list=>{
+        box.innerHTML='';
+        if(!list || !list.length){
+          box.appendChild(el('div',{style:'font-size:12px;color:var(--muted);font-weight:600'},['Ch\u01b0a c\u00f3 l\u1eddi m\u1eddi n\u00e0o.']));
+          return;
+        }
+        const stMap = {pending:'\u0110\u00e3 m\u1eddi', accepted:'\u0110\u00e3 tham gia', cancelled:'\u0110\u00e3 h\u1ee7y', expired:'\u0110\u00e3 h\u1ebft h\u1ea1n'};
+        const isOwner = HF.db.household && HF.db.household.role==='owner';
+        list.forEach(inv=>{
+          const row = el('div',{class:'invite-row'},[
+            el('div',{style:'flex:1;min-width:0'},[
+              el('div',{style:'font-size:13px;font-weight:700;overflow-wrap:anywhere'},[inv.invited_email]),
+              el('div',{style:'font-size:11px;color:var(--muted);font-weight:600'},[stMap[inv.status]||inv.status])
+            ]),
+            (inv.status==='pending' && isOwner) ? el('button',{class:'btn btn-ghost',style:'padding:7px 12px;font-size:12px;color:var(--danger)',onclick:async()=>{
+              try{ await HF.db.cancelInvitation(inv.id); refreshInvites(); }
+              catch(e){ HF.toast('Ch\u01b0a h\u1ee7y \u0111\u01b0\u1ee3c','\u{1F914}'); }
+            }},['H\u1ee7y']) : null,
+            (inv.status==='accepted' && isOwner) ? el('button',{class:'btn btn-ghost',style:'padding:7px 12px;font-size:12px;color:var(--danger)',onclick:async()=>{
+              HF.confirmDelete({
+                head:'G\u1ee1 ng\u01b0\u1eddi l\u1edbn?',
+                title:'G\u1ee1 '+inv.invited_email+' kh\u1ecfi gia \u0111\u00ecnh?',
+                message:'Ng\u01b0\u1eddi n\u00e0y s\u1ebd kh\u00f4ng c\u00f2n truy c\u1eadp d\u1eef li\u1ec7u gia \u0111\u00ecnh.',
+                confirmLabel:'G\u1ee1',
+                onConfirm:async()=>{
+                  try{ await HF.db.removeMemberByEmail(inv.invited_email); refreshInvites(); }
+                  catch(e){ HF.toast('Ch\u01b0a g\u1ee1 \u0111\u01b0\u1ee3c','\u{1F914}'); }
+                }
+              });
+            }},['G\u1ee1']) : null
+          ]);
+          box.appendChild(row);
+        });
+      }).catch(()=>{});
+    }
+
+    function openInviteSheet(){
+      const email = el('input',{class:'input',type:'email',placeholder:'Email ng\u01b0\u1eddi l\u1edbn (vd: anh@email.com)'});
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+        el('div',{class:'rs-field'},[el('span',{},['Email ng\u01b0\u1eddi \u0111\u01b0\u1ee3c m\u1eddi']), email]),
+        el('div',{style:'font-size:12px;color:var(--muted);font-weight:600;line-height:1.6'},['Ng\u01b0\u1eddi \u0111\u01b0\u1ee3c m\u1eddi ph\u1ea3i \u0111\u0103ng nh\u1eadp b\u1eb1ng \u0111\u00fang email n\u00e0y \u0111\u1ec3 tham gia gia \u0111\u00ecnh. Link h\u1ebft h\u1ea1n sau 7 ng\u00e0y.']),
+        el('button',{class:'btn btn-primary',style:'width:100%;padding:13px'},['\u{1F4E8} T\u1ea1o l\u1eddi m\u1eddi'])
+      ]);
+      const sheet = HF.sheet({title:'\u2795 M\u1eddi ng\u01b0\u1eddi l\u1edbn', body:()=>body});
+      const btn = body.querySelector('.btn-primary');
+      btn.addEventListener('click', async ()=>{
+        const e = email.value.trim();
+        if(!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){ HF.toast('Nh\u1eadp email h\u1ee3p l\u1ec7 nh\u00e9','\u{1F914}'); return; }
+        btn.disabled = true;
+        btn.textContent = '\u0110ang t\u1ea1o...';
+        try{
+          const token = await HF.db.createInvitation(e);
+          const link = location.origin + location.pathname + '?invite=' + token;
+          sheet.close();
+          setTimeout(()=>{ showInviteLink(link, e); refreshInvites(); }, 480);
+        }catch(err){
+          btn.disabled = false;
+          btn.textContent = '\u{1F4E8} T\u1ea1o l\u1eddi m\u1eddi';
+          HF.toast('Ch\u01b0a t\u1ea1o \u0111\u01b0\u1ee3c l\u1eddi m\u1eddi','\u{1F914}');
+        }
+      });
+    }
+
+    function showInviteLink(link, email){
+      const linkInput = el('input',{class:'input',readonly:true,value:link,style:'font-size:11.5px'});
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+        el('div',{style:'font-size:13.5px;font-weight:800'},['\u0110\u00e3 m\u1eddi '+email]),
+        el('div',{style:'font-size:12px;color:var(--muted);line-height:1.6'},['G\u1eedi link n\u00e0y cho ng\u01b0\u1eddi \u0111\u01b0\u1ee3c m\u1eddi. H\u1ecd \u0111\u0103ng nh\u1eadp b\u1eb1ng \u0111\u00fang email \u0111\u01b0\u1ee3c m\u1eddi \u0111\u1ec3 tham gia gia \u0111\u00ecnh.']),
+        linkInput,
+        el('button',{class:'btn btn-primary',style:'width:100%;padding:13px'},['\u{1F4CB} Sao ch\u00e9p link'])
+      ]);
+      const sheet = HF.sheet({title:'L\u1eddi m\u1eddi \u0111\u00e3 t\u1ea1o', body:()=>body});
+      body.querySelector('.btn-primary').addEventListener('click', ()=>{
+        linkInput.select();
+        try{ navigator.clipboard.writeText(link); }catch(e){}
+        HF.toast('\u0110\u00e3 sao ch\u00e9p link m\u1eddi','\u{1F4CB}');
+      });
     }
 
     // ---------------- Child profile ----------------
