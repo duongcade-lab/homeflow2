@@ -30,6 +30,42 @@
       el('div',{class:'speak-btn'},['\u{1F399}\uFE0F B\u1eaft \u0111\u1ea7u n\u00f3i'])
     ]);
 
+    const welcomeCard = state.tasks.length===0 ? el('div',{class:'card welcome-card'},[
+      el('div',{class:'welcome-head'},[
+        el('span',{style:'font-size:26px'},['\u{1F49C}']),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'welcome-title'},['Ch\u00e0o m\u1eebng gia \u0111\u00ecnh \u0111\u1ebfn v\u1edbi HomeFlow']),
+          el('div',{class:'sub',style:'font-size:12px'},['C\u00f9ng nhau chia s\u1ebb nh\u1eefng vi\u1ec7c c\u1ea7n nh\u1edb \u2014 m\u1ed7i ng\u01b0\u1eddi m\u1ed9t ch\u00fat, c\u1ea3 nh\u00e0 nh\u1eb9 nh\u00e0ng h\u01a1n.'])
+        ])
+      ]),
+      el('div',{class:'welcome-steps'},[
+        el('button',{class:'welcome-step',onclick:()=>nav('settings',{path:['family']})},[
+          el('span',{class:'ws-ico'},['\u{1F46B}']),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'ws-t'},['1. Th\u00eam th\u00e0nh vi\u00ean']),
+            el('div',{class:'ws-s'},['M\u1eb9, B\u1ed1 v\u00e0 c\u00e1c con'])
+          ]),
+          el('span',{style:'color:var(--primary-deep);font-weight:800'},['\u2192'])
+        ]),
+        el('button',{class:'welcome-step',onclick:()=>nav('dump')},[
+          el('span',{class:'ws-ico'},['\u{1F399}\uFE0F']),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'ws-t'},['2. K\u1ec3 vi\u1ec7c \u0111\u1ea7u ti\u00ean']),
+            el('div',{class:'ws-s'},['\u201CTh\u1ee9 7 c\u1ea3 nh\u00e0 d\u1ecdn nh\u00e0\u201D'])
+          ]),
+          el('span',{style:'color:var(--primary-deep);font-weight:800'},['\u2192'])
+        ]),
+        el('button',{class:'welcome-step',onclick:()=>nav('brief')},[
+          el('span',{class:'ws-ico'},['\u{1F4DD}']),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'ws-t'},['3. Xem B\u1ea3n tin tu\u1ea7n']),
+            el('div',{class:'ws-s'},['T\u1ed5ng k\u1ebft m\u1ed7i tu\u1ea7n c\u1ee7a c\u1ea3 nh\u00e0'])
+          ]),
+          el('span',{style:'color:var(--primary-deep);font-weight:800'},['\u2192'])
+        ])
+      ])
+    ]) : null;
+
 const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding-bottom:13px'},[
       el('div',{class:'section-label with-hint'},[
         el('span',{class:'bar'}),
@@ -53,9 +89,11 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         el('span',{},[el('i',{style:'background:'+m.color}), m.name+' '+load[m.id].share+'%'])
       )),
       el('div',{class:'load-status'},[
-        imb
-          ? '\u2696\uFE0F '+imb.max.member.name+' \u0111ang g\u00e1nh nhi\u1ec1u nh\u1ea5t \u2014 c\u00f9ng san s\u1ebb nh\u00e9'
-          : '\u{1F31F} C\u1ea3 nh\u00e0 m\u00ecnh \u0111ang san s\u1ebb r\u1ea5t \u0111\u1ec1u',
+        state.tasks.length===0
+          ? '\u{1F49C} Ch\u01b0a c\u00f3 vi\u1ec7c n\u00e0o \u2014 k\u1ec3 cho HomeFlow nghe nh\u00e9'
+          : (imb
+            ? '\u2696\uFE0F '+imb.max.member.name+' \u0111ang g\u00e1nh nhi\u1ec1u nh\u1ea5t \u2014 c\u00f9ng san s\u1ebb nh\u00e9'
+            : '\u{1F31F} C\u1ea3 nh\u00e0 m\u00ecnh \u0111ang san s\u1ebb r\u1ea5t \u0111\u1ec1u'),
         el('span',{style:'color:var(--primary-deep);font-weight:800'},['\u2192'])
       ])
     ]);
@@ -85,7 +123,9 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
     const footer = el('div',{class:'footer-note'},['\u{1F49C} HomeFlow']);
 
-    screen.push(header, speakCard, todayCard, loadCard, missionsTeaser, briefTeaser, footer);
+    screen.push(header);
+    if(welcomeCard) screen.push(welcomeCard);
+    screen.push(speakCard, todayCard, loadCard, missionsTeaser, briefTeaser, footer);
     return screen;
   };
 
@@ -821,6 +861,17 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     }
     buildViz(load);
     screen.push(vizWrap);
+
+    if(state.tasks.length===0){
+      screen.push(el('div',{class:'card empty',style:'margin-top:14px'},[
+        el('span',{class:'e-ico'},['\u{1F49C}']),
+        el('div',{class:'e-t'},['Ch\u01b0a c\u00f3 vi\u1ec7c n\u00e0o \u0111\u1ec3 c\u00e2n b\u1eb1ng']),
+        el('div',{class:'e-s'},['K\u1ec3 cho HomeFlow vi\u1ec7c \u0111\u1ea7u ti\u00ean \u2014 HomeFlow s\u1ebd g\u1ee3i \u00fd chia s\u1ebb \u0111\u1ec1u cho c\u1ea3 nh\u00e0.']),
+        el('button',{class:'btn btn-soft',style:'margin-top:14px;width:100%;padding:12px;font-size:13.5px',onclick:()=>nav('dump')},[
+          '\u{1F399}\uFE0F K\u1ec3 vi\u1ec7c \u0111\u1ea7u ti\u00ean'
+        ])
+      ]));
+    }
 
     function animateViz(loadData){
       vizWrap.classList.add('animating');

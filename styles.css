@@ -1084,6 +1084,25 @@ textarea.input{resize:none;line-height:1.6}
   transition:transform .15s,box-shadow .18s;
   position:relative;overflow:hidden;
 }
+.welcome-card{
+  background:linear-gradient(145deg,#FFF7E8 0%,#FDE9EE 100%);
+  border:1px solid rgba(214,168,52,.22);
+  border-radius:var(--radius-lg);
+  padding:14px 16px;
+  box-shadow:var(--shadow-card);
+}
+.welcome-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.welcome-title{font-size:15.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;line-height:1.35}
+.welcome-steps{display:flex;flex-direction:column;gap:8px}
+.welcome-step{
+  display:flex;align-items:center;gap:11px;text-align:left;width:100%;
+  background:#fff;border:1px solid rgba(214,168,52,.18);border-radius:14px;
+  padding:10px 12px;cursor:pointer;transition:transform .12s,box-shadow .15s;
+}
+.welcome-step:active{transform:scale(.98)}
+.ws-ico{width:34px;height:34px;border-radius:10px;background:var(--sun-soft);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.ws-t{font-size:13px;font-weight:800;color:var(--ink)}
+.ws-s{font-size:11px;color:var(--ink-soft);margin-top:1px;line-height:1.35}
 .speak-card::after{
   content:"";position:absolute;right:-46px;top:-46px;width:130px;height:130px;border-radius:50%;
   background:rgba(233,221,245,.55);

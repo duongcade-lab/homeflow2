@@ -29,7 +29,7 @@
   };
 
   HF.avatar = function(member, cls){
-    const m = typeof member === 'object' ? member : HF.memberById(member);
+    const m = (typeof member === 'object' && member) ? member : HF.memberById(member);
     return el('span',{class:'avatar '+(cls||''),style:`background:${m.color}`},[m.short]);
   };
 

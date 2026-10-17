@@ -6,6 +6,9 @@
     for(const m of HF.MEMBERS){
       load[m.id] = {doing:0, planning:0, doingCount:0, planningCount:0, done:0, doneCount:0};
     }
+    if(!load.me){
+      load.me = {doing:0, planning:0, doingCount:0, planningCount:0, done:0, doneCount:0};
+    }
     for(const t of tasks){
       if(t.status === 'done'){
         const o = load[t.owner] || load.me;
@@ -52,6 +55,7 @@
   };
 
   HF.findImbalance = function(load){
+    if(!HF.MEMBERS.length) return null;
     const arr = HF.MEMBERS.map(m=>({member:m, total:load[m.id].total}));
     arr.sort((a,b)=>b.total-a.total);
     const max = arr[0], min = arr[arr.length-1];
