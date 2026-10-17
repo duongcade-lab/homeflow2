@@ -1374,98 +1374,214 @@ V.Expenses = function(state, nav, filter){
     ]);
   }
 
-  function helpCenterNodes(state){
+  function helpDoc(doc, nav){
+    const blocks = [];
+    if(doc.what) blocks.push(el('div',{class:'help-q'},['T\u00ednh n\u0103ng n\u00e0y d\u00f9ng \u0111\u1ec3 l\u00e0m g\u00ec?']), el('div',{class:'help-a-txt'},[doc.what]));
+    if(doc.when) blocks.push(el('div',{class:'help-q'},['Khi n\u00e0o n\u00ean s\u1eed d\u1ee5ng?']), el('div',{class:'help-a-txt'},[doc.when]));
+    if(doc.steps && doc.steps.length){
+      blocks.push(el('div',{class:'help-q'},['C\u00e1ch s\u1eed d\u1ee5ng']));
+      doc.steps.forEach((st,i)=>{ blocks.push(el('div',{class:'help-step'},[el('span',{class:'help-step-n'},[String(i+1)]), st])); });
+    }
+    if(doc.example) blocks.push(el('div',{class:'help-ex'},[doc.example]));
+    if(doc.tryLabel && doc.tryNav) blocks.push(el('button',{class:'btn btn-primary help-try',onclick:()=>nav.apply(null, doc.tryNav)},[doc.tryLabel]));
+    return el('div',{class:'help-a-inner'},blocks);
+  }
+
+  function helpCenterNodes(state, nav){
     const s = [];
-    s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'B\u1eaft \u0111\u1ea7u']));
-    s.push(el('div',{class:'card compact'},[
-      helpTopic('\u{1F680}','B\u1eaft \u0111\u1ea7u v\u1edbi HomeFlow',[
-        el('div',{class:'help-a-inner'}, HF.helpItems())
-      ]),
-      helpTopic('\u25B6\uFE0F','Xem Video Demo',[
-        el('div',{class:'help-a-inner'},[
-          el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
-            el('span',{style:'font-size:20px'},['\u{1F3AC}']),
-            el('div',{style:'flex:1'},[
-              el('div',{style:'font-weight:700;font-size:13px'},['Video demo ch\u01b0a c\u00f3 trong phi\u00ean b\u1ea3n n\u00e0y']),
-              el('div',{style:'font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5'},['B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 kh\u00e1m ph\u00e1 qua c\u00e1c m\u1ee5c h\u01b0\u1edbng d\u1eabn b\u00ean d\u01b0\u1edbi \u2014 m\u1ed7i m\u1ee5c ch\u1ec9 m\u1ea5t 30 gi\u00e2y.'])
-            ])
-          ])
-        ])
-      ]),
-      helpTopic('\u2728','C\u00e1ch d\u00f9ng \u201cN\u00f3i v\u1edbi HomeFlow\u201d',[
-        el('div',{class:'help-a-inner'},[
-          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'B\u1ea5m n\u00fat \u{1F9E0} gi\u1eefa thanh \u0111i\u1ec1u h\u01b0\u1edbng']),
-          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'K\u1ec3 vi\u1ec7c b\u1eb1ng l\u1eddi t\u1ef1 nhi\u00ean']),
-          el('div',{class:'help-ex'},['\u201cTh\u1ee9 7 Bin h\u1ecdc ti\u1ebfng Anh l\u00fac 9h, b\u1ed1 \u0111\u01b0a con \u0111i\u201d']),
-          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'HomeFlow t\u1ef1 hi\u1ec3u ng\u00e0y gi\u1edd, ph\u00e2n c\u00f4ng ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m']),
-          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['4']),'B\u1ea5m \u201cTh\u00eam v\u00e0o HomeFlow\u201d \u2014 xong!'])
-        ])
-      ]),
-      helpTopic('\u{1F9E0}','Planning Owner l\u00e0 g\u00ec?',[
-        el('div',{class:'help-a-inner'},[
-          el('div',{class:'help-roles'},[
-            el('div',{class:'role-block role-plan'},[
-              el('div',{class:'role-label'},['\u{1F9E0} PLANNING OWNER']),
-              el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi nh\u1edb, chu\u1ea9n b\u1ecb, l\u00ean k\u1ebf ho\u1ea1ch ho\u1eb7c \u0111i\u1ec1u ph\u1ed1i.'])
-            ]),
-            el('div',{class:'role-vs'},['\u2260']),
-            el('div',{class:'role-block role-do',style:'background:#8B6FB8'},[
-              el('div',{class:'role-label'},['\u25CF TASK OWNER']),
-              el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi tr\u1ef1c ti\u1ebfp th\u1ef1c hi\u1ec7n.'])
-            ])
-          ]),
-          el('div',{style:'font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5'},['M\u1ed9t ng\u01b0\u1eddi c\u00f3 th\u1ec3 lo nh\u01b0ng kh\u00f4ng l\u00e0m, ho\u1eb7c l\u00e0m vi\u1ec7c ng\u01b0\u1eddi kh\u00e1c lo \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c c\u1ee7a gia \u0111\u00ecnh.'])
-        ])
-      ]),
-      helpTopic('\u2696\uFE0F','Family Balance ho\u1ea1t \u0111\u1ed9ng th\u1ebf n\u00e0o?',[
-        el('div',{class:'help-a-inner'},[
-          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'HomeFlow \u0111\u1ebfm vi\u1ec7c \u201clo\u201d v\u00e0 vi\u1ec7c \u201cl\u00e0m\u201d c\u1ee7a t\u1eebng ng\u01b0\u1eddi']),
-          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'Khi m\u1ed9t ng\u01b0\u1eddi \u0111ang g\u00e1nh nhi\u1ec1u, HomeFlow g\u1ee3i \u00fd chuy\u1ec3n vi\u1ec7c cho ng\u01b0\u1eddi kh\u00e1c']),
-          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'B\u1ea5m \u201c\u0110\u1ed3ng \u00fd\u201d \u0111\u1ec3 \u00e1p d\u1ee5ng \u2014 c\u1ea3 nh\u00e0 c\u00e2n b\u1eb1ng h\u01a1n'])
-        ])
-      ]),
-      helpTopic('\u{1F4B0}','Qu\u1ea3n l\u00fd chi ph\u00ed',[
-        el('div',{class:'help-a-inner'},[
-          el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Chi ph\u00ed, b\u1ea1n c\u00f3 th\u1ec3 ch\u1ecdn ti\u1ec1n t\u1ec7 (VND, USD\u2026) v\u00e0 t\u00f9y ch\u1ec9nh danh m\u1ee5c chi ph\u00ed c\u1ee7a gia \u0111\u00ecnh. T\u00ednh n\u0103ng ghi chi ti\u00eau s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi.'])
-        ])
-      ]),
-      helpTopic('\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}','Qu\u1ea3n l\u00fd th\u00e0nh vi\u00ean',[
-        el('div',{class:'help-a-inner'},[
-          el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean, b\u1ea1n th\u00eam/s\u1eeda/x\u00f3a th\u00e0nh vi\u00ean v\u00e0 m\u1edf h\u1ed3 s\u01a1 con (T\u1ed5ng quan, Ph\u00e1t tri\u1ec3n, S\u1ee9c kh\u1ecfe, H\u1ecdc t\u1eadp).'])
-        ])
-      ])
-    ]));
 
-    const FAQ = [
-      ['D\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?','HomeFlow l\u01b0u d\u1eef li\u1ec7u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n (localStorage) \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o.'],
-      ['L\u00e0m sao \u0111\u1ed5i t\u00ean th\u00e0nh vi\u00ean?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean \u2192 b\u1ea5m \u270F\uFE0F b\u00ean c\u1ea1nh th\u00e0nh vi\u00ean. T\u00ean m\u1edbi s\u1ebd c\u1eadp nh\u1eadt \u1edf m\u1ecdi n\u01a1i trong HomeFlow.'],
-      ['L\u00e0m sao \u0111\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0 \u2192 \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo.'],
-      ['Ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m kh\u00e1c nhau th\u1ebf n\u00e0o?','Ng\u01b0\u1eddi lo (\u{1F9E0}) nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch, ng\u01b0\u1eddi l\u00e0m (\u25CF) th\u1ef1c hi\u1ec7n. Hai vi\u1ec7c c\u00f3 th\u1ec3 do hai ng\u01b0\u1eddi kh\u00e1c nhau \u0111\u1ea3m nh\u1eadn \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c.']
-    ];
-    s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p']));
-    const faqCard = el('div',{class:'card compact'}, FAQ.map(([q,a])=>{
-      const ans = el('div',{class:'faq-a',style:'display:none'},[a]);
-      const row = el('div',{class:'faq-q',onclick:()=>{
-        const open = ans.style.display!=='none';
-        ans.style.display = open ? 'none' : 'block';
-        row.classList.toggle('open', !open);
-      }},[
-        el('span',{style:'flex:1'},[q]),
-        el('span',{class:'faq-chev'},['\u25BE'])
-      ]);
-      return el('div',{},[row, ans]);
-    }));
-    s.push(faqCard);
+    const DOCS = {
+      start: [
+        ['\u{1F680}','B\u1eaft \u0111\u1ea7u v\u1edbi HomeFlow',{
+          what:'HomeFlow gi\u00fap c\u1ea3 nh\u00e0 c\u00f9ng chia s\u1ebb nh\u1eefng vi\u1ec7c c\u1ea7n nh\u1edb \u2014 m\u1ed7i ng\u01b0\u1eddi chia s\u1ebb m\u1ed9t ch\u00fat, c\u1ea3 nh\u00e0 nh\u1eb9 nh\u00e0ng h\u01a1n.',
+          when:'Khi m\u1edbi d\u00f9ng HomeFlow, ho\u1eb7c mu\u1ed1n \u00f4n l\u1ea1i c\u00e1ch ho\u1ea1t \u0111\u1ed9ng.',
+          steps:['\u0110\u0103ng nh\u1eadp b\u1eb1ng Google.','T\u1ea1o gia \u0111\u00ecnh m\u1edbi (ho\u1eb7c nh\u1eadn l\u1eddi m\u1eddi t\u1eeb ng\u01b0\u1eddi th\u00e2n).','Th\u00eam c\u00e1c th\u00e0nh vi\u00ean: M\u1eb9, B\u1ed1 v\u00e0 c\u00e1c con.','K\u1ec3 vi\u1ec7c c\u1ea7n nh\u1edb b\u1eb1ng l\u1eddi ho\u1eb7c th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng.','Xem B\u1ea3n tin tu\u1ea7n \u0111\u1ec3 t\u1ed5ng k\u1ebft vi\u1ec7c \u0111\u00e3 xong.'],
+          example:'Gia \u0111\u00ecnh Bin b\u1eaft \u0111\u1ea7u b\u1eb1ng vi\u1ec7c t\u1ea1o gia \u0111\u00ecnh, th\u00eam B\u1ea1n l\u1edbn v\u00e0 B\u1ea1n nh\u1ecf, r\u1ed3i ghi vi\u1ec7c \u0111\u1ea7u ti\u00ean: \u201c\u0110i si\u00eau th\u1ecb cu\u1ed1i tu\u1ea7n\u201d.',
+          tryLabel:'Th\u1eed ngay: Xem H\u00f4m nay', tryNav:['today']
+        }],
+        ['\u{1F510}','\u0110\u0103ng nh\u1eadp v\u00e0 gia \u0111\u00ecnh',{
+          what:'\u0110\u0103ng nh\u1eadp b\u1eb1ng t\u00e0i kho\u1ea3n Google. M\u1ed7i t\u00e0i kho\u1ea3n thu\u1ed9c v\u1ec1 M\u1ed8T gia \u0111\u00ecnh duy nh\u1ea5t.',
+          when:'L\u1ea7n \u0111\u1ea7u d\u00f9ng HomeFlow, ho\u1eb7c khi c\u1ea7n \u0111\u0103ng xu\u1ea5t / \u0111\u1ed5i t\u00e0i kho\u1ea3n.',
+          steps:['B\u1ea5m \u201cTi\u1ebfp t\u1ee5c v\u1edbi Google\u201d.','Ch\u1ecdn t\u00e0i kho\u1ea3n Google c\u1ee7a b\u1ea1n.','Ch\u01b0a c\u00f3 gia \u0111\u00ecnh? B\u1ea5m \u201cT\u1ea1o gia \u0111\u00ecnh m\u1edbi\u201d v\u00e0 \u0111\u1eb7t t\u00ean.','\u0110\u0103ng xu\u1ea5t \u1edf C\u00e0i \u0111\u1eb7t \u2192 T\u00e0i kho\u1ea3n.'],
+          example:'B\u1ed1 \u0111\u0103ng nh\u1eadp b\u1eb1ng Google v\u00e0 t\u1ea1o \u201cGia \u0111\u00ecnh Bin\u201d. Khi mu\u1ed1n \u0111\u1ed5i t\u00e0i kho\u1ea3n, B\u1ed1 \u0111\u0103ng xu\u1ea5t r\u1ed3i \u0111\u0103ng nh\u1eadp l\u1ea1i b\u1eb1ng t\u00e0i kho\u1ea3n kh\u00e1c.',
+          tryLabel:'Th\u1eed ngay: M\u1edf C\u00e0i \u0111\u1eb7t', tryNav:['settings']
+        }],
+        ['\u{1F46B}','M\u1eddi th\u00e0nh vi\u00ean v\u00e0o gia \u0111\u00ecnh',{
+          what:'Ch\u1ee7 gia \u0111\u00ecnh m\u1eddi ng\u01b0\u1eddi l\u1edbn kh\u00e1c (v\u00ed d\u1ee5 B\u1ed1/M\u1eb9) v\u00e0o c\u00f9ng gia \u0111\u00ecnh \u0111\u1ec3 d\u00f9ng chung d\u1eef li\u1ec7u.',
+          when:'Khi hai ng\u01b0\u1eddi l\u1edbn c\u00f9ng qu\u1ea3n l\u00fd vi\u1ec7c nh\u00e0 v\u00e0 mu\u1ed1n th\u1ea5y m\u1ecdi vi\u1ec7c c\u1ee7a nhau.',
+          steps:['M\u1edf C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean.','B\u1ea5m \u201cM\u1eddi ng\u01b0\u1eddi l\u1edbn v\u00e0o gia \u0111\u00ecnh\u201d.','Nh\u1eadp email c\u1ee7a ng\u01b0\u1eddi \u0111\u01b0\u1ee3c m\u1eddi.','G\u1eedi link m\u1eddi cho h\u1ecd.','Ng\u01b0\u1eddi \u0111\u00f3 \u0111\u0103ng nh\u1eadp b\u1eb1ng \u0111\u00fang email \u0111\u00f3 v\u00e0 ch\u1ea5p nh\u1eadn l\u1eddi m\u1eddi.'],
+          example:'M\u1eb9 m\u1eddi B\u1ed1 b\u1eb1ng email c\u1ee7a B\u1ed1. B\u1ed1 m\u1edf link, \u0111\u0103ng nh\u1eadp Google, ch\u1ecdn h\u1ed3 s\u01a1 \u201cB\u1ed1\u201d \u2014 hai ng\u01b0\u1eddi c\u00f9ng th\u1ea5y m\u1ecdi vi\u1ec7c.',
+          tryLabel:'Th\u1eed ngay: M\u1edf Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean', tryNav:['settings',{path:['family']}]
+        }]
+      ],
+      housework: [
+        ['\u2728','N\u00f3i v\u1edbi HomeFlow',{
+          what:'K\u1ec3 vi\u1ec7c b\u1eb1ng l\u1eddi t\u1ef1 nhi\u00ean, HomeFlow t\u1ef1 hi\u1ec3u ng\u00e0y gi\u1edd v\u00e0 ph\u00e2n c\u00f4ng ng\u01b0\u1eddi ph\u1ee5 tr\u00e1ch.',
+          when:'Khi \u0111ang b\u1eadn tay, ho\u1eb7c v\u1eeba ngh\u0129 ra m\u1ed9t vi\u1ec7c mu\u1ed1n ghi ngay.',
+          steps:['B\u1ea5m n\u00fat \u201cN\u00f3i v\u1edbi HomeFlow\u201d.','N\u00f3i v\u00ed d\u1ee5: \u201cTh\u1ee9 7 Bin h\u1ecdc ti\u1ebfng Anh l\u00fac 9h, b\u1ed1 \u0111\u01b0a con \u0111i\u201d.','B\u1ea5m \u201cHomeFlow hi\u1ec3u gi\u00fap\u201d.','Ki\u1ec3m tra l\u1ea1i r\u1ed3i b\u1ea5m \u201cTh\u00eam v\u00e0o HomeFlow\u201d.'],
+          example:'M\u1eb9 n\u00f3i: \u201cNg\u00e0y 26, 27/10 b\u1ea1n l\u1edbn \u0111i tham quan\u201d \u2014 HomeFlow t\u1ea1o 2 vi\u1ec7c \u0111\u00fang ng\u00e0y.',
+          tryLabel:'Th\u1eed ngay: N\u00f3i v\u1edbi HomeFlow', tryNav:['dump']
+        }],
+        ['\u2705','Vi\u1ec7c gia \u0111\u00ecnh',{
+          what:'Danh s\u00e1ch m\u1ecdi vi\u1ec7c c\u1ea7n nh\u1edb c\u1ee7a gia \u0111\u00ecnh: vi\u1ec7c nh\u00e0, h\u1ecdc t\u1eadp, h\u00f3a \u0111\u01a1n, s\u1ef1 ki\u1ec7n\u2026',
+          when:'Khi mu\u1ed1n xem to\u00e0n b\u1ed9 vi\u1ec7c, \u0111\u00e1nh d\u1ea5u ho\u00e0n th\u00e0nh ho\u1eb7c th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng.',
+          steps:['M\u1edf tab \u201cVi\u1ec7c nh\u00e0\u201d.','B\u1ea5m \u201c+\u201d \u0111\u1ec3 th\u00eam vi\u1ec7c.','Nh\u1eadp t\u00ean vi\u1ec7c, ch\u1ecdn ng\u00e0y, ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m.','B\u1ea5m \u2713 khi ho\u00e0n th\u00e0nh.'],
+          example:'\u201c\u0110i si\u00eau th\u1ecb cu\u1ed1i tu\u1ea7n\u201d \u2014 M\u1eb9 lo, B\u1ed1 l\u00e0m. Xong th\u00ec B\u1ed1 b\u1ea5m \u2713.',
+          tryLabel:'Th\u1eed ngay: M\u1edf Vi\u1ec7c nh\u00e0', tryNav:['tasks']
+        }],
+        ['\u{1F5D3}\uFE0F','Family Planner',{
+          what:'Xem vi\u1ec7c theo Ng\u00e0y / Tu\u1ea7n / Th\u00e1ng \u0111\u1ec3 l\u00ean k\u1ebf ho\u1ea1ch tr\u01b0\u1edbc.',
+          when:'Khi mu\u1ed1n l\u00ean k\u1ebf ho\u1ea1ch tu\u1ea7n ho\u1eb7c xem th\u00e1ng n\u00e0y c\u00f3 g\u00ec.',
+          steps:['M\u1edf tab \u201cVi\u1ec7c nh\u00e0\u201d.','Ch\u1ecdn Ng\u00e0y / Tu\u1ea7n / Th\u00e1ng.','B\u1ea5m v\u00e0o m\u1ed9t ng\u00e0y \u0111\u1ec3 xem vi\u1ec7c c\u1ee7a ng\u00e0y \u0111\u00f3.','B\u1ea5m \u201c+\u201d \u0111\u1ec3 th\u00eam vi\u1ec7c cho ng\u00e0y c\u1ee5 th\u1ec3.'],
+          example:'M\u1eb9 m\u1edf Th\u00e1ng, th\u1ea5y ng\u00e0y 20 c\u00f3 l\u1ecbch kh\u00e1m r\u0103ng c\u1ee7a B\u1ea1n nh\u1ecf.',
+          tryLabel:'Th\u1eed ngay: M\u1edf Planner Th\u00e1ng', tryNav:['tasks',{filter:'month'}]
+        }],
+        ['\u{1F9E0}','Planning Owner v\u00e0 Task Owner',{
+          what:'Planning Owner = ng\u01b0\u1eddi nh\u1edb, chu\u1ea9n b\u1ecb, l\u00ean k\u1ebf ho\u1ea1ch ho\u1eb7c \u0111i\u1ec1u ph\u1ed1i. Task Owner = ng\u01b0\u1eddi tr\u1ef1c ti\u1ebfp th\u1ef1c hi\u1ec7n.',
+          when:'Khi t\u1ea1o vi\u1ec7c, h\u00e3y t\u00e1ch r\u00f5 \u201cai nh\u1edb\u201d v\u00e0 \u201cai l\u00e0m\u201d \u0111\u1ec3 kh\u00f4ng ai g\u00e1nh h\u1ebft.',
+          steps:['Th\u00eam m\u1ed9t vi\u1ec7c m\u1edbi.','Ch\u1ecdn \u201cNg\u01b0\u1eddi lo\u201d (Planning Owner).','Ch\u1ecdn \u201cNg\u01b0\u1eddi l\u00e0m\u201d (Task Owner).','Hai ng\u01b0\u1eddi c\u00f3 th\u1ec3 kh\u00e1c nhau \u2014 \u0111\u00f3 l\u00e0 \u0111i\u1ec1u b\u00ecnh th\u01b0\u1eddng.'],
+          example:'M\u1eb9 nh\u1edb l\u1ecbch kh\u00e1m, t\u00ecm n\u01a1i kh\u00e1m v\u00e0 \u0111\u1eb7t l\u1ecbch \u2192 Planning Owner: M\u1eb9. B\u1ed1 \u0111\u01b0a con \u0111i kh\u00e1m \u2192 Task Owner: B\u1ed1.',
+          tryLabel:'Th\u1eed ngay: Th\u00eam m\u1ed9t vi\u1ec7c', tryNav:['tasks']
+        }],
+        ['\u2696\uFE0F','Family Balance',{
+          what:'Xem ai \u0111ang g\u00e1nh nhi\u1ec1u nh\u1ea5t \u0111\u1ec3 chia s\u1ebb l\u1ea1i vi\u1ec7c cho c\u00e2n b\u1eb1ng.',
+          when:'Khi c\u1ea3m th\u1ea5y m\u1ed9t ng\u01b0\u1eddi \u0111ang l\u00e0m qu\u00e1 nhi\u1ec1u vi\u1ec7c.',
+          steps:['M\u1edf tab \u201cC\u00e2n b\u1eb1ng\u201d.','Xem bi\u1ec3u \u0111\u1ed3 vi\u1ec7c lo / vi\u1ec7c l\u00e0m c\u1ee7a t\u1eebng ng\u01b0\u1eddi.','B\u1ea5m v\u00e0o g\u1ee3i \u00fd \u0111\u1ec3 chuy\u1ec3n vi\u1ec7c.'],
+          example:'Bi\u1ec3u \u0111\u1ed3 cho th\u1ea5y M\u1eb9 \u0111ang lo 8 vi\u1ec7c, B\u1ed1 lo 2 vi\u1ec7c \u2014 HomeFlow g\u1ee3i \u00fd chuy\u1ec3n b\u1edbt cho B\u1ed1.',
+          tryLabel:'Th\u1eed ngay: M\u1edf C\u00e2n b\u1eb1ng', tryNav:['balance']
+        }],
+        ['\u2728','Smart Rebalance',{
+          what:'G\u1ee3i \u00fd t\u1ef1 \u0111\u1ed9ng chuy\u1ec3n vi\u1ec7c t\u1eeb ng\u01b0\u1eddi \u0111ang g\u00e1nh nhi\u1ec1u sang ng\u01b0\u1eddi r\u1ea3nh h\u01a1n.',
+          when:'Khi mu\u1ed1n c\u1ea3 nh\u00e0 c\u00e2n b\u1eb1ng h\u01a1n m\u00e0 kh\u00f4ng ph\u1ea3i t\u1ef1 t\u00ednh to\u00e1n.',
+          steps:['M\u1edf tab \u201cC\u00e2n b\u1eb1ng\u201d.','Xem c\u00e1c g\u1ee3i \u00fd chia s\u1ebb vi\u1ec7c.','B\u1ea5m \u201c\u0110\u1ed3ng \u00fd\u201d \u0111\u1ec3 \u00e1p d\u1ee5ng.'],
+          example:'G\u1ee3i \u00fd: chuy\u1ec3n \u201c\u0110i si\u00eau th\u1ecb\u201d t\u1eeb M\u1eb9 sang B\u1ed1 \u2014 b\u1ea5m \u0110\u1ed3ng \u00fd, vi\u1ec7c c\u1eadp nh\u1eadt ngay.',
+          tryLabel:'Th\u1eed ngay: M\u1edf C\u00e2n b\u1eb1ng', tryNav:['balance']
+        }],
+        ['\u2B50','Nhi\u1ec7m v\u1ee5 c\u1ee7a con',{
+          what:'Nh\u1eefng vi\u1ec7c nh\u1ecf cho con l\u00e0m quen v\u1edbi tr\u00e1ch nhi\u1ec7m gia \u0111\u00ecnh.',
+          when:'Khi mu\u1ed1n giao vi\u1ec7c ph\u00f9 h\u1ee3p l\u1ee9a tu\u1ed5i cho con.',
+          steps:['M\u1edf \u201cNhi\u1ec7m v\u1ee5 c\u1ee7a con\u201d (t\u1eeb H\u00f4m nay).','B\u1ea5m \u201c+ Th\u00eam nhi\u1ec7m v\u1ee5 cho con\u201d.','Ch\u1ecdn con, vi\u1ec7c v\u00e0 ng\u00e0y.','Con b\u1ea5m \u201cXong r\u1ed3i! \u2B50\u201d khi ho\u00e0n th\u00e0nh.'],
+          example:'\u{1F392} T\u1ef1 chu\u1ea9n b\u1ecb c\u1eb7p \u2014 B\u1ea1n l\u1edbn l\u00e0m xong, b\u1ea5m \u201cXong r\u1ed3i! \u2B50\u201d.',
+          tryLabel:'Th\u1eed ngay: M\u1edf Nhi\u1ec7m v\u1ee5 c\u1ee7a con', tryNav:['missions']
+        }]
+      ],
+      moneyPeople: [
+        ['\u{1F4B0}','Chi ph\u00ed gia \u0111\u00ecnh',{
+          what:'Ghi l\u1ea1i c\u00e1c kho\u1ea3n chi c\u1ee7a gia \u0111\u00ecnh \u0111\u1ec3 theo d\u00f5i.',
+          when:'Khi mu\u1ed1n bi\u1ebft h\u00f4m nay / th\u00e1ng n\u00e0y \u0111\u00e3 chi bao nhi\u00eau.',
+          steps:['M\u1edf tab \u201cChi ph\u00ed\u201d.','B\u1ea5m \u201c+\u201d \u0111\u1ec3 th\u00eam kho\u1ea3n chi.','Nh\u1eadp t\u00ean, s\u1ed1 ti\u1ec1n, danh m\u1ee5c v\u00e0 ng\u00e0y.','\u0110\u00e1nh d\u1ea5u \u201c\u0110\u00e3 thanh to\u00e1n\u201d khi \u0111\u00e3 tr\u1ea3.'],
+          example:'\u201cH\u1ecdc ph\u00ed ti\u1ebfng Anh 1.500.000\u20ab\u201d \u2014 M\u1eb9 ghi v\u00e0 \u0111\u00e1nh d\u1ea5u \u0111\u00e3 thanh to\u00e1n.',
+          tryLabel:'Th\u1eed ngay: M\u1edf Chi ph\u00ed', tryNav:['expenses']
+        }],
+        ['\u{1F465}','Th\u00e0nh vi\u00ean gia \u0111\u00ecnh',{
+          what:'Qu\u1ea3n l\u00fd h\u1ed3 s\u01a1 t\u1eebng th\u00e0nh vi\u00ean \u2014 ng\u01b0\u1eddi l\u1edbn v\u00e0 con.',
+          when:'Khi th\u00eam / s\u1eeda / x\u00f3a th\u00e0nh vi\u00ean, ho\u1eb7c m\u1edf h\u1ed3 s\u01a1 con.',
+          steps:['M\u1edf C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean.','B\u1ea5m \u201c+ Th\u00eam th\u00e0nh vi\u00ean\u201d.','Ch\u1ecdn ng\u01b0\u1eddi l\u1edbn / con, nh\u1eadp t\u00ean v\u00e0 emoji.','B\u1ea5m v\u00e0o th\u00e0nh vi\u00ean \u0111\u1ec3 m\u1edf h\u1ed3 s\u01a1.'],
+          example:'Th\u00eam \u201cB\u1ea1n nh\u1ecf\u201d v\u1edbi emoji \u{1F467}, sau \u0111\u00f3 m\u1edf h\u1ed3 s\u01a1 \u0111\u1ec3 ghi chi\u1ec1u cao.',
+          tryLabel:'Th\u1eed ngay: M\u1edf Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean', tryNav:['settings',{path:['family']}]
+        }],
+        ['\u{1F4C8}','Ph\u00e1t tri\u1ec3n c\u1ee7a con',{
+          what:'Ghi chi\u1ec1u cao, c\u00e2n n\u1eb7ng theo th\u1eddi gian \u0111\u1ec3 xem con l\u1edbn kh\u1ecfe m\u1ea1nh.',
+          when:'Sau m\u1ed7i l\u1ea7n \u0111o chi\u1ec1u cao ho\u1eb7c c\u00e2n n\u1eb7ng c\u1ee7a con.',
+          steps:['M\u1edf C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean.','B\u1ea5m v\u00e0o con.','M\u1edf tab \u201cPh\u00e1t tri\u1ec3n\u201d.','B\u1ea5m \u201c+\u201d \u0111\u1ec3 ghi s\u1ed1 \u0111o.'],
+          example:'Th\u00e1ng n\u00e0y B\u1ea1n nh\u1ecf cao 125cm \u2014 M\u1eb9 ghi v\u00e0o, HomeFlow v\u1ebd bi\u1ec3u \u0111\u1ed3.',
+          tryLabel:'Th\u1eed ngay: M\u1edf h\u1ed3 s\u01a1 con', tryNav:['settings',{path:['family']}]
+        }],
+        ['\u{1FA7A}','S\u1ee9c kh\u1ecfe',{
+          what:'Ghi l\u1ea1i c\u00e1c l\u1ea7n kh\u00e1m, l\u1ecbch ti\u00eam v\u00e0 ghi ch\u00fa s\u1ee9c kh\u1ecfe c\u1ee7a con.',
+          when:'Khi con \u0111i kh\u00e1m ho\u1eb7c c\u1ea7n nh\u1edb m\u1ed9t l\u01b0u \u00fd s\u1ee9c kh\u1ecfe.',
+          steps:['M\u1edf h\u1ed3 s\u01a1 con.','M\u1edf tab \u201cS\u1ee9c kh\u1ecfe\u201d.','B\u1ea5m \u201c+\u201d \u0111\u1ec3 ghi l\u1ea7n kh\u00e1m ho\u1eb7c ghi ch\u00fa.'],
+          example:'Kh\u00e1m r\u0103ng \u0111\u1ecbnh k\u1ef3: s\u1ea1ch, kh\u00f4ng s\u00e2u r\u0103ng \u2014 ghi l\u1ea1i \u0111\u1ec3 l\u1ea7n sau so s\u00e1nh.',
+          tryLabel:'Th\u1eed ngay: M\u1edf h\u1ed3 s\u01a1 con', tryNav:['settings',{path:['family']}]
+        }],
+        ['\u{1F392}','H\u1ecdc t\u1eadp',{
+          what:'Theo d\u00f5i k\u1ebft qu\u1ea3 h\u1ecdc t\u1eadp v\u00e0 th\u00e0nh t\u00edch c\u1ee7a con.',
+          when:'Khi con c\u00f3 \u0111i\u1ec3m s\u1ed1, gi\u1ea3i th\u01b0\u1edfng ho\u1eb7c c\u1ed9t m\u1ed1c h\u1ecdc t\u1eadp.',
+          steps:['M\u1edf h\u1ed3 s\u01a1 con.','M\u1edf tab \u201cH\u1ecdc t\u1eadp\u201d.','B\u1ea5m \u201c+\u201d \u0111\u1ec3 ghi m\u00f4n, \u0111i\u1ec3m ho\u1eb7c ghi ch\u00fa.'],
+          example:'Cu\u1ed1i k\u1ef3 m\u00f4n To\u00e1n 9/10 \u2014 ghi v\u00e0o \u0111\u1ec3 c\u1ea3 nh\u00e0 c\u00f9ng vui.',
+          tryLabel:'Th\u1eed ngay: M\u1edf h\u1ed3 s\u01a1 con', tryNav:['settings',{path:['family']}]
+        }]
+      ],
+      settingsSupport: [
+        ['\u2699\uFE0F','C\u00e0i \u0111\u1eb7t',{
+          what:'N\u01a1i qu\u1ea3n l\u00fd gia \u0111\u00ecnh, vi\u1ec7c nh\u00e0, l\u1ecbch hi\u1ec3n th\u1ecb, chi ph\u00ed v\u00e0 t\u00e0i kho\u1ea3n.',
+          when:'Khi mu\u1ed1n ch\u1ec9nh s\u1eeda b\u1ea5t k\u1ef3 c\u1ea5u h\u00ecnh n\u00e0o c\u1ee7a HomeFlow.',
+          steps:['M\u1edf tab \u201cC\u00e0i \u0111\u1eb7t\u201d.','Ch\u1ecdn m\u1ee5c c\u1ea7n ch\u1ec9nh (Gia \u0111\u00ecnh, Vi\u1ec7c nh\u00e0, L\u1ecbch & Hi\u1ec3n th\u1ecb, Chi ph\u00ed\u2026).','Thay \u0111\u1ed5i v\u00e0 l\u01b0u.'],
+          example:'\u0110\u1ed5i ng\u00e0y \u0111\u1ea7u tu\u1ea7n sang Ch\u1ee7 nh\u1eadt trong \u201cL\u1ecbch & Hi\u1ec3n th\u1ecb\u201d.',
+          tryLabel:'Th\u1eed ngay: M\u1edf C\u00e0i \u0111\u1eb7t', tryNav:['settings']
+        }],
+        ['\u{1F510}','D\u1eef li\u1ec7u v\u00e0 quy\u1ec1n ri\u00eang t\u01b0',{
+          what:'Xem d\u1eef li\u1ec7u \u0111\u01b0\u1ee3c l\u01b0u \u1edf \u0111\u00e2u, xu\u1ea5t d\u1eef li\u1ec7u v\u00e0 \u0111\u1eb7t l\u1ea1i d\u1eef li\u1ec7u.',
+          when:'Khi mu\u1ed1n sao l\u01b0u, xu\u1ea5t ho\u1eb7c l\u00e0m m\u1edbi d\u1eef li\u1ec7u.',
+          steps:['M\u1edf C\u00e0i \u0111\u1eb7t \u2192 D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0.','Xu\u1ea5t d\u1eef li\u1ec7u n\u1ebfu c\u1ea7n gi\u1eef b\u1ea3n sao.','B\u1ea5m \u201cReset\u201d n\u1ebfu mu\u1ed1n b\u1eaft \u0111\u1ea7u l\u1ea1i.'],
+          example:'Tr\u01b0\u1edbc khi reset, M\u1eb9 xu\u1ea5t d\u1eef li\u1ec7u \u0111\u1ec3 gi\u1eef l\u1ea1i b\u1ea3n sao.',
+          tryLabel:'Th\u1eed ngay: M\u1edf D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0', tryNav:['settings',{path:['data']}]
+        }],
+        ['\u2753','C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p',{
+          what:'Nh\u1eefng c\u00e2u h\u1ecfi hay g\u1eb7p nh\u1ea5t khi d\u00f9ng HomeFlow.',
+          when:'Khi c\u1ea7n tr\u1ea3 l\u1eddi nhanh m\u00e0 kh\u00f4ng mu\u1ed1n \u0111\u1ecdc h\u01b0\u1edbng d\u1eabn d\u00e0i.',
+          steps:['\u0110\u1ecdc c\u00e2u h\u1ecfi b\u00ean d\u01b0\u1edbi.','B\u1ea5m v\u00e0o c\u00e2u h\u1ecfi \u0111\u1ec3 xem c\u00e2u tr\u1ea3 l\u1eddi.'],
+          example:'\u201cD\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?\u201d \u2014 c\u00e2u tr\u1ea3 l\u1eddi n\u1eb1m ngay b\u00ean d\u01b0\u1edbi.'
+        }],
+        ['\u{1F4D6}','User Manual',{
+          what:'To\u00e0n b\u1ed9 h\u01b0\u1edbng d\u1eabn HomeFlow t\u1eadp h\u1ee3p trong m\u1ed9t n\u01a1i.',
+          when:'Khi mu\u1ed1n t\u00ecm hi\u1ec3u k\u1ef9 m\u1ed9t t\u00ednh n\u0103ng c\u1ee5 th\u1ec3.',
+          steps:['Ch\u1ecdn m\u1ee5c ph\u00f9 h\u1ee3p \u1edf c\u00e1c ph\u1ea7n tr\u00ean (B\u1eaft \u0111\u1ea7u, Vi\u1ec7c nh\u00e0, Chi ph\u00ed\u2026).','B\u1ea5m v\u00e0o m\u1ee5c \u0111\u1ec3 m\u1edf h\u01b0\u1edbng d\u1eabn chi ti\u1ebft.'],
+          example:'Mu\u1ed1n bi\u1ebft c\u00e1ch d\u00f9ng Family Planner? M\u1edf m\u1ee5c \u201cFamily Planner\u201d \u1edf ph\u1ea7n Vi\u1ec7c nh\u00e0.'
+        }],
+        ['\u25B6\uFE0F','Video h\u01b0\u1edbng d\u1eabn',{
+          what:'Video demo t\u1eebng t\u00ednh n\u0103ng c\u1ee7a HomeFlow.',
+          when:'Khi mu\u1ed1n xem HomeFlow ho\u1ea1t \u0111\u1ed9ng tr\u1ef1c quan.',
+          steps:['Video demo ch\u01b0a c\u00f3 trong phi\u00ean b\u1ea3n n\u00e0y.','B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 kh\u00e1m ph\u00e1 qua c\u00e1c m\u1ee5c h\u01b0\u1edbng d\u1eabn b\u00ean tr\u00ean \u2014 m\u1ed7i m\u1ee5c ch\u1ec9 m\u1ea5t 30 gi\u00e2y.'],
+          example:'Ch\u01b0a c\u00f3 video \u2014 b\u1ea1n c\u00f3 th\u1ec3 d\u00f9ng \u201cN\u00f3i v\u1edbi HomeFlow\u201d \u0111\u1ec3 th\u1eed ngay c\u00e1ch ghi vi\u1ec7c.'
+        }],
+        ['\u{1F4AC}','G\u1eedi ph\u1ea3n h\u1ed3i',{
+          what:'G\u1eedi \u00fd ki\u1ebfn \u0111\u1ec3 HomeFlow ng\u00e0y c\u00e0ng h\u1eefu \u00edch h\u01a1n.',
+          when:'Khi b\u1ea1n h\u00e0i l\u00f2ng, g\u1eb7p v\u1ea5n \u0111\u1ec1 ho\u1eb7c mu\u1ed1n \u0111\u1ec1 xu\u1ea5t t\u00ednh n\u0103ng.',
+          steps:['Ch\u1ecdn m\u1ee9c h\u1eefu \u00edch.','Ch\u1ecdn khu v\u1ef1c b\u1ea1n g\u1eb7p v\u1ea5n \u0111\u1ec1.','M\u00f4 t\u1ea3 th\u00eam (t\u00f9y ch\u1ecdn).','B\u1ea5m \u201cG\u1eedi ph\u1ea3n h\u1ed3i\u201d.'],
+          example:'B\u1ea1n th\u1ea5y Family Balance h\u1eefu \u00edch \u2014 ch\u1ecdn \u201cR\u1ea5t h\u1eefu \u00edch\u201d v\u00e0 g\u1eedi.',
+          tryLabel:'Th\u1eed ngay: G\u1eedi ph\u1ea3n h\u1ed3i', tryNav:['settings',{path:['help']}]
+        }]
+      ]
+    };
 
-    s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'G\u1eedi ph\u1ea3n h\u1ed3i']));
+    function renderSection(label, topics){
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),label]));
+      s.push(el('div',{class:'card compact'}, topics.map(([ico,title,doc])=>{
+        const extra = title==='C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p' ? faqBlocks() : null;
+        const body = doc ? helpDoc(doc, nav) : null;
+        return helpTopic(ico, title, [body, extra].filter(Boolean));
+      })));
+    }
+
+    function faqBlocks(){
+      const FAQ = [
+        ['D\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?','D\u1eef li\u1ec7u \u0111\u01b0\u1ee3c l\u01b0u tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n v\u00e0 trong gia \u0111\u00ecnh c\u1ee7a b\u1ea1n tr\u00ean HomeFlow \u2014 ch\u1ec9 nh\u1eefng ng\u01b0\u1eddi trong gia \u0111\u00ecnh m\u1edbi xem \u0111\u01b0\u1ee3c.'],
+        ['L\u00e0m sao \u0111\u1ed5i t\u00ean th\u00e0nh vi\u00ean?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean \u2192 b\u1ea5m \u270F\uFE0F b\u00ean c\u1ea1nh th\u00e0nh vi\u00ean. T\u00ean m\u1edbi s\u1ebd c\u1eadp nh\u1eadt \u1edf m\u1ecdi n\u01a1i trong HomeFlow.'],
+        ['L\u00e0m sao \u0111\u1eb7t l\u1ea1i d\u1eef li\u1ec7u?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0 \u2192 Reset d\u1eef li\u1ec7u.'],
+        ['Ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m kh\u00e1c nhau th\u1ebf n\u00e0o?','Ng\u01b0\u1eddi lo (\u{1F9E0}) nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch, ng\u01b0\u1eddi l\u00e0m (\u25CF) th\u1ef1c hi\u1ec7n. Hai vi\u1ec7c c\u00f3 th\u1ec3 do hai ng\u01b0\u1eddi kh\u00e1c nhau \u0111\u1ea3m nh\u1eadn \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c.'],
+        ['T\u00f4i c\u00f3 th\u1ec3 d\u00f9ng HomeFlow tr\u00ean nhi\u1ec1u thi\u1ebft b\u1ecb kh\u00f4ng?','C\u00f3 \u2014 \u0111\u0103ng nh\u1eadp c\u00f9ng t\u00e0i kho\u1ea3n Google l\u00e0 d\u1eef li\u1ec7u gia \u0111\u00ecnh hi\u1ec7n ra nh\u01b0 nhau.']
+      ];
+      return el('div',{class:'help-a-inner'}, FAQ.map(([q,a])=>{
+        return el('div',{},[
+          el('div',{class:'help-faq-q'},[q]),
+          el('div',{class:'help-faq-a'},[a])
+        ]);
+      }));
+    }
+
+    renderSection('B\u1eaft \u0111\u1ea7u', DOCS.start);
+    renderSection('Vi\u1ec7c nh\u00e0 & c\u00e2n b\u1eb1ng', DOCS.housework);
+    renderSection('Chi ph\u00ed & th\u00e0nh vi\u00ean', DOCS.moneyPeople);
+    renderSection('C\u00e0i \u0111\u1eb7t & h\u1ed7 tr\u1ee3', DOCS.settingsSupport);
     s.push(helpFeedback(state));
     return s;
   }
 
-  HF.openHelp = function(state){
+  HF.openHelp = function(state, nav){
     HF.sheet({
       title:'Tr\u1ee3 gi\u00fap',
-      body:()=>el('div',{style:'display:flex;flex-direction:column;gap:14px'}, helpCenterNodes(state))
+      body:()=>el('div',{style:'display:flex;flex-direction:column;gap:14px'}, helpCenterNodes(state, nav))
     });
   };
 
@@ -2352,7 +2468,7 @@ function buildHelp(){
       s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
       s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i']));
       s.push(el('div',{class:'sub'},['Hi\u1ec3u HomeFlow trong 2 ph\u00fat \u2014 kh\u00f4ng c\u1ea7n ai ng\u1ed3i c\u1ea1nh']));
-      s.push(...helpCenterNodes(state));
+      s.push(...helpCenterNodes(state, nav));
       return s;
     }
 
