@@ -372,14 +372,4 @@
       else{ opts.onKeep && opts.onKeep(); }
     });
   };
-
-  HF.openHelp = function(){
-    HF.sheet({
-      title:'Tr\u1ee3 gi\u00fap',
-      body:()=>el('div',{style:'display:flex;flex-direction:column;gap:14px'},[
-        ...HF.helpItems(),
-        el('div',{style:'font-size:11.5px;color:var(--muted);text-align:center;margin-top:2px'},['C\u1ea7n h\u1ed7 tr\u1ee3 th\u00eam? Xem C\u00e0i \u0111\u1eb7t \u2192 Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i \u2728'])
-      ])
-    });
-  };
 })();

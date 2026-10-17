@@ -1313,6 +1313,162 @@ V.Expenses = function(state, nav, filter){
     });
   }
 
+// ---------------- ONE shared Help Center ----------------
+  function helpTopic(ico, title, content){
+    const box = el('div',{class:'help-a',style:'display:none'},content);
+    const row = el('div',{class:'faq-q',onclick:()=>{
+      const open = box.style.display!=='none';
+      box.style.display = open ? 'none' : 'block';
+      row.classList.toggle('open', !open);
+    }},[
+      el('span',{style:'flex:1'},[ico+' '+title]),
+      el('span',{class:'faq-chev'},['\u25BE'])
+    ]);
+    return el('div',{},[row, box]);
+  }
+
+  function helpFeedback(state){
+    const ratings = ['R\u1ea5t h\u1eefu \u00edch','H\u1eefu \u00edch','B\u00ecnh th\u01b0\u1eddng','Ch\u01b0a h\u1eefu \u00edch'];
+    const areas = ['N\u00f3i v\u1edbi HomeFlow','Planner','Vi\u1ec7c gia \u0111\u00ecnh','Family Balance','Family Profile','Chi ph\u00ed','H\u01b0\u1edbng d\u1eabn','Kh\u00e1c'];
+    let rating = '';
+    const selAreas = new Set();
+
+    const ratingChips = ratings.map(r=>{
+      const b = el('button',{class:'chip-f',onclick:()=>{
+        rating = r;
+        ratingChips.forEach(x=>x.classList.remove('on'));
+        b.classList.add('on');
+      }},[r]);
+      return b;
+    });
+    const areaChips = areas.map(a=>{
+      const b = el('button',{class:'chip-f',onclick:()=>{
+        if(selAreas.has(a)){ selAreas.delete(a); b.classList.remove('on'); }
+        else{ selAreas.add(a); b.classList.add('on'); }
+      }},[a]);
+      return b;
+    });
+    const desc = el('textarea',{class:'input',rows:3,placeholder:'M\u00f4 t\u1ea3 th\u00eam (t\u00f9y ch\u1ecdn)\u2026'});
+    const send = el('button',{class:'btn btn-primary',style:'margin-top:12px'},['G\u1eedi ph\u1ea3n h\u1ed3i']);
+    send.addEventListener('click', ()=>{
+      if(!rating){ HF.toast('Ch\u1ecdn m\u1ee9c h\u1eefu \u00edch tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+      state.feedback = state.feedback||[];
+      state.feedback.push({rating:rating, areas:[...selAreas], desc:desc.value.trim(), at:new Date().toISOString()});
+      HF.saveState(state);
+      rating=''; selAreas.clear();
+      ratingChips.forEach(x=>x.classList.remove('on'));
+      areaChips.forEach(x=>x.classList.remove('on'));
+      desc.value='';
+      HF.toast('\u0110\u00e3 l\u01b0u ph\u1ea3n h\u1ed3i tr\u00ean thi\u1ebft b\u1ecb n\u00e0y \u2014 c\u1ea3m \u01a1n b\u1ea1n!','\u{1F49C}');
+    });
+
+    return el('div',{class:'card compact'},[
+      el('div',{style:'font-size:13px;font-weight:800;margin-bottom:8px'},['HomeFlow h\u1eefu \u00edch v\u1edbi b\u1ea1n \u1edf m\u1ee9c n\u00e0o?']),
+      el('div',{class:'chart-filters',style:'flex-wrap:wrap'}, ratingChips),
+      el('div',{style:'font-size:13px;font-weight:800;margin:14px 0 8px'},['B\u1ea1n g\u1eb7p v\u1ea5n \u0111\u1ec1 \u1edf \u0111\u00e2u? (c\u00f3 th\u1ec3 ch\u1ecdn nhi\u1ec1u)']),
+      el('div',{class:'chart-filters',style:'flex-wrap:wrap'}, areaChips),
+      el('div',{style:'font-size:13px;font-weight:800;margin:14px 0 8px'},['M\u00f4 t\u1ea3 th\u00eam']),
+      desc,
+      send,
+      el('div',{style:'font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5'},['Phi\u00ean b\u1ea3n th\u1eed nghi\u1ec7m: ph\u1ea3n h\u1ed3i \u0111\u01b0\u1ee3c l\u01b0u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n, ch\u01b0a g\u1eedi l\u00ean m\u00e1y ch\u1ee7.'])
+    ]);
+  }
+
+  function helpCenterNodes(state){
+    const s = [];
+    s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'B\u1eaft \u0111\u1ea7u']));
+    s.push(el('div',{class:'card compact'},[
+      helpTopic('\u{1F680}','B\u1eaft \u0111\u1ea7u v\u1edbi HomeFlow',[
+        el('div',{class:'help-a-inner'}, HF.helpItems())
+      ]),
+      helpTopic('\u25B6\uFE0F','Xem Video Demo',[
+        el('div',{class:'help-a-inner'},[
+          el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
+            el('span',{style:'font-size:20px'},['\u{1F3AC}']),
+            el('div',{style:'flex:1'},[
+              el('div',{style:'font-weight:700;font-size:13px'},['Video demo ch\u01b0a c\u00f3 trong phi\u00ean b\u1ea3n n\u00e0y']),
+              el('div',{style:'font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5'},['B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 kh\u00e1m ph\u00e1 qua c\u00e1c m\u1ee5c h\u01b0\u1edbng d\u1eabn b\u00ean d\u01b0\u1edbi \u2014 m\u1ed7i m\u1ee5c ch\u1ec9 m\u1ea5t 30 gi\u00e2y.'])
+            ])
+          ])
+        ])
+      ]),
+      helpTopic('\u2728','C\u00e1ch d\u00f9ng \u201cN\u00f3i v\u1edbi HomeFlow\u201d',[
+        el('div',{class:'help-a-inner'},[
+          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'B\u1ea5m n\u00fat \u{1F9E0} gi\u1eefa thanh \u0111i\u1ec1u h\u01b0\u1edbng']),
+          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'K\u1ec3 vi\u1ec7c b\u1eb1ng l\u1eddi t\u1ef1 nhi\u00ean']),
+          el('div',{class:'help-ex'},['\u201cTh\u1ee9 7 Bin h\u1ecdc ti\u1ebfng Anh l\u00fac 9h, b\u1ed1 \u0111\u01b0a con \u0111i\u201d']),
+          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'HomeFlow t\u1ef1 hi\u1ec3u ng\u00e0y gi\u1edd, ph\u00e2n c\u00f4ng ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m']),
+          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['4']),'B\u1ea5m \u201cTh\u00eam v\u00e0o HomeFlow\u201d \u2014 xong!'])
+        ])
+      ]),
+      helpTopic('\u{1F9E0}','Planning Owner l\u00e0 g\u00ec?',[
+        el('div',{class:'help-a-inner'},[
+          el('div',{class:'help-roles'},[
+            el('div',{class:'role-block role-plan'},[
+              el('div',{class:'role-label'},['\u{1F9E0} PLANNING OWNER']),
+              el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi nh\u1edb, chu\u1ea9n b\u1ecb, l\u00ean k\u1ebf ho\u1ea1ch ho\u1eb7c \u0111i\u1ec1u ph\u1ed1i.'])
+            ]),
+            el('div',{class:'role-vs'},['\u2260']),
+            el('div',{class:'role-block role-do',style:'background:#8B6FB8'},[
+              el('div',{class:'role-label'},['\u25CF TASK OWNER']),
+              el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi tr\u1ef1c ti\u1ebfp th\u1ef1c hi\u1ec7n.'])
+            ])
+          ]),
+          el('div',{style:'font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5'},['M\u1ed9t ng\u01b0\u1eddi c\u00f3 th\u1ec3 lo nh\u01b0ng kh\u00f4ng l\u00e0m, ho\u1eb7c l\u00e0m vi\u1ec7c ng\u01b0\u1eddi kh\u00e1c lo \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c c\u1ee7a gia \u0111\u00ecnh.'])
+        ])
+      ]),
+      helpTopic('\u2696\uFE0F','Family Balance ho\u1ea1t \u0111\u1ed9ng th\u1ebf n\u00e0o?',[
+        el('div',{class:'help-a-inner'},[
+          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'HomeFlow \u0111\u1ebfm vi\u1ec7c \u201clo\u201d v\u00e0 vi\u1ec7c \u201cl\u00e0m\u201d c\u1ee7a t\u1eebng ng\u01b0\u1eddi']),
+          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'Khi m\u1ed9t ng\u01b0\u1eddi \u0111ang g\u00e1nh nhi\u1ec1u, HomeFlow g\u1ee3i \u00fd chuy\u1ec3n vi\u1ec7c cho ng\u01b0\u1eddi kh\u00e1c']),
+          el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'B\u1ea5m \u201c\u0110\u1ed3ng \u00fd\u201d \u0111\u1ec3 \u00e1p d\u1ee5ng \u2014 c\u1ea3 nh\u00e0 c\u00e2n b\u1eb1ng h\u01a1n'])
+        ])
+      ]),
+      helpTopic('\u{1F4B0}','Qu\u1ea3n l\u00fd chi ph\u00ed',[
+        el('div',{class:'help-a-inner'},[
+          el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Chi ph\u00ed, b\u1ea1n c\u00f3 th\u1ec3 ch\u1ecdn ti\u1ec1n t\u1ec7 (VND, USD\u2026) v\u00e0 t\u00f9y ch\u1ec9nh danh m\u1ee5c chi ph\u00ed c\u1ee7a gia \u0111\u00ecnh. T\u00ednh n\u0103ng ghi chi ti\u00eau s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi.'])
+        ])
+      ]),
+      helpTopic('\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}','Qu\u1ea3n l\u00fd th\u00e0nh vi\u00ean',[
+        el('div',{class:'help-a-inner'},[
+          el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean, b\u1ea1n th\u00eam/s\u1eeda/x\u00f3a th\u00e0nh vi\u00ean v\u00e0 m\u1edf h\u1ed3 s\u01a1 con (T\u1ed5ng quan, Ph\u00e1t tri\u1ec3n, S\u1ee9c kh\u1ecfe, H\u1ecdc t\u1eadp).'])
+        ])
+      ])
+    ]));
+
+    const FAQ = [
+      ['D\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?','HomeFlow l\u01b0u d\u1eef li\u1ec7u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n (localStorage) \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o.'],
+      ['L\u00e0m sao \u0111\u1ed5i t\u00ean th\u00e0nh vi\u00ean?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean \u2192 b\u1ea5m \u270F\uFE0F b\u00ean c\u1ea1nh th\u00e0nh vi\u00ean. T\u00ean m\u1edbi s\u1ebd c\u1eadp nh\u1eadt \u1edf m\u1ecdi n\u01a1i trong HomeFlow.'],
+      ['L\u00e0m sao \u0111\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0 \u2192 \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo.'],
+      ['Ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m kh\u00e1c nhau th\u1ebf n\u00e0o?','Ng\u01b0\u1eddi lo (\u{1F9E0}) nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch, ng\u01b0\u1eddi l\u00e0m (\u25CF) th\u1ef1c hi\u1ec7n. Hai vi\u1ec7c c\u00f3 th\u1ec3 do hai ng\u01b0\u1eddi kh\u00e1c nhau \u0111\u1ea3m nh\u1eadn \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c.']
+    ];
+    s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p']));
+    const faqCard = el('div',{class:'card compact'}, FAQ.map(([q,a])=>{
+      const ans = el('div',{class:'faq-a',style:'display:none'},[a]);
+      const row = el('div',{class:'faq-q',onclick:()=>{
+        const open = ans.style.display!=='none';
+        ans.style.display = open ? 'none' : 'block';
+        row.classList.toggle('open', !open);
+      }},[
+        el('span',{style:'flex:1'},[q]),
+        el('span',{class:'faq-chev'},['\u25BE'])
+      ]);
+      return el('div',{},[row, ans]);
+    }));
+    s.push(faqCard);
+
+    s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'G\u1eedi ph\u1ea3n h\u1ed3i']));
+    s.push(helpFeedback(state));
+    return s;
+  }
+
+  HF.openHelp = function(state){
+    HF.sheet({
+      title:'Tr\u1ee3 gi\u00fap',
+      body:()=>el('div',{style:'display:flex;flex-direction:column;gap:14px'}, helpCenterNodes(state))
+    });
+  };
+
 V.Settings = function(state, nav, params){
     params = params||{};
     const path = params.path||[];
@@ -2196,152 +2352,10 @@ function buildHelp(){
       s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
       s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i']));
       s.push(el('div',{class:'sub'},['Hi\u1ec3u HomeFlow trong 2 ph\u00fat \u2014 kh\u00f4ng c\u1ea7n ai ng\u1ed3i c\u1ea1nh']));
-
-      function topic(ico, title, content){
-        const box = el('div',{class:'help-a',style:'display:none'},content);
-        const row = el('div',{class:'faq-q',onclick:()=>{
-          const open = box.style.display!=='none';
-          box.style.display = open ? 'none' : 'block';
-          row.classList.toggle('open', !open);
-        }},[
-          el('span',{style:'flex:1'},[ico+' '+title]),
-          el('span',{class:'faq-chev'},['\u25BE'])
-        ]);
-        return el('div',{},[row, box]);
-      }
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'B\u1eaft \u0111\u1ea7u']));
-      s.push(el('div',{class:'card compact'},[
-        topic('\u{1F680}','B\u1eaft \u0111\u1ea7u v\u1edbi HomeFlow',[
-          el('div',{class:'help-a-inner'}, HF.helpItems())
-        ]),
-        topic('\u25B6\uFE0F','Xem Video Demo',[
-          el('div',{class:'help-a-inner'},[
-            el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
-              el('span',{style:'font-size:20px'},['\u{1F3AC}']),
-              el('div',{style:'flex:1'},[
-                el('div',{style:'font-weight:700;font-size:13px'},['Video demo ch\u01b0a c\u00f3 trong phi\u00ean b\u1ea3n n\u00e0y']),
-                el('div',{style:'font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5'},['B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 kh\u00e1m ph\u00e1 qua c\u00e1c m\u1ee5c h\u01b0\u1edbng d\u1eabn b\u00ean d\u01b0\u1edbi \u2014 m\u1ed7i m\u1ee5c ch\u1ec9 m\u1ea5t 30 gi\u00e2y.'])
-              ])
-            ])
-          ])
-        ]),
-        topic('\u2728','C\u00e1ch d\u00f9ng \u201cN\u00f3i v\u1edbi HomeFlow\u201d',[
-          el('div',{class:'help-a-inner'},[
-            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'B\u1ea5m n\u00fat \u{1F9E0} gi\u1eefa thanh \u0111i\u1ec1u h\u01b0\u1edbng']),
-            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'K\u1ec3 vi\u1ec7c b\u1eb1ng l\u1eddi t\u1ef1 nhi\u00ean']),
-            el('div',{class:'help-ex'},['\u201cTh\u1ee9 7 Bin h\u1ecdc ti\u1ebfng Anh l\u00fac 9h, b\u1ed1 \u0111\u01b0a con \u0111i\u201d']),
-            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'HomeFlow t\u1ef1 hi\u1ec3u ng\u00e0y gi\u1edd, ph\u00e2n c\u00f4ng ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m']),
-            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['4']),'B\u1ea5m \u201cTh\u00eam v\u00e0o HomeFlow\u201d \u2014 xong!'])
-          ])
-        ]),
-        topic('\u{1F9E0}','Planning Owner l\u00e0 g\u00ec?',[
-          el('div',{class:'help-a-inner'},[
-            el('div',{class:'help-roles'},[
-              el('div',{class:'role-block role-plan'},[
-                el('div',{class:'role-label'},['\u{1F9E0} PLANNING OWNER']),
-                el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi nh\u1edb, chu\u1ea9n b\u1ecb, l\u00ean k\u1ebf ho\u1ea1ch ho\u1eb7c \u0111i\u1ec1u ph\u1ed1i.'])
-              ]),
-              el('div',{class:'role-vs'},['\u2260']),
-              el('div',{class:'role-block role-do',style:'background:#8B6FB8'},[
-                el('div',{class:'role-label'},['\u25CF TASK OWNER']),
-                el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi tr\u1ef1c ti\u1ebfp th\u1ef1c hi\u1ec7n.'])
-              ])
-            ]),
-            el('div',{style:'font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5'},['M\u1ed9t ng\u01b0\u1eddi c\u00f3 th\u1ec3 lo nh\u01b0ng kh\u00f4ng l\u00e0m, ho\u1eb7c l\u00e0m vi\u1ec7c ng\u01b0\u1eddi kh\u00e1c lo \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c c\u1ee7a gia \u0111\u00ecnh.'])
-          ])
-        ]),
-        topic('\u2696\uFE0F','Family Balance ho\u1ea1t \u0111\u1ed9ng th\u1ebf n\u00e0o?',[
-          el('div',{class:'help-a-inner'},[
-            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'HomeFlow \u0111\u1ebfm vi\u1ec7c \u201clo\u201d v\u00e0 vi\u1ec7c \u201cl\u00e0m\u201d c\u1ee7a t\u1eebng ng\u01b0\u1eddi']),
-            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'Khi m\u1ed9t ng\u01b0\u1eddi \u0111ang g\u00e1nh nhi\u1ec1u, HomeFlow g\u1ee3i \u00fd chuy\u1ec3n vi\u1ec7c cho ng\u01b0\u1eddi kh\u00e1c']),
-            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'B\u1ea5m \u201c\u0110\u1ed3ng \u00fd\u201d \u0111\u1ec3 \u00e1p d\u1ee5ng \u2014 c\u1ea3 nh\u00e0 c\u00e2n b\u1eb1ng h\u01a1n'])
-          ])
-        ]),
-        topic('\u{1F4B0}','Qu\u1ea3n l\u00fd chi ph\u00ed',[
-          el('div',{class:'help-a-inner'},[
-            el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Chi ph\u00ed, b\u1ea1n c\u00f3 th\u1ec3 ch\u1ecdn ti\u1ec1n t\u1ec7 (VND, USD\u2026) v\u00e0 t\u00f9y ch\u1ec9nh danh m\u1ee5c chi ph\u00ed c\u1ee7a gia \u0111\u00ecnh. T\u00ednh n\u0103ng ghi chi ti\u00eau s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi.'])
-          ])
-        ]),
-        topic('\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}','Qu\u1ea3n l\u00fd th\u00e0nh vi\u00ean',[
-          el('div',{class:'help-a-inner'},[
-            el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean, b\u1ea1n th\u00eam/s\u1eeda/x\u00f3a th\u00e0nh vi\u00ean v\u00e0 m\u1edf h\u1ed3 s\u01a1 con (T\u1ed5ng quan, Ph\u00e1t tri\u1ec3n, S\u1ee9c kh\u1ecfe, H\u1ecdc t\u1eadp).'])
-          ])
-        ])
-      ]));
-
-      const FAQ = [
-        ['D\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?','HomeFlow l\u01b0u d\u1eef li\u1ec7u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n (localStorage) \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o.'],
-        ['L\u00e0m sao \u0111\u1ed5i t\u00ean th\u00e0nh vi\u00ean?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean \u2192 b\u1ea5m \u270F\uFE0F b\u00ean c\u1ea1nh th\u00e0nh vi\u00ean. T\u00ean m\u1edbi s\u1ebd c\u1eadp nh\u1eadt \u1edf m\u1ecdi n\u01a1i trong HomeFlow.'],
-        ['L\u00e0m sao \u0111\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo?','V\u00e0o C\u00e0i \u0111\u1eb7t \u2192 D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0 \u2192 \u0110\u1eb7t l\u1ea1i d\u1eef li\u1ec7u demo.'],
-        ['Ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m kh\u00e1c nhau th\u1ebf n\u00e0o?','Ng\u01b0\u1eddi lo (\u{1F9E0}) nh\u1edb v\u00e0 l\u00ean k\u1ebf ho\u1ea1ch, ng\u01b0\u1eddi l\u00e0m (\u25CF) th\u1ef1c hi\u1ec7n. Hai vi\u1ec7c c\u00f3 th\u1ec3 do hai ng\u01b0\u1eddi kh\u00e1c nhau \u0111\u1ea3m nh\u1eadn \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c.']
-      ];
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p']));
-      const faqCard = el('div',{class:'card compact'}, FAQ.map(([q,a])=>{
-        const ans = el('div',{class:'faq-a',style:'display:none'},[a]);
-        const row = el('div',{class:'faq-q',onclick:()=>{
-          const open = ans.style.display!=='none';
-          ans.style.display = open ? 'none' : 'block';
-          row.classList.toggle('open', !open);
-        }},[
-          el('span',{style:'flex:1'},[q]),
-          el('span',{class:'faq-chev'},['\u25BE'])
-        ]);
-        return el('div',{},[row, ans]);
-      }));
-      s.push(faqCard);
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'G\u1eedi ph\u1ea3n h\u1ed3i']));
-      s.push(buildFeedback());
+      s.push(...helpCenterNodes(state));
       return s;
     }
 
-    function buildFeedback(){
-      const ratings = ['R\u1ea5t h\u1eefu \u00edch','H\u1eefu \u00edch','B\u00ecnh th\u01b0\u1eddng','Ch\u01b0a h\u1eefu \u00edch'];
-      const areas = ['N\u00f3i v\u1edbi HomeFlow','Planner','Vi\u1ec7c gia \u0111\u00ecnh','Family Balance','Family Profile','Chi ph\u00ed','H\u01b0\u1edbng d\u1eabn','Kh\u00e1c'];
-      let rating = '';
-      const selAreas = new Set();
-
-      const ratingChips = ratings.map(r=>{
-        const b = el('button',{class:'chip-f',onclick:()=>{
-          rating = r;
-          ratingChips.forEach(x=>x.classList.remove('on'));
-          b.classList.add('on');
-        }},[r]);
-        return b;
-      });
-      const areaChips = areas.map(a=>{
-        const b = el('button',{class:'chip-f',onclick:()=>{
-          if(selAreas.has(a)){ selAreas.delete(a); b.classList.remove('on'); }
-          else{ selAreas.add(a); b.classList.add('on'); }
-        }},[a]);
-        return b;
-      });
-      const desc = el('textarea',{class:'input',rows:3,placeholder:'M\u00f4 t\u1ea3 th\u00eam (t\u00f9y ch\u1ecdn)\u2026'});
-      const send = el('button',{class:'btn btn-primary',style:'margin-top:12px'},['G\u1eedi ph\u1ea3n h\u1ed3i']);
-      send.addEventListener('click', ()=>{
-        if(!rating){ HF.toast('Ch\u1ecdn m\u1ee9c h\u1eefu \u00edch tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
-        state.feedback = state.feedback||[];
-        state.feedback.push({rating:rating, areas:[...selAreas], desc:desc.value.trim(), at:new Date().toISOString()});
-        HF.saveState(state);
-        rating=''; selAreas.clear();
-        ratingChips.forEach(x=>x.classList.remove('on'));
-        areaChips.forEach(x=>x.classList.remove('on'));
-        desc.value='';
-        HF.toast('\u0110\u00e3 l\u01b0u ph\u1ea3n h\u1ed3i tr\u00ean thi\u1ebft b\u1ecb n\u00e0y \u2014 c\u1ea3m \u01a1n b\u1ea1n!','\u{1F49C}');
-      });
-
-      return el('div',{class:'card compact'},[
-        el('div',{style:'font-size:13px;font-weight:800;margin-bottom:8px'},['HomeFlow h\u1eefu \u00edch v\u1edbi b\u1ea1n \u1edf m\u1ee9c n\u00e0o?']),
-        el('div',{class:'chart-filters',style:'flex-wrap:wrap'}, ratingChips),
-        el('div',{style:'font-size:13px;font-weight:800;margin:14px 0 8px'},['B\u1ea1n g\u1eb7p v\u1ea5n \u0111\u1ec1 \u1edf \u0111\u00e2u? (c\u00f3 th\u1ec3 ch\u1ecdn nhi\u1ec1u)']),
-        el('div',{class:'chart-filters',style:'flex-wrap:wrap'}, areaChips),
-        el('div',{style:'font-size:13px;font-weight:800;margin:14px 0 8px'},['M\u00f4 t\u1ea3 th\u00eam']),
-        desc,
-        send,
-        el('div',{style:'font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5'},['Phi\u00ean b\u1ea3n th\u1eed nghi\u1ec7m: ph\u1ea3n h\u1ed3i \u0111\u01b0\u1ee3c l\u01b0u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n, ch\u01b0a g\u1eedi l\u00ean m\u00e1y ch\u1ee7.'])
-      ]);
-    }
 function buildReminders(){
       const s = [];
       s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
