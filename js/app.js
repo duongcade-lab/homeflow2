@@ -8,7 +8,6 @@
     {id:'today', ico:'\u{1F31E}', label:'H\u00f4m nay'},
     {id:'tasks', ico:'\u{1F4CB}', label:'Vi\u1ec7c nh\u00e0'},
     {id:'balance',ico:'\u2696\uFE0F', label:'C\u00e2n b\u1eb1ng'},
-    {id:'dump', ico:'\u{1F9E0}', label:'Brain Dump'},
     {id:'expenses',ico:'\u{1F4B0}', label:'Chi ph\u00ed'},
     {id:'brief', ico:'\u{1F4DD}', label:'B\u1ea3n tin'},
     {id:'settings',ico:'\u2699\uFE0F', label:'C\u00e0i \u0111\u1eb7t'}
@@ -34,20 +33,19 @@
   function renderTabbar(route){
     const bar = document.getElementById('tabbar');
     bar.innerHTML='';
-    TABS.forEach((t,i)=>{
-      if(t.id==='dump'){
-        bar.appendChild(el('button',{class:'fab-btn','aria-label':'N\u00f3i v\u1edbi HomeFlow',onclick:()=>navigate('dump')},[
-          el('span',{class:'fab-ring'}),
-          '\u{1F9E0}'
-        ]));
-        return;
-      }
+    TABS.forEach(t=>{
       bar.appendChild(el('button',{class:'tab-btn'+(route.name===t.id?' active':''),onclick:()=>navigate(t.id)},[
         el('span',{class:'ico'},[t.ico]),
         el('span',{},[t.label])
       ]));
     });
   }
+
+  const speakFab = el('button',{class:'speak-fab','aria-label':'N\u00f3i v\u1edbi HomeFlow',onclick:()=>navigate('dump')},[
+    el('span',{class:'speak-fab-ico'},['\u{1F399}\uFE0F']),
+    el('span',{},['N\u00f3i v\u1edbi HomeFlow'])
+  ]);
+  document.body.appendChild(speakFab);
 
   function navigate(name, params){
     let hash = '#/'+name;
@@ -93,6 +91,7 @@
     nodes.forEach(n=>{ if(n) screen.appendChild(n); });
     renderTopbar(route);
     renderTabbar(route);
+    speakFab.style.display = route.name==='dump' ? 'none' : '';
   }
 
   window.addEventListener('hashchange', render);
