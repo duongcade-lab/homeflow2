@@ -125,6 +125,10 @@
     t = t.replace(WEEKDAY_RE,' ');
     t = t.replace(TIME_RE,' ');
     t = t.replace(/tr\u01b0\u1edbc\s+th\u1ee9\s*\d/g,' ');
+    t = t.replace(/ng\u00e0y\s+\d{1,2}(\s*[/\-.]\s*\d{1,2})?/g,' ');
+    t = t.replace(/\d{1,2}\s*,\s*\d{1,2}\s*[/\-.]\s*\d{1,2}/g,' ');
+    t = t.replace(/\d{1,2}\s*[/\-.]\s*\d{1,2}/g,' ');
+    t = t.replace(/\d{1,2}\s*th\u00e1ng\s*\d{1,2}/g,' ');
     t = t.replace(/\b(v\u00e0o|v\u00e0|l\u00fac|n\u00ean|th\u00ec|s\u1ebd|r\u1ed3i|cho|cho c\u1ea3)\b/g,' ');
     t = t.replace(new RegExp('('+WORD_BO+'|'+WORD_CHA+'|'+WORD_BA+'|'+WORD_ME+'|'+WORD_MA+'|'+WORD_BIN+'|'+WORD_SU+')','giu'),' ');
     t = t.replace(new RegExp('('+WORD_CON+'|'+WORD_BE+')','giu'),' ');
@@ -155,6 +159,81 @@
     return HF.dayOffset(3);
   }
 
+  function parseExplicitDates(s){
+    const dates = [];
+    const now = new Date();
+    const curY = now.getFullYear(), curM = now.getMonth();
+    function push(d, mo){
+      if(d>=1 && d<=31 && mo>=1 && mo<=12){
+        let y = curY;
+        if(new Date(y, mo-1, d) < now) y = curY+1;
+        dates.push(new Date(y, mo-1, d));
+      }
+    }
+    // "26, 27/10" — shared denominator
+    const sharedRe = /(\d{1,2})\s*,\s*(\d{1,2})\s*[/\-.]\s*(\d{1,2})/g;
+    let m;
+    while((m = sharedRe.exec(s))){
+      push(parseInt(m[1],10), parseInt(m[3],10));
+      push(parseInt(m[2],10), parseInt(m[3],10));
+    }
+    // "27/10", "27-10", "27.10"
+    const dmRe = /(\d{1,2})\s*[/\-.]\s*(\d{1,2})(?!\s*[/\-.]\s*\d)/g;
+    while((m = dmRe.exec(s))){
+      push(parseInt(m[1],10), parseInt(m[2],10));
+    }
+    // "26 tháng 10"
+    const tmRe = /(\d{1,2})\s*th\u00e1ng\s*(\d{1,2})/g;
+    while((m = tmRe.exec(s))){
+      push(parseInt(m[1],10), parseInt(m[2],10));
+    }
+    // "ngày 26" / "ngày 26/10"
+    const ngRe = /ng\u00e0y\s+(\d{1,2})(?:\s*[/\-.]\s*(\d{1,2}))?/g;
+    while((m = ngRe.exec(s))){
+      const d = parseInt(m[1],10);
+      if(m[2]) push(d, parseInt(m[2],10));
+      else if(d>=1 && d<=31){
+        let mo = curM;
+        if(d < now.getDate()) mo = curM+1;
+        dates.push(new Date(curY, mo, d));
+      }
+    }
+    const seen = new Set();
+    return dates.filter(d=>{
+      const k = d.getTime();
+      if(seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }
+
+  function buildTask(low, due){
+    const time = parseTime(low);
+    const cat = detectCategory(low);
+    const doer = detectDoer(low, cat);
+    const planner = detectPlanner(low, doer, cat);
+    const mental = !!planner;
+    const title = cleanTitle(low, doer);
+    let confidence = 0.72;
+    if(parseWeekday(low)) confidence += 0.08;
+    if(time) confidence += 0.05;
+    if(doer.owner !== 'me' || doer.parent) confidence += 0.07;
+    if(planner) confidence += 0.05;
+    confidence = Math.min(0.98, confidence);
+    return {
+      title,
+      cat,
+      due,
+      time,
+      owner: doer.owner,
+      planner: mental ? (planner || 'me') : null,
+      mental,
+      shared: !!doer.shared,
+      kidOk: ['home','shopping','kids'].includes(cat),
+      confidence: Math.round(confidence*100)
+    };
+  }
+
   HF.parseBrainDump = function(text){
     const sentences = splitSentences(text);
     const tasks = [];
@@ -173,34 +252,14 @@
         }
       }
       const weekday = parseWeekday(low);
-      const time = parseTime(low);
-      const cat = detectCategory(low);
-      const doer = detectDoer(low, cat);
-      const planner = detectPlanner(low, doer, cat);
-      const mental = !!planner;
-
-      const due = inferDue(low, weekday);
-      const title = cleanTitle(low, doer);
-
-      let confidence = 0.72;
-      if(weekday) confidence += 0.08;
-      if(time) confidence += 0.05;
-      if(doer.owner !== 'me' || doer.parent) confidence += 0.07;
-      if(planner) confidence += 0.05;
-      confidence = Math.min(0.98, confidence);
-
-      tasks.push({
-        title,
-        cat,
-        due,
-        time,
-        owner: doer.owner,
-        planner: mental ? (planner || 'me') : null,
-        mental,
-        shared: !!doer.shared,
-        kidOk: ['home','shopping','kids'].includes(cat),
-        confidence: Math.round(confidence*100)
-      });
+      const explicitDates = parseExplicitDates(low);
+      if(explicitDates.length){
+        for(const d of explicitDates){
+          tasks.push(buildTask(low, d));
+        }
+      }else{
+        tasks.push(buildTask(low, inferDue(low, weekday)));
+      }
     }
     return tasks;
   };
