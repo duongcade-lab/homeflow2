@@ -89,20 +89,36 @@
     return FREQ_RE.test(s) ? 'daily' : null;
   }
 
-  function expandDaily(tasks, low){
-    if(!detectFrequency(low)) return tasks;
+  function parseWeekdayRange(s){
+    const re = /(?:t\u1eeb\s*)?th\u1ee9\s*([2-7])\s*(?:\u0111\u1ebfn|t\u1edbi|t\u1edbi\s*h\u1ebft|\u2013|-|~)\s*(?:h\u1ebft\s*)?(?:th\u1ee9\s*([2-7])|ch\u1ee7\s*nh\u1eadt|cn\b)/i;
+    const m = s.match(re);
+    if(!m) return null;
+    const a = parseInt(m[1],10);
+    const b = m[2] ? parseInt(m[2],10) : 8; // ch\u1ee7 nh\u1eadt = 8
+    if(b < a) return null;
+    const days = [];
+    for(let n=a;n<=b;n++){
+      const jsDay = n===8 ? 0 : n-1;
+      days.push(nextWeekday(jsDay));
+    }
+    return days;
+  }
+
+  function multiply(tasks, days){
     const out = [];
     for(const t of tasks){
-      if(!t.dueKnown){
-        t.due = HF.dayOffset(0);
-        t.dueKnown = true;
-      }
-      for(let i=0;i<7;i++){
-        out.push(Object.assign({}, t, { due: HF.dayOffset(i) }));
+      const times = (t.times && t.times.length) ? t.times : [t.time||''];
+      for(const d of days){
+        for(const tm of times){
+          out.push(Object.assign({}, t, { due: d, time: tm }));
+        }
       }
     }
     return out;
   }
+
+  HF.detectFrequency = detectFrequency;
+  HF.parseWeekdayRange = parseWeekdayRange;
 
   function detectCategory(s){
     let best = null, bestScore = 0;
@@ -247,7 +263,6 @@
   function buildTask(low, due, dueKnown){
     const times = parseTimes(low);
     const time = times[0] || '';
-    const note = times.length > 1 ? 'C\u00e1c m\u1ed1c gi\u1edd: ' + times.join(', ') : '';
     const cat = detectCategory(low);
     const doer = detectDoer(low, cat);
     const planner = detectPlanner(low, doer, cat);
@@ -264,7 +279,7 @@
       cat,
       due,
       time,
-      note,
+      times,
       owner: doer.owner,
       planner: mental ? (planner || 'me') : null,
       mental,
@@ -295,18 +310,29 @@
       }
       const weekday = parseWeekday(low);
       const explicitDates = parseExplicitDates(low);
+      const rangeDates = parseWeekdayRange(low);
       const freq = detectFrequency(low);
-      const dueKnown = !!(weekday || explicitDates.length || freq ||
+      const dueKnown = !!(weekday || explicitDates.length || rangeDates || freq ||
         /\bh\u00f4m nay\b|ng\u00e0y mai|\bmai\b|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y/.test(low));
       const sentenceTasks = [];
-      if(explicitDates.length){
+      if(rangeDates){
+        sentenceTasks.push(buildTask(low, rangeDates[0], true));
+        tasks.push(...multiply(sentenceTasks, rangeDates));
+      }else if(explicitDates.length){
         for(const d of explicitDates){
           sentenceTasks.push(buildTask(low, d, dueKnown));
         }
+        tasks.push(...sentenceTasks);
       }else{
         sentenceTasks.push(buildTask(low, inferDue(low, weekday), dueKnown));
+        if(freq){
+          const days = [];
+          for(let i=0;i<7;i++) days.push(HF.dayOffset(i));
+          tasks.push(...multiply(sentenceTasks, days));
+        }else{
+          tasks.push(...sentenceTasks);
+        }
       }
-      tasks.push(...expandDaily(sentenceTasks, low));
     }
     return tasks;
   };

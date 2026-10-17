@@ -467,16 +467,18 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         };
       }).filter(t=>t.title);
       if(!text) return tasks;
-      const freq = /(h\u00e0ng|h\u1eb1ng|m\u1ed7i)\s*(bu\u1ed5i\s*)?(ng\u00e0y|s\u00e1ng|tr\u01b0a|chi\u1ec1u|t\u1ed1i|\u0111\u00eam)/i.test(text);
-      if(!freq) return tasks;
+      const freq = HF.detectFrequency ? HF.detectFrequency(text) : null;
+      const rangeDays = HF.parseWeekdayRange ? HF.parseWeekdayRange(text) : null;
+      if(!freq && !rangeDays) return tasks;
+      const days = freq ? [0,1,2,3,4,5,6].map(i=>HF.dayOffset(i)) : rangeDays;
       const out = [];
       for(const t of tasks){
         if(!t.dueKnown){
-          t.due = HF.dayOffset(0);
+          t.due = days[0];
           t.dueKnown = true;
         }
-        for(let i=0;i<7;i++){
-          out.push(Object.assign({}, t, { due: HF.dayOffset(i) }));
+        for(const d of days){
+          out.push(Object.assign({}, t, { due: d }));
         }
       }
       return out;
