@@ -924,15 +924,31 @@ V.Settings = function(state, nav, params){
 
       s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Gia \u0111\u00ecnh c\u1ee7a t\u00f4i']));
       const famName = el('input',{class:'input',value:state.family.name||'',style:'flex:1;min-width:0'});
+      const FAM_AVATARS = ['\u{1F3E1}','\u{1F3E0}','\u{1F3E2}','\u{1F3E8}','\u{1F3EC}','\u{1F46B}','\u{1F469}\u200D\u{1F468}\u200D\u{1F467}','\u2764\uFE0F'];
+      const famAvatar = el('span',{class:'fam-avatar'},[state.family.avatar||'\u{1F3E1}']);
+      const famPicker = el('div',{class:'ava-row fam-picker',style:'display:none'}, FAM_AVATARS.map(em=>{
+        const b = el('button',{class:'ava-pick'+(em===(state.family.avatar||'\u{1F3E1}')?' on':''),onclick:()=>{
+          state.family.avatar = em;
+          famAvatar.textContent = em;
+          famPicker.querySelectorAll('.ava-pick').forEach(x=>x.classList.remove('on'));
+          b.classList.add('on');
+          HF.saveState(state);
+        }},[em]);
+        return b;
+      }));
+      famAvatar.addEventListener('click', ()=>{
+        famPicker.style.display = famPicker.style.display==='none' ? 'flex' : 'none';
+      });
       const famCard = el('div',{class:'card compact'},[
         el('div',{style:'display:flex;gap:12px;align-items:center'},[
-          el('span',{class:'fam-avatar'},[state.family.avatar||'\u{1F3E1}']),
+          famAvatar,
           el('div',{style:'flex:1;min-width:0'},[
             famName,
             el('div',{style:'font-size:11px;color:var(--muted);margin-top:5px'},[HF.MEMBERS.length+' th\u00e0nh vi\u00ean'])
           ]),
           el('button',{class:'btn btn-soft',style:'padding:9px 14px;font-size:12.5px'},['L\u01b0u'])
-        ])
+        ]),
+        famPicker
       ]);
       famCard.querySelector('.btn-soft').addEventListener('click', ()=>{
         const n = famName.value.trim();
