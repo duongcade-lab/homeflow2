@@ -154,6 +154,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         el('span',{class:'chip ghost'},['\u{1F5D3}\uFE0F '+HF.formatDay(task.due)+(task.time?' \u00b7 '+task.time:'')])
       ]),
       HF.contrib(task),
+      task.note ? el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.6'},[task.note]) : null,
       el('button',{class:'btn '+(done?'btn-ghost':'btn-primary'),style:'width:100%',onclick:()=>{
         if(done){ task.status='open'; task.doneAt=null; }
         else{ task.status='done'; task.doneAt=new Date(); HF.confetti(); }
@@ -443,14 +444,14 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         if(!resp.ok) return null;
         const data = await resp.json();
         if(!data.tasks || !data.tasks.length) return null;
-        return normalizeLLMTasks(data.tasks);
+        return normalizeLLMTasks(data.tasks, text);
       }catch(e){ return null; }
     }
 
-    function normalizeLLMTasks(llmTasks){
+    function normalizeLLMTasks(llmTasks, text){
       const validMembers = new Set(HF.MEMBERS.map(m=>m.id));
       const validCats = Object.keys(HF.CATEGORIES);
-      return llmTasks.map(t=>{
+      const tasks = llmTasks.map(t=>{
         const cat = validCats.includes(t.category) ? t.category : 'home';
         const owner = validMembers.has(t.owner) ? t.owner : 'me';
         const planner = t.planner && validMembers.has(t.planner) ? t.planner : owner;
@@ -465,6 +466,20 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
           doerKnown: true
         };
       }).filter(t=>t.title);
+      if(!text) return tasks;
+      const freq = /(h\u00e0ng|h\u1eb1ng|m\u1ed7i)\s*(bu\u1ed5i\s*)?(ng\u00e0y|s\u00e1ng|tr\u01b0a|chi\u1ec1u|t\u1ed1i|\u0111\u00eam)/i.test(text);
+      if(!freq) return tasks;
+      const out = [];
+      for(const t of tasks){
+        if(!t.dueKnown){
+          t.due = HF.dayOffset(0);
+          t.dueKnown = true;
+        }
+        for(let i=0;i<7;i++){
+          out.push(Object.assign({}, t, { due: HF.dayOffset(i) }));
+        }
+      }
+      return out;
     }
 
     function runAI(tasksPromise){
@@ -614,6 +629,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
               status: 'open',
               pts: t.pts || 1,
               src: t.src || 'brain',
+              note: t.note || '',
               createdAt: now
             });
           }

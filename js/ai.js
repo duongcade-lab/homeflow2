@@ -3,6 +3,8 @@
 
   const WEEKDAY_RE = /(ch\u1ee7\s*nh\u1eadt|th\u1ee9\s*[2-7]|cn\b)/i;
   const TIME_RE = /(?:l\u00fac\s*)?(\d{1,2})(?::(\d{2})|\s*(?:h|gi\u1edd)(?:\s*(\d{1,2}))?)/i;
+  const TIME_G_RE = new RegExp(TIME_RE.source, 'gi');
+  const FREQ_RE = /(h\u00e0ng|h\u1eb1ng|m\u1ed7i)\s*(bu\u1ed5i\s*)?(ng\u00e0y|s\u00e1ng|tr\u01b0a|chi\u1ec1u|t\u1ed1i|\u0111\u00eam)/i;
   const TRANSPORT_RE = /(\u0111\u01b0a|ch\u1edf|\u0111\u00f3n)/i;
 
   const CAT_KEYWORDS = [
@@ -71,6 +73,37 @@
     return String(h).padStart(2,'0') + ':' + String(mi).padStart(2,'0');
   }
 
+  function parseTimes(s){
+    const out = [];
+    const re = new RegExp(TIME_RE.source, 'gi');
+    let m;
+    while((m = re.exec(s))){
+      const h = parseInt(m[1],10);
+      const mi = m[2] ? parseInt(m[2],10) : (m[3] ? parseInt(m[3],10) : 0);
+      out.push(String(h).padStart(2,'0') + ':' + String(mi).padStart(2,'0'));
+    }
+    return out;
+  }
+
+  function detectFrequency(s){
+    return FREQ_RE.test(s) ? 'daily' : null;
+  }
+
+  function expandDaily(tasks, low){
+    if(!detectFrequency(low)) return tasks;
+    const out = [];
+    for(const t of tasks){
+      if(!t.dueKnown){
+        t.due = HF.dayOffset(0);
+        t.dueKnown = true;
+      }
+      for(let i=0;i<7;i++){
+        out.push(Object.assign({}, t, { due: HF.dayOffset(i) }));
+      }
+    }
+    return out;
+  }
+
   function detectCategory(s){
     let best = null, bestScore = 0;
     for(const row of CAT_KEYWORDS){
@@ -123,7 +156,7 @@
   function cleanTitle(chunk, doer){
     let t = chunk;
     t = t.replace(WEEKDAY_RE,' ');
-    t = t.replace(TIME_RE,' ');
+    t = t.replace(TIME_G_RE,' ');
     t = t.replace(/tr\u01b0\u1edbc\s+th\u1ee9\s*\d/g,' ');
     t = t.replace(/ng\u00e0y\s+\d{1,2}(\s*[/\-.]\s*\d{1,2})?/g,' ');
     t = t.replace(/\d{1,2}\s*,\s*\d{1,2}\s*[/\-.]\s*\d{1,2}/g,' ');
@@ -133,12 +166,20 @@
     t = t.replace(new RegExp('('+WORD_BO+'|'+WORD_CHA+'|'+WORD_BA+'|'+WORD_ME+'|'+WORD_MA+'|'+WORD_BIN+'|'+WORD_SU+')','giu'),' ');
     t = t.replace(new RegExp('('+WORD_CON+'|'+WORD_BE+')','giu'),' ');
     t = t.replace(/(c\u1ea3 nh\u00e0|c\u1ea3 gia \u0111\u00ecnh|m\u1ecdi ng\u01b0\u1eddi|\u0111\u1eebng qu\u00ean|nh\u1edb|qu\u00ean|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y)/g,' ');
+    t = t.replace(FREQ_RE,' ');
     t = t.replace(/(\u0111\u01b0a|ch\u1edf|\u0111\u00f3n)\s+(con|b\u00e9)?\s*(\u0111i)?\s*/g,' ');
     t = t.replace(/\s+/g,' ').trim();
     t = t.replace(/^[\s,.\u2013\-]+/,'');
-    t = t.replace(/[,.]\s*$/,'').trim();
+    t = t.replace(/[,\s.]+$/,'').trim();
     if(!t) t = chunk.replace(/^[\s,.\u2013\-]+/,'').trim();
     t = t.replace(/ti\u1ebfng anh/g,'ti\u1ebfng Anh');
+    for(const m of HF.MEMBERS){
+      const nm = m.name.toLowerCase();
+      if(nm.length>1){
+        const re = new RegExp('(?<!\\p{L})'+nm.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?!\\p{L})','giu');
+        t = t.replace(re, m.name);
+      }
+    }
     if(doer.transport && doer.kid && !/^\u0111\u01b0a/i.test(t)){
       const kidName = doer.kid==='bin' ? 'B\u1ea1n l\u1edbn' : 'B\u1ea1n nh\u1ecf';
       t = '\u0110\u01b0a '+kidName+' '+t;
@@ -204,7 +245,9 @@
   }
 
   function buildTask(low, due, dueKnown){
-    const time = parseTime(low);
+    const times = parseTimes(low);
+    const time = times[0] || '';
+    const note = times.length > 1 ? 'C\u00e1c m\u1ed1c gi\u1edd: ' + times.join(', ') : '';
     const cat = detectCategory(low);
     const doer = detectDoer(low, cat);
     const planner = detectPlanner(low, doer, cat);
@@ -221,6 +264,7 @@
       cat,
       due,
       time,
+      note,
       owner: doer.owner,
       planner: mental ? (planner || 'me') : null,
       mental,
@@ -251,15 +295,18 @@
       }
       const weekday = parseWeekday(low);
       const explicitDates = parseExplicitDates(low);
-      const dueKnown = !!(weekday || explicitDates.length ||
+      const freq = detectFrequency(low);
+      const dueKnown = !!(weekday || explicitDates.length || freq ||
         /\bh\u00f4m nay\b|ng\u00e0y mai|\bmai\b|cu\u1ed1i tu\u1ea7n|tu\u1ea7n sau|tu\u1ea7n n\u00e0y/.test(low));
+      const sentenceTasks = [];
       if(explicitDates.length){
         for(const d of explicitDates){
-          tasks.push(buildTask(low, d, dueKnown));
+          sentenceTasks.push(buildTask(low, d, dueKnown));
         }
       }else{
-        tasks.push(buildTask(low, inferDue(low, weekday), dueKnown));
+        sentenceTasks.push(buildTask(low, inferDue(low, weekday), dueKnown));
       }
+      tasks.push(...expandDaily(sentenceTasks, low));
     }
     return tasks;
   };
