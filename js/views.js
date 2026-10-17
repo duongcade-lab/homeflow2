@@ -1292,13 +1292,84 @@ V.Settings = function(state, nav, params){
       return s;
     }
 
-    function buildHelp(){
+function buildHelp(){
       const s = [];
       s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
       s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i']));
+      s.push(el('div',{class:'sub'},['Hi\u1ec3u HomeFlow trong 2 ph\u00fat \u2014 kh\u00f4ng c\u1ea7n ai ng\u1ed3i c\u1ea1nh']));
 
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'H\u01b0\u1edbng d\u1eabn s\u1eed d\u1ee5ng']));
-      s.push(el('div',{class:'card compact help-list'}, HF.helpItems()));
+      function topic(ico, title, content){
+        const box = el('div',{class:'help-a',style:'display:none'},content);
+        const row = el('div',{class:'faq-q',onclick:()=>{
+          const open = box.style.display!=='none';
+          box.style.display = open ? 'none' : 'block';
+          row.classList.toggle('open', !open);
+        }},[
+          el('span',{style:'flex:1'},[ico+' '+title]),
+          el('span',{class:'faq-chev'},['\u25BE'])
+        ]);
+        return el('div',{},[row, box]);
+      }
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'B\u1eaft \u0111\u1ea7u']));
+      s.push(el('div',{class:'card compact'},[
+        topic('\u{1F680}','B\u1eaft \u0111\u1ea7u v\u1edbi HomeFlow',[
+          el('div',{class:'help-a-inner'}, HF.helpItems())
+        ]),
+        topic('\u25B6\uFE0F','Xem Video Demo',[
+          el('div',{class:'help-a-inner'},[
+            el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
+              el('span',{style:'font-size:20px'},['\u{1F3AC}']),
+              el('div',{style:'flex:1'},[
+                el('div',{style:'font-weight:700;font-size:13px'},['Video demo ch\u01b0a c\u00f3 trong phi\u00ean b\u1ea3n n\u00e0y']),
+                el('div',{style:'font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5'},['B\u1ea1n v\u1eabn c\u00f3 th\u1ec3 t\u1ef1 kh\u00e1m ph\u00e1 qua c\u00e1c m\u1ee5c h\u01b0\u1edbng d\u1eabn b\u00ean d\u01b0\u1edbi \u2014 m\u1ed7i m\u1ee5c ch\u1ec9 m\u1ea5t 30 gi\u00e2y.'])
+              ])
+            ])
+          ])
+        ]),
+        topic('\u2728','C\u00e1ch d\u00f9ng \u201cN\u00f3i v\u1edbi HomeFlow\u201d',[
+          el('div',{class:'help-a-inner'},[
+            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'B\u1ea5m n\u00fat \u{1F9E0} gi\u1eefa thanh \u0111i\u1ec1u h\u01b0\u1edbng']),
+            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'K\u1ec3 vi\u1ec7c b\u1eb1ng l\u1eddi t\u1ef1 nhi\u00ean']),
+            el('div',{class:'help-ex'},['\u201cTh\u1ee9 7 Bin h\u1ecdc ti\u1ebfng Anh l\u00fac 9h, b\u1ed1 \u0111\u01b0a con \u0111i\u201d']),
+            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'HomeFlow t\u1ef1 hi\u1ec3u ng\u00e0y gi\u1edd, ph\u00e2n c\u00f4ng ng\u01b0\u1eddi lo v\u00e0 ng\u01b0\u1eddi l\u00e0m']),
+            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['4']),'B\u1ea5m \u201cTh\u00eam v\u00e0o HomeFlow\u201d \u2014 xong!'])
+          ])
+        ]),
+        topic('\u{1F9E0}','Planning Owner l\u00e0 g\u00ec?',[
+          el('div',{class:'help-a-inner'},[
+            el('div',{class:'help-roles'},[
+              el('div',{class:'role-block role-plan'},[
+                el('div',{class:'role-label'},['\u{1F9E0} PLANNING OWNER']),
+                el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi nh\u1edb, chu\u1ea9n b\u1ecb, l\u00ean k\u1ebf ho\u1ea1ch ho\u1eb7c \u0111i\u1ec1u ph\u1ed1i.'])
+              ]),
+              el('div',{class:'role-vs'},['\u2260']),
+              el('div',{class:'role-block role-do',style:'background:#8B6FB8'},[
+                el('div',{class:'role-label'},['\u25CF TASK OWNER']),
+                el('div',{class:'role-name help-role-name'},['Ng\u01b0\u1eddi tr\u1ef1c ti\u1ebfp th\u1ef1c hi\u1ec7n.'])
+              ])
+            ]),
+            el('div',{style:'font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5'},['M\u1ed9t ng\u01b0\u1eddi c\u00f3 th\u1ec3 lo nh\u01b0ng kh\u00f4ng l\u00e0m, ho\u1eb7c l\u00e0m vi\u1ec7c ng\u01b0\u1eddi kh\u00e1c lo \u2014 \u0111\u00f3 l\u00e0 c\u00e1ch HomeFlow chia s\u1ebb g\u00e1nh n\u1eb7ng nh\u1edb vi\u1ec7c c\u1ee7a gia \u0111\u00ecnh.'])
+          ])
+        ]),
+        topic('\u2696\uFE0F','Family Balance ho\u1ea1t \u0111\u1ed9ng th\u1ebf n\u00e0o?',[
+          el('div',{class:'help-a-inner'},[
+            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['1']),'HomeFlow \u0111\u1ebfm vi\u1ec7c \u201clo\u201d v\u00e0 vi\u1ec7c \u201cl\u00e0m\u201d c\u1ee7a t\u1eebng ng\u01b0\u1eddi']),
+            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['2']),'Khi m\u1ed9t ng\u01b0\u1eddi \u0111ang g\u00e1nh nhi\u1ec1u, HomeFlow g\u1ee3i \u00fd chuy\u1ec3n vi\u1ec7c cho ng\u01b0\u1eddi kh\u00e1c']),
+            el('div',{class:'help-step'},[el('span',{class:'help-step-n'},['3']),'B\u1ea5m \u201c\u0110\u1ed3ng \u00fd\u201d \u0111\u1ec3 \u00e1p d\u1ee5ng \u2014 c\u1ea3 nh\u00e0 c\u00e2n b\u1eb1ng h\u01a1n'])
+          ])
+        ]),
+        topic('\u{1F4B0}','Qu\u1ea3n l\u00fd chi ph\u00ed',[
+          el('div',{class:'help-a-inner'},[
+            el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Chi ph\u00ed, b\u1ea1n c\u00f3 th\u1ec3 ch\u1ecdn ti\u1ec1n t\u1ec7 (VND, USD\u2026) v\u00e0 t\u00f9y ch\u1ec9nh danh m\u1ee5c chi ph\u00ed c\u1ee7a gia \u0111\u00ecnh. T\u00ednh n\u0103ng ghi chi ti\u00eau s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi.'])
+          ])
+        ]),
+        topic('\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}','Qu\u1ea3n l\u00fd th\u00e0nh vi\u00ean',[
+          el('div',{class:'help-a-inner'},[
+            el('div',{style:'font-size:12.5px;color:var(--muted);line-height:1.55'},['Trong C\u00e0i \u0111\u1eb7t \u2192 Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean, b\u1ea1n th\u00eam/s\u1eeda/x\u00f3a th\u00e0nh vi\u00ean v\u00e0 m\u1edf h\u1ed3 s\u01a1 con (T\u1ed5ng quan, Ph\u00e1t tri\u1ec3n, S\u1ee9c kh\u1ecfe, H\u1ecdc t\u1eadp).'])
+          ])
+        ])
+      ]));
 
       const FAQ = [
         ['D\u1eef li\u1ec7u c\u1ee7a t\u00f4i l\u01b0u \u1edf \u0111\u00e2u?','HomeFlow l\u01b0u d\u1eef li\u1ec7u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n (localStorage) \u2014 kh\u00f4ng g\u1eedi l\u00ean m\u00e1y ch\u1ee7 n\u00e0o.'],
@@ -1322,226 +1393,55 @@ V.Settings = function(state, nav, params){
       s.push(faqCard);
 
       s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'G\u1eedi ph\u1ea3n h\u1ed3i']));
-      const fb = el('textarea',{class:'input',rows:3,placeholder:'\u00dd ki\u1ebfn, g\u00f3p \u00fd ho\u1eb7c b\u00e1o l\u1ed7i\u2026'});
-      const send = el('button',{class:'btn btn-primary',style:'margin-top:10px'},['G\u1eedi ph\u1ea3n h\u1ed3i']);
-      send.addEventListener('click', ()=>{
-        const txt = fb.value.trim();
-        if(!txt){ HF.toast('Nh\u1eadp n\u1ed9i dung ph\u1ea3n h\u1ed3i tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
-        state.feedback = state.feedback||[];
-        state.feedback.push({text:txt, at:new Date().toISOString()});
-        HF.saveState(state);
-        fb.value='';
-        HF.toast('C\u1ea3m \u01a1n ph\u1ea3n h\u1ed3i c\u1ee7a b\u1ea1n!','\u{1F49C}');
-      });
-      s.push(el('div',{class:'card compact'},[
-        el('div',{style:'font-size:12px;color:var(--muted);margin-bottom:8px'},['G\u00f3p \u00fd gi\u00fap HomeFlow t\u1ed1t h\u01a1n cho c\u1ea3 gia \u0111\u00ecnh b\u1ea1n.']),
-        fb,
-        send
-      ]));
+      s.push(buildFeedback());
       return s;
     }
 
-    function buildReminders(){
-      const s = [];
-      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
-      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Nh\u1eafc vi\u1ec7c']));
-      s.push(el('div',{class:'card compact',style:'background:var(--sun-soft);border-color:rgba(214,168,52,.35)'},[
-        el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
-          el('span',{style:'font-size:20px'},['\u2139\uFE0F']),
-          el('div',{style:'flex:1'},[
-            el('div',{style:'font-weight:800;font-size:13.5px;color:#8A6A10'},['Th\u00f4ng b\u00e1o ch\u01b0a kh\u1ea3 d\u1ee5ng trong b\u1ea3n n\u00e0y']),
-            el('div',{style:'font-size:12px;color:#8A6A10;margin-top:3px;line-height:1.55'},['Phi\u00ean b\u1ea3n hi\u1ec7n t\u1ea1i ch\u01b0a h\u1ed7 tr\u1ee3 th\u00f4ng b\u00e1o \u0111\u1ea9y (push notification). Khi t\u00ednh n\u0103ng s\u1eb5n s\u00e0ng, b\u1ea1n s\u1ebd ch\u1ecdn \u0111\u01b0\u1ee3c th\u1eddi gian nh\u1eafc: 15 ph\u00fat, 1 gi\u1edd ho\u1eb7c 1 ng\u00e0y tr\u01b0\u1edbc gi\u1edd l\u00e0m vi\u1ec7c.'])
-          ])
-        ])
-      ]));
-      const items = [
-        ['\u{1F514}','Nh\u1eafc vi\u1ec7c & s\u1ef1 ki\u1ec7n','Nh\u1eafc tr\u01b0\u1edbc gi\u1edd l\u00e0m vi\u1ec7c'],
-        ['\u23F0','Nh\u1eafc vi\u1ec7c s\u1eafp \u0111\u1ebfn h\u1ea1n','Nh\u1eafc khi vi\u1ec7c g\u1ea7n \u0111\u1ebfn h\u1ea1n'],
-        ['\u{1F4B3}','Nh\u1eafc chi ph\u00ed / h\u00f3a \u0111\u01a1n','Nh\u1eafc h\u1ea1n thanh to\u00e1n h\u00f3a \u0111\u01a1n'],
-        ['\u{1F4DD}','Weekly Family Brief','B\u1ea3n tin t\u1ed5ng k\u1ebft tu\u1ea7n']
-      ];
-      s.push(el('div',{class:'card compact'}, items.map(([ico,lbl,sub])=>{
-        return el('div',{class:'pref-row'},[
-          el('span',{class:'set-ico',style:'width:36px;height:36px;font-size:17px'},[ico]),
-          el('div',{style:'flex:1;min-width:0'},[
-            el('div',{class:'set-row-t'},[lbl]),
-            el('div',{class:'set-row-s'},[sub])
-          ]),
-          el('span',{class:'soon-tag'},['S\u1eafp c\u00f3'])
-        ]);
-      })));
-      return s;
-    }
+    function buildFeedback(){
+      const ratings = ['R\u1ea5t h\u1eefu \u00edch','H\u1eefu \u00edch','B\u00ecnh th\u01b0\u1eddng','Ch\u01b0a h\u1eefu \u00edch'];
+      const areas = ['N\u00f3i v\u1edbi HomeFlow','Planner','Vi\u1ec7c gia \u0111\u00ecnh','Family Balance','Family Profile','Chi ph\u00ed','H\u01b0\u1edbng d\u1eabn','Kh\u00e1c'];
+      let rating = '';
+      const selAreas = new Set();
 
-    function prefToggle(key){
-      const b = el('button',{class:'tg'+(state.prefs[key]?' on':''),role:'switch','aria-checked':state.prefs[key]?'true':'false',onclick:()=>{
-        state.prefs[key] = !state.prefs[key];
-        HF.prefs = state.prefs;
-        HF.saveState(state);
-        rerender();
-        HF.toast(state.prefs[key]?'\u0110\u00e3 b\u1eadt':'\u0110\u00e3 t\u1eaft','\u2705');
-      }},[el('span',{class:'tg-knob'})]);
-      return b;
-    }
-
-    function prefRow(ico, label, sub, control){
-      return el('div',{class:'pref-row'},[
-        el('span',{class:'set-ico',style:'width:36px;height:36px;font-size:17px'},[ico]),
-        el('div',{style:'flex:1;min-width:0'},[
-          el('div',{class:'set-row-t'},[label]),
-          sub ? el('div',{class:'set-row-s'},[sub]) : null
-        ]),
-        control
-      ]);
-    }
-
-    function buildDisplay(){
-      const s = [];
-      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
-      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['L\u1ecbch & Hi\u1ec3n th\u1ecb']));
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'View l\u1ecbch m\u1eb7c \u0111\u1ecbnh']));
-      const viewSeg = el('div',{class:'seg'}, [['day','Ng\u00e0y'],['week','Tu\u1ea7n'],['month','Th\u00e1ng']].map(([id,lbl])=>{
-        return el('button',{class:state.prefs.defaultView===id?'active':'',onclick:()=>{state.prefs.defaultView=id; HF.prefs=state.prefs; HF.saveState(state); rerender();}},[lbl]);
-      }));
-      s.push(el('div',{class:'card compact'},[
-        prefRow('\u{1F5C5}\uFE0F','View l\u1ecbch m\u1eb7c \u0111\u1ecbnh','Ch\u1ecdn c\u00e1ch hi\u1ec3n th\u1ecb l\u1ecbch', viewSeg),
-        el('div',{style:'font-size:11.5px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px dashed var(--hairline)'},['L\u1ecbch gia \u0111\u00ecnh s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi \u2014 l\u1ef1a ch\u1ecdn n\u00e0y s\u1ebd \u0111\u01b0\u1ee3c \u00e1p d\u1ee5ng khi t\u00ednh n\u0103ng c\u00f3 m\u1eb7t.'])
-      ]));
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Ng\u00e0y b\u1eaft \u0111\u1ea7u tu\u1ea7n']));
-      const wsSeg = el('div',{class:'seg'}, [['mon','Th\u1ee9 2'],['sun','Ch\u1ee7 nh\u1eadt']].map(([id,lbl])=>{
-        return el('button',{class:state.prefs.weekStart===id?'active':'',onclick:()=>{state.prefs.weekStart=id; HF.prefs=state.prefs; HF.saveState(state); rerender();}},[lbl]);
-      }));
-      s.push(el('div',{class:'card compact'},[
-        prefRow('\u{1F4C5}','Ng\u00e0y b\u1eaft \u0111\u1ea7u tu\u1ea7n','\u00c1p d\u1ee5ng khi L\u1ecbch gia \u0111\u00ecnh ra m\u1eaft', wsSeg)
-      ]));
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Hi\u1ec3n th\u1ecb']));
-      s.push(el('div',{class:'card compact'},[
-        prefRow('\u2705','Hi\u1ec3n th\u1ecb vi\u1ec7c \u0111\u00e3 ho\u00e0n th\u00e0nh','\u1ea8n m\u1ee5c \u201c\u0110\u00e3 xong\u201d tr\u00ean trang Vi\u1ec7c nh\u00e0', prefToggle('showCompleted')),
-        prefRow('\u{1F9E0}','Planning Owner','Hi\u1ec7n ng\u01b0\u1eddi l\u1eadp k\u1ebf ho\u1ea1ch (lo) tr\u00ean vi\u1ec7c', prefToggle('showPlanner')),
-        prefRow('\u25CF','Task Owner','Hi\u1ec7n ng\u01b0\u1eddi th\u1ef1c hi\u1ec7n (l\u00e0m) tr\u00ean vi\u1ec7c', prefToggle('showDoer'))
-      ]));
-      return s;
-    }
-
-    function buildExpenses(){
-      const s = [];
-      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
-      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Chi ph\u00ed']));
-      s.push(el('div',{class:'sub'},['C\u1ea5u h\u00ecnh ti\u1ec1n t\u1ec7 v\u00e0 danh m\u1ee5c chi ph\u00ed c\u1ee7a gia \u0111\u00ecnh']));
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Ti\u1ec1n t\u1ec7']));
-      const curSel = el('select',{class:'input'});
-      HF.CURRENCIES.forEach(([id,lbl])=>curSel.appendChild(el('option',{value:id},[lbl])));
-      curSel.value = state.expenses.currency||'VND';
-      curSel.addEventListener('change', ()=>{
-        state.expenses.currency = curSel.value;
-        HF.saveState(state);
-        HF.toast('\u0110\u00e3 \u0111\u1ed5i ti\u1ec1n t\u1ec7 sang '+curSel.value,'\u{1F4B0}');
-      });
-      s.push(el('div',{class:'card compact'},[
-        el('div',{style:'font-size:12px;color:var(--muted);margin-bottom:8px'},['\u0110\u01a1n v\u1ecb ti\u1ec1n d\u00f9ng khi ghi l\u1ea1i chi ph\u00ed.']),
-        curSel
-      ]));
-
-      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Danh m\u1ee5c chi ph\u00ed']));
-      const catCard = el('div',{class:'card compact'}, [
-        ...state.expenses.categories.map(catRow),
-        el('button',{class:'btn btn-soft',style:'width:100%;margin-top:10px;padding:12px;font-size:13.5px',onclick:()=>openCatSheet(null)},[
-          '+ Th\u00eam danh m\u1ee5c'
-        ])
-      ]);
-      s.push(catCard);
-      return s;
-    }
-
-    function catRow(cat){
-      return el('div',{class:'mgmt-row'},[
-        el('span',{class:'avatar',style:'background:var(--primary-soft)'},[cat.emoji]),
-        el('div',{style:'flex:1;min-width:0'},[
-          el('div',{class:'mgmt-title'},[cat.name])
-        ]),
-        el('button',{class:'icon-btn',style:'color:var(--primary-deep)',onclick:()=>openCatSheet(cat)},['\u270F\uFE0F']),
-        el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>confirmDeleteCat(cat)},['\u{1F5D1}\uFE0F'])
-      ]);
-    }
-
-    function confirmDeleteCat(cat){
-      const used = (state.expenses.records||[]).filter(r=>r.catId===cat.id).length;
-      if(used>0){
-        HF.toast('Danh m\u1ee5c \u201c'+cat.name+'\u201d \u0111ang \u0111\u01b0\u1ee3c '+used+' kho\u1ea3n chi s\u1eed d\u1ee5ng \u2014 kh\u00f4ng th\u1ec3 x\u00f3a','\u26A0\uFE0F');
-        return;
-      }
-      if(confirmIds.has('cat'+cat.id)){
-        confirmIds.delete('cat'+cat.id);
-        HF.deleteExpenseCat(state, cat.id);
-        HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
-        rerender();
-      }else{
-        confirmIds.add('cat'+cat.id);
-        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00f3a \u201c'+cat.name+'\u201d','\u26A0\uFE0F');
-        setTimeout(()=>confirmIds.delete('cat'+cat.id), 3500);
-      }
-    }
-
-    function openCatSheet(cat){
-      const isEdit = !!cat;
-      const c = cat ? Object.assign({}, cat) : {name:'', emoji:'\u{1F4E6}'};
-      const EMOJIS = ['\u{1F3E0}','\u{1F35C}','\u{1F393}','\u{1FA7A}','\u{1F6D2}','\u{1F697}','\u{1F381}','\u{1F389}','\u{1F4E6}','\u{1F3AC}','\u{1F6B2}','\u{1F4B8}'];
-      const name = el('input',{class:'input',value:c.name,placeholder:'T\u00ean danh m\u1ee5c (VD: Th\u00fa c\u01b0ng)'});
-      const emojiBtns = EMOJIS.map(em=>{
-        const b = el('button',{class:'ava-pick'+(em===c.emoji?' on':''),onclick:()=>{
-          c.emoji=em;
-          emojiBtns.forEach(x=>x.classList.remove('on'));
+      const ratingChips = ratings.map(r=>{
+        const b = el('button',{class:'chip-f',onclick:()=>{
+          rating = r;
+          ratingChips.forEach(x=>x.classList.remove('on'));
           b.classList.add('on');
-        }},[em]);
+        }},[r]);
         return b;
       });
-      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
-        field('Bi\u1ec3u t\u01b0\u1ee3ng', el('div',{class:'ava-row'},emojiBtns)),
-        field('T\u00ean danh m\u1ee5c', name),
-        el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
-          isEdit ? el('button',{class:'btn btn-danger',style:'flex:0.8;padding:13px 10px;font-size:13.5px'},['\u{1F5D1}\uFE0F X\u00f3a']) : null,
-          el('button',{class:'btn btn-primary',style:'flex:1.6;padding:13px 10px;font-size:13.5px'},[isEdit?'\u{1F4BE} L\u01b0u thay \u0111\u1ed5i':'+ Th\u00eam danh m\u1ee5c'])
-        ])
-      ]);
-      const sheet = HF.sheet({title:isEdit?'Ch\u1ec9nh s\u1eeda danh m\u1ee5c':'Th\u00eam danh m\u1ee5c', body:()=>body});
-
-      const delBtn = body.querySelector('.btn-danger');
-      if(delBtn){
-        delBtn.addEventListener('click', ()=>{
-          if(delBtn.dataset.confirm){
-            HF.deleteExpenseCat(state, c.id);
-            HF.toast('\u0110\u00e3 x\u00f3a danh m\u1ee5c','\u{1F5D1}\uFE0F');
-            sheet.close();
-            rerender();
-          }else{
-            delBtn.dataset.confirm='1';
-            delBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn x\u00f3a?';
-            setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='\u{1F5D1}\uFE0F X\u00f3a'; }, 3000);
-          }
-        });
-      }
-
-      body.querySelector('.btn-primary').addEventListener('click', ()=>{
-        const n = name.value.trim();
-        if(!n){ HF.toast('Nh\u1eadp t\u00ean danh m\u1ee5c tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
-        if(state.expenses.categories.some(x=>x.name===n && x.id!==c.id)){
-          HF.toast('\u0110\u00e3 c\u00f3 danh m\u1ee5c t\u00ean n\u00e0y','\u{1F60A}');
-          return;
-        }
-        if(isEdit){
-          HF.updateExpenseCat(state, c.id, {name:n, emoji:c.emoji});
-          HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt danh m\u1ee5c','\u270F\uFE0F');
-        }else{
-          HF.addExpenseCat(state, {name:n, emoji:c.emoji});
-          HF.toast('\u0110\u00e3 th\u00eam danh m\u1ee5c','\u2705');
-        }
-        sheet.close();
-        rerender();
+      const areaChips = areas.map(a=>{
+        const b = el('button',{class:'chip-f',onclick:()=>{
+          if(selAreas.has(a)){ selAreas.delete(a); b.classList.remove('on'); }
+          else{ selAreas.add(a); b.classList.add('on'); }
+        }},[a]);
+        return b;
       });
+      const desc = el('textarea',{class:'input',rows:3,placeholder:'M\u00f4 t\u1ea3 th\u00eam (t\u00f9y ch\u1ecdn)\u2026'});
+      const send = el('button',{class:'btn btn-primary',style:'margin-top:12px'},['G\u1eedi ph\u1ea3n h\u1ed3i']);
+      send.addEventListener('click', ()=>{
+        if(!rating){ HF.toast('Ch\u1ecdn m\u1ee9c h\u1eefu \u00edch tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        state.feedback = state.feedback||[];
+        state.feedback.push({rating:rating, areas:[...selAreas], desc:desc.value.trim(), at:new Date().toISOString()});
+        HF.saveState(state);
+        rating=''; selAreas.clear();
+        ratingChips.forEach(x=>x.classList.remove('on'));
+        areaChips.forEach(x=>x.classList.remove('on'));
+        desc.value='';
+        HF.toast('\u0110\u00e3 l\u01b0u ph\u1ea3n h\u1ed3i tr\u00ean thi\u1ebft b\u1ecb n\u00e0y \u2014 c\u1ea3m \u01a1n b\u1ea1n!','\u{1F49C}');
+      });
+
+      return el('div',{class:'card compact'},[
+        el('div',{style:'font-size:13px;font-weight:800;margin-bottom:8px'},['HomeFlow h\u1eefu \u00edch v\u1edbi b\u1ea1n \u1edf m\u1ee9c n\u00e0o?']),
+        el('div',{class:'chart-filters',style:'flex-wrap:wrap'}, ratingChips),
+        el('div',{style:'font-size:13px;font-weight:800;margin:14px 0 8px'},['B\u1ea1n g\u1eb7p v\u1ea5n \u0111\u1ec1 \u1edf \u0111\u00e2u? (c\u00f3 th\u1ec3 ch\u1ecdn nhi\u1ec1u)']),
+        el('div',{class:'chart-filters',style:'flex-wrap:wrap'}, areaChips),
+        el('div',{style:'font-size:13px;font-weight:800;margin:14px 0 8px'},['M\u00f4 t\u1ea3 th\u00eam']),
+        desc,
+        send,
+        el('div',{style:'font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5'},['Phi\u00ean b\u1ea3n th\u1eed nghi\u1ec7m: ph\u1ea3n h\u1ed3i \u0111\u01b0\u1ee3c l\u01b0u ngay tr\u00ean thi\u1ebft b\u1ecb c\u1ee7a b\u1ea1n, ch\u01b0a g\u1eedi l\u00ean m\u00e1y ch\u1ee7.'])
+      ]);
     }
 
     function build(){
