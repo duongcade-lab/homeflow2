@@ -268,6 +268,14 @@ const KEY = 'homeflow_state_v1';
     HF.saveState(state);
   };
 
+  HF.addMember = function(profile){
+    const COLORS = ['#8B6FB8','#5B9BD5','#F2A65A','#EF8FA3','#7FA98B','#E8936F'];
+    const color = COLORS[HF.MEMBERS.length % COLORS.length];
+    const m = Object.assign({id: HF.uid('m'), short: profile.name, color: color, soft: color+'22'}, profile);
+    HF.MEMBERS.push(m);
+    return m;
+  };
+
   HF.removeMember = function(id, state){
     state.tasks.forEach(t=>{
       if(t.owner===id){ t.owner='me'; t.shared=false; }

@@ -2016,10 +2016,18 @@ V.Settings = function(state, nav, params){
         ]),
         famPicker
       ]);
-      famCard.querySelector('.btn-soft').addEventListener('click', ()=>{
+      famCard.querySelector('.btn-soft').addEventListener('click', async ()=>{
         const n = famName.value.trim();
         if(!n){ HF.toast('Nh\u1eadp t\u00ean gia \u0111\u00ecnh tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
         state.family.name = n;
+        if(HF.db && HF.db.household && HF.auth && HF.auth.mode!=='off'){
+          try{
+            await HF.db.renameHousehold(n);
+          }catch(e){
+            HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c t\u00ean gia \u0111\u00ecnh','\u{1F914}');
+            return;
+          }
+        }
         HF.saveState(state);
         HF.toast('\u0110\u00e3 l\u01b0u t\u00ean gia \u0111\u00ecnh','\u2705');
       });
@@ -2764,6 +2772,7 @@ function buildReminders(){
         saveBtn.textContent = '\u0110ang l\u01b0u...';
         try{
           await HF.db.renameHousehold(n);
+          state.family.name = n;
           sheet.close();
           HF.toast('\u0110\u00e3 \u0111\u1ed5i t\u00ean gia \u0111\u00ecnh','\u270F\uFE0F');
           rerender();
