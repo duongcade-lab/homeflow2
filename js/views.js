@@ -278,7 +278,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     const ta = el('textarea',{class:'input',rows:6,placeholder:'VD: Th\u1ee9 7 Bin h\u1ecdc ti\u1ebfng Anh l\u00fac 9h, b\u1ed1 \u0111\u01b0a con \u0111i. Ch\u1ee7 nh\u1eadt sinh nh\u1eadt b\u00e0 n\u00ean th\u1ee9 6 nh\u1edb mua qu\u00e0.'});
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recog = null, listening = false;
+    let recog = null, listening = false, manualStop = false;
 
     const micBtn = el('button',{class:'btn btn-soft mic-toggle'},['\u{1F3A4} B\u1ea5m \u0111\u1ec3 n\u00f3i']);
     if(SR){
@@ -294,6 +294,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
     function startListen(){
       listening = true;
+      manualStop = false;
       micBtn.classList.add('listening');
       micBtn.textContent = '\u23F9 \u0110ang nghe \u2014 b\u1ea5m \u0111\u1ec3 d\u1eebng';
       recog = new SR();
@@ -310,6 +311,12 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         listening = false;
         micBtn.classList.remove('listening');
         micBtn.textContent = '\u{1F3A4} B\u1ea5m \u0111\u1ec3 n\u00f3i';
+        if(!manualStop){
+          const txt = ta.value.trim();
+          if(txt.length >= 8){
+            setTimeout(()=>submitDump(), 500);
+          }
+        }
       };
       recog.onerror = (e)=>{
         listening = false;
@@ -327,6 +334,7 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     }
 
     function stopListen(){
+      manualStop = true;
       if(recog) recog.stop();
     }
 
@@ -365,7 +373,8 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     ]);
     screen.push(helpCard);
 
-    goBtn.addEventListener('click', ()=>{
+    function submitDump(){
+      if(dumpCard.style.display === 'none') return;
       const text = ta.value.trim();
       if(text.length < 8){
         HF.toast('K\u1ec3 th\u00eam m\u1ed9t ch\u00fat chi ti\u1ebft nh\u00e9','\u{1F914}');
@@ -377,7 +386,9 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
         return llm || HF.parseBrainDump(text);
       })();
       runAI(tasksPromise);
-    });
+    }
+
+    goBtn.addEventListener('click', submitDump);
 
     async function tryLLM(text){
       try{
