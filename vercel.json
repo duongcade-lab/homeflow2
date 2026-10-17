@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "src": "/(.*)\\.md$", "status": 404 },
+    { "handle": "filesystem" }
+  ]
+}
