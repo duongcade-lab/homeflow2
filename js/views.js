@@ -278,6 +278,59 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
 
     const ta = el('textarea',{class:'input',rows:6,placeholder:'VD: Th\u1ee9 7 Bin h\u1ecdc ti\u1ebfng Anh l\u00fac 9h, b\u1ed1 \u0111\u01b0a con \u0111i. Ch\u1ee7 nh\u1eadt sinh nh\u1eadt b\u00e0 n\u00ean th\u1ee9 6 nh\u1edb mua qu\u00e0.'});
 
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recog = null, listening = false;
+
+    const micBtn = el('button',{class:'btn btn-soft mic-toggle'},['\u{1F3A4} B\u1ea5m \u0111\u1ec3 n\u00f3i']);
+    if(SR){
+      micBtn.addEventListener('click', ()=>{
+        if(listening){ stopListen(); return; }
+        startListen();
+      });
+    }else{
+      micBtn.classList.add('disabled');
+      micBtn.disabled = true;
+      micBtn.textContent = '\u{1F3A4} Tr\u00ecnh duy\u1ec7t ch\u01b0a h\u1ed7 tr\u1ee3 thu \u00e2m \u2014 b\u1ea1n c\u00f3 th\u1ec3 g\u00f5 text';
+    }
+
+    function startListen(){
+      listening = true;
+      micBtn.classList.add('listening');
+      micBtn.textContent = '\u23F9 \u0110ang nghe \u2014 b\u1ea5m \u0111\u1ec3 d\u1eebng';
+      recog = new SR();
+      recog.lang = 'vi-VN';
+      recog.interimResults = true;
+      recog.continuous = false;
+      recog.onresult = (e)=>{
+        let txt = '';
+        for(let i=0;i<e.results.length;i++) txt += e.results[i][0].transcript;
+        ta.value = txt;
+        ta.focus();
+      };
+      recog.onend = ()=>{
+        listening = false;
+        micBtn.classList.remove('listening');
+        micBtn.textContent = '\u{1F3A4} B\u1ea5m \u0111\u1ec3 n\u00f3i';
+      };
+      recog.onerror = (e)=>{
+        listening = false;
+        micBtn.classList.remove('listening');
+        micBtn.textContent = '\u{1F3A4} B\u1ea5m \u0111\u1ec3 n\u00f3i';
+        if(e.error==='not-allowed' || e.error==='service-not-allowed'){
+          HF.toast('Ch\u01b0a c\u1ea5p quy\u1ec1n micro \u2014 cho ph\u00e9p trong tr\u00ecnh duy\u1ec7t nh\u00e9','\u{1F3A4}');
+        }else if(e.error==='no-speech'){
+          HF.toast('Ch\u01b0a nghe th\u1ea5y g\u00ec \u2014 th\u1eed l\u1ea1i nh\u00e9','\u{1F914}');
+        }else{
+          HF.toast('Kh\u00f4ng nghe \u0111\u01b0\u1ee3c \u2014 b\u1ea1n v\u1eabn c\u00f3 th\u1ec3 g\u00f5 text','\u{1F914}');
+        }
+      };
+      try{ recog.start(); }catch(err){ listening = false; }
+    }
+
+    function stopListen(){
+      if(recog) recog.stop();
+    }
+
     const exampleBox = el('div',{class:'field-hint'},['Th\u1eed m\u1ed9t m\u1eabu:']);
     const chips = el('div',{class:'example-chips'}, HF.EXAMPLE_DUMPS.map((ex,i)=>
       el('button',{class:'example-chip',onclick:()=>{ta.value=ex; ta.focus();}},['M\u1eabu '+(i+1)])
@@ -293,7 +346,11 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     const dumpCard = el('div',{class:'card',style:'display:flex;flex-direction:column'},[
       el('div',{class:'field'},[
         el('label',{},['\u0110i\u1ec1u b\u1ea1n \u0111ang ngh\u0129']),
-        ta, exampleBox
+        ta,
+        el('div',{style:'display:flex;gap:8px;align-items:center;margin-top:8px'},[
+          micBtn,
+          exampleBox
+        ])
       ]),
       goBtn,
       el('div',{class:'dump-trust'},['\u2728 AI hi\u1ec3u ti\u1ebfng Vi\u1ec7t t\u1ef1 nhi\u00ean \u2014 c\u1ee9 n\u00f3i nh\u01b0 \u0111ang nh\u1eafn cho ng\u01b0\u1eddi th\u00e2n.'])
