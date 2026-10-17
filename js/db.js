@@ -62,10 +62,17 @@
       return DB.household;
     }
     if(!sb() || !DB.household) throw new Error('no household');
-    const { data, error } = await sb().from('households').update({ name: n }).eq('id', DB.household.household_id).select('id');
+    const hid = DB.household.household_id;
+    const { error } = await sb().from('households').update({ name: n }).eq('id', hid);
     if(error) throw error;
+    const { data, error: e2 } = await sb().rpc('get_my_household');
+    if(e2) throw e2;
     if(!data || !data.length) throw new Error('household not found');
-    DB.household.name = n;
+    DB.household = data[0];
+    if(DB.household.name !== n){
+      console.warn('renameHousehold: name mismatch', { hid, expected: n, got: DB.household.name, role: DB.household.role });
+      throw new Error('rename did not persist');
+    }
     return DB.household;
   };
 

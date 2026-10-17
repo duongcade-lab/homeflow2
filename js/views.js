@@ -2119,7 +2119,7 @@ V.Settings = function(state, nav, params){
             await HF.db.renameHousehold(n);
           }catch(e){
             console.warn('renameHousehold:', e.message);
-            HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c t\u00ean gia \u0111\u00ecnh, th\u1eed l\u1ea1i nh\u00e9','\u{1F914}');
+            HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c: '+e.message,'\u{1F914}');
             return;
           }
         }
@@ -2875,7 +2875,8 @@ function buildReminders(){
         }catch(e){
           saveBtn.disabled = false;
           saveBtn.textContent = '\u{1F4BE} L\u01b0u t\u00ean m\u1edbi';
-          HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c, th\u1eed l\u1ea1i nh\u00e9','\u{1F914}');
+          console.warn('renameHousehold:', e.message);
+          HF.toast('Ch\u01b0a l\u01b0u \u0111\u01b0\u1ee3c: '+e.message,'\u{1F914}');
         }
       });
     }
