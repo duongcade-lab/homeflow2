@@ -634,6 +634,258 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
     return screen;
   };
 
+  V.Settings = function(state, nav){
+    const root = el('div',{});
+    const confirmIds = new Set();
+    let taskLimit = 8;
+
+    function field(label, control){
+      return el('div',{class:'rs-field'},[el('span',{},[label]), control]);
+    }
+
+    function taskRow(t){
+      const cat = HF.categoryById(t.cat);
+      const d = new Date(t.due);
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      return el('div',{class:'mgmt-row'},[
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'mgmt-title'},[t.title]),
+          el('div',{style:'display:flex;gap:6px;margin-top:4px;flex-wrap:wrap'},[
+            el('span',{class:'chip',style:`background:${cat.soft};color:${cat.color}`},[cat.emoji+' '+cat.label]),
+            el('span',{class:'chip ghost',style:'white-space:nowrap'},['\u{1F5D3}\uFE0F '+dd+'/'+mm+(t.time?' \u00b7 '+t.time:'')])
+          ])
+        ]),
+        el('button',{class:'icon-btn',style:'color:var(--primary-deep)',onclick:()=>openEditSheet(t)},['\u270F\uFE0F']),
+        el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>confirmDeleteTask(t)},['\u{1F5D1}\uFE0F'])
+      ]);
+    }
+
+    function confirmDeleteTask(t){
+      if(confirmIds.has(t.id)){
+        confirmIds.delete(t.id);
+        HF.deleteTask(state, t.id);
+        HF.toast('\u0110\u00e3 x\u00f3a \u201c'+t.title+'\u201d','\u{1F5D1}\uFE0F');
+        rerender();
+      }else{
+        confirmIds.add(t.id);
+        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00e1c nh\u1eadn x\u00f3a','\u26A0\uFE0F');
+        setTimeout(()=>confirmIds.delete(t.id), 3500);
+      }
+    }
+
+    function openEditSheet(t){
+      const draft = Object.assign({}, t);
+      const title = el('input',{class:'input',value:draft.title});
+      const dateSel = HF.dateSelect(draft.due, v=>{draft.due=v;});
+      const time = el('input',{class:'input',type:'time',value:draft.time||'',style:'padding:10px 12px'});
+      const catSel = el('select',{class:'input'});
+      Object.keys(HF.CATEGORIES).forEach(k=>catSel.appendChild(el('option',{value:k},[HF.CATEGORIES[k].emoji+' '+HF.CATEGORIES[k].label])));
+      catSel.value = draft.cat;
+      const plannerSel = HF.ownerSelect(draft.planner||'me', v=>{draft.planner=v;});
+      const doerSel = el('select',{class:'input'});
+      doerSel.appendChild(el('option',{value:'__shared__'},['\u{1F46B} C\u1ea3 nh\u00e0']));
+      HF.MEMBERS.forEach(m=>doerSel.appendChild(el('option',{value:m.id},[m.emoji+' '+m.name])));
+      doerSel.value = draft.shared ? '__shared__' : draft.owner;
+
+      const body = el('div',{style:'display:flex;flex-direction:column;gap:12px'},[
+        field('Ti\u00eau \u0111\u1ec1', title),
+        el('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:12px'},[
+          field('Ng\u00e0y', dateSel),
+          field('Gi\u1edd (t\u00f9y ch\u1ecdn)', time)
+        ]),
+        field('Danh m\u1ee5c', catSel),
+        el('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:12px'},[
+          field('\u{1F9E0} Ai lo', plannerSel),
+          field('\u25CF Ai l\u00e0m', doerSel)
+        ]),
+        el('div',{style:'display:flex;gap:10px;margin-top:6px'},[
+          el('button',{class:'btn btn-danger',style:'flex:0.8;padding:13px 10px;font-size:13.5px'},['\u{1F5D1}\uFE0F X\u00f3a']),
+          el('button',{class:'btn btn-primary',style:'flex:1.6;padding:13px 10px;font-size:13.5px'},['\u{1F4BE} L\u01b0u thay \u0111\u1ed5i'])
+        ])
+      ]);
+
+      const sheet = HF.sheet({title:'Ch\u1ec9nh s\u1eeda vi\u1ec7c', body:()=>body});
+
+      const delBtn = body.querySelector('.btn-danger');
+      delBtn.addEventListener('click', ()=>{
+        if(delBtn.dataset.confirm){
+          HF.deleteTask(state, draft.id);
+          HF.toast('\u0110\u00e3 x\u00f3a vi\u1ec7c','\u{1F5D1}\uFE0F');
+          sheet.close();
+          rerender();
+        }else{
+          delBtn.dataset.confirm='1';
+          delBtn.textContent='\u26A0\uFE0F Ch\u1eafc ch\u1eafn x\u00f3a?';
+          setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='\u{1F5D1}\uFE0F X\u00f3a'; }, 3000);
+        }
+      });
+
+      const saveBtn = body.querySelector('.btn-primary');
+      saveBtn.addEventListener('click', ()=>{
+        const nt = title.value.trim();
+        if(!nt){ HF.toast('Nh\u1eadp t\u00ean vi\u1ec7c tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        HF.updateTask(state, draft.id, {
+          title: nt,
+          cat: catSel.value,
+          due: draft.due,
+          time: time.value||'',
+          planner: draft.planner,
+          owner: doerSel.value==='__shared__' ? draft.owner : doerSel.value,
+          shared: doerSel.value==='__shared__'
+        });
+        HF.toast('\u0110\u00e3 c\u1eadp nh\u1eadt vi\u1ec7c','\u270F\uFE0F');
+        sheet.close();
+        rerender();
+      });
+    }
+
+    function memberRow(m){
+      const canRemove = HF.MEMBERS.length>1;
+      return el('div',{class:'mgmt-row'},[
+        el('span',{class:'avatar',style:`background:${m.color}`},[m.short]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'mgmt-title'},[m.emoji+' '+m.name]),
+          el('div',{class:'kind-tag'},[m.kind==='kid'?'Con c\u00e1i':'Ng\u01b0\u1eddi l\u1edbn'])
+        ]),
+        canRemove ? el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>confirmRemoveMember(m)},['\u{1F5D1}\uFE0F']) : null
+      ]);
+    }
+
+    function confirmRemoveMember(m){
+      if(confirmIds.has('m'+m.id)){
+        confirmIds.delete('m'+m.id);
+        HF.removeMember(m.id, state);
+        HF.toast('\u0110\u00e3 x\u00f3a '+m.name,'\u{1F5D1}\uFE0F');
+        rerender();
+      }else{
+        confirmIds.add('m'+m.id);
+        HF.toast('B\u1ea5m l\u1ea7n n\u1eefa \u0111\u1ec3 x\u00f3a '+m.name+' \u2014 vi\u1ec7c c\u1ee7a '+m.name+' s\u1ebd chuy\u1ec3n cho M\u1eb9','\u26A0\uFE0F');
+        setTimeout(()=>confirmIds.delete('m'+m.id), 4000);
+      }
+    }
+
+    function addMemberForm(){
+      const name = el('input',{class:'input',placeholder:'T\u00ean th\u00e0nh vi\u00ean m\u1edbi\u2026',style:'flex:1;min-width:0'});
+      const kind = el('select',{class:'input',style:'width:auto'});
+      kind.appendChild(el('option',{value:'adult'},['Ng\u01b0\u1eddi l\u1edbn']));
+      kind.appendChild(el('option',{value:'kid'},['Con c\u00e1i']));
+      const btn = el('button',{class:'btn btn-soft',style:'padding:10px 14px;font-size:13px'},['+ Th\u00eam']);
+      btn.addEventListener('click', ()=>{
+        const n = name.value.trim();
+        if(!n){ HF.toast('Nh\u1eadp t\u00ean th\u00e0nh vi\u00ean tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        if(HF.MEMBERS.some(m=>m.name===n)){ HF.toast('\u0110\u00e3 c\u00f3 th\u00e0nh vi\u00ean t\u00ean n\u00e0y','\u{1F60A}'); return; }
+        HF.addMember(n, kind.value);
+        HF.saveState(state);
+        HF.toast('\u0110\u00e3 th\u00eam '+n,'\u{1F389}');
+        rerender();
+      });
+      return el('div',{class:'mgmt-add'},[name, kind, btn]);
+    }
+
+    function historyBlock(kid, type, label, ico){
+      const recs = state.history[type].filter(r=>r.kidId===kid.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+      function histRow(r){
+        return el('div',{class:'hist-row'},[
+          el('div',{class:'hist-date'},[HF.formatDay(new Date(r.date))]),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'hist-title'},[r.title]),
+            r.note ? el('div',{class:'hist-note'},[r.note]) : null
+          ]),
+          el('button',{class:'icon-btn',style:'color:var(--danger)',onclick:()=>{
+            HF.deleteHistory(state, type, r.id);
+            rerender();
+          }},['\u{1F5D1}\uFE0F'])
+        ]);
+      }
+
+      const list = el('div',{class:'card compact hist-card'},[
+        el('div',{class:'hist-head'},[
+          el('div',{},[ico+' '+label+' \u2014 '+kid.name]),
+          el('button',{class:'btn btn-soft',style:'padding:7px 12px;font-size:12px'},['+ Th\u00eam'])
+        ]),
+        ...(recs.length===0 ? [el('div',{class:'hist-empty'},['Ch\u01b0a c\u00f3 ghi ch\u00fa n\u00e0o'])] : recs.map(histRow))
+      ]);
+
+      const form = el('div',{class:'hist-form',style:'display:none'},[
+        el('input',{class:'input',type:'date',value:HF.dayOffset(0).toISOString().slice(0,10)}),
+        el('input',{class:'input',placeholder:'N\u1ed9i dung (VD: Kh\u00e1m r\u0103ng \u0111\u1ecbnh k\u1ef3)'}),
+        el('input',{class:'input',placeholder:'Ghi ch\u00fa (t\u00f9y ch\u1ecdn)'}),
+        el('div',{style:'display:flex;gap:8px;margin-top:8px'},[
+          el('button',{class:'btn btn-primary',style:'flex:1;padding:11px 10px;font-size:13px'},['L\u01b0u']),
+          el('button',{class:'btn btn-ghost',style:'flex:0.6;padding:11px 10px;font-size:13px'},['H\u1ee7y'])
+        ])
+      ]);
+      list.appendChild(form);
+
+      list.querySelector('.hist-head .btn').addEventListener('click', ()=>{
+        form.style.display = form.style.display==='none' ? 'block' : 'none';
+      });
+      form.querySelector('.btn-primary').addEventListener('click', ()=>{
+        const inp = form.querySelectorAll('.input');
+        const t = inp[1].value.trim();
+        if(!t){ HF.toast('Nh\u1eadp n\u1ed9i dung tr\u01b0\u1edbc nh\u00e9','\u{1F914}'); return; }
+        HF.addHistory(state, type, {
+          kidId: kid.id,
+          date: new Date(inp[0].value),
+          title: t,
+          note: inp[2].value.trim()
+        });
+        HF.toast('\u0110\u00e3 th\u00eam v\u00e0o l\u1ecbch s\u1eed','\u2705');
+        rerender();
+      });
+      form.querySelector('.btn-ghost').addEventListener('click', ()=>{ form.style.display='none'; });
+
+      return list;
+    }
+
+    function build(){
+      const s = [];
+      s.push(el('div',{class:'eyebrow'},['C\u00e0i \u0111\u1eb7t']));
+      s.push(el('h1',{class:'page-title',style:'margin-top:4px'},['Qu\u1ea3n l\u00fd gia \u0111\u00ecnh']));
+      s.push(el('div',{class:'sub'},['Ch\u1ec9nh s\u1eeda vi\u1ec7c nh\u00e0, th\u00e0nh vi\u00ean v\u00e0 l\u1ecbch s\u1eed c\u1ee7a c\u00e1c con']));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Danh s\u00e1ch vi\u1ec7c']));
+      const openTasks = state.tasks.filter(t=>t.status!=='done').sort((a,b)=>a.due-b.due);
+      const visible = taskLimit>=openTasks.length ? openTasks : openTasks.slice(0,taskLimit);
+      const listCard = el('div',{class:'card compact'}, openTasks.length===0
+        ? [el('div',{style:'color:var(--muted);font-size:13px'},['Kh\u00f4ng c\u00f3 vi\u1ec7c n\u00e0o \u0111ang m\u1edf'])]
+        : visible.map(taskRow));
+      if(openTasks.length>taskLimit){
+        listCard.appendChild(el('button',{class:'btn btn-ghost',style:'width:100%;margin-top:10px;padding:11px;font-size:13px',onclick:()=>{taskLimit=999; rerender();}},[
+          'Xem t\u1ea5t c\u1ea3 '+openTasks.length+' vi\u1ec7c \u25BE'
+        ]));
+      }
+      s.push(listCard);
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Th\u00e0nh vi\u00ean']));
+      s.push(el('div',{class:'card compact'},[
+        ...HF.MEMBERS.map(memberRow),
+        addMemberForm()
+      ]));
+
+      const kids = HF.MEMBERS.filter(m=>m.kind==='kid');
+      if(kids.length){
+        s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'L\u1ecbch s\u1eed c\u1ee7a c\u00e1c con']));
+        for(const kid of kids){
+          s.push(historyBlock(kid, 'health', 'S\u1ee9c kh\u1ecfe', '\u{1F3E5}'));
+          s.push(historyBlock(kid, 'study', 'H\u1ecdc t\u1eadp', '\u{1F392}'));
+        }
+      }
+
+      return s;
+    }
+
+    function rerender(){
+      root.innerHTML='';
+      build().forEach(n=>root.appendChild(n));
+    }
+
+    rerender();
+    return [root];
+  };
+
   function openAddSheet(state, nav){
     HF.sheet({
       title:'Th\u00eam vi\u1ec7c th\u1ee7 c\u00f4ng',

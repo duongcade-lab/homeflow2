@@ -79,6 +79,53 @@
 
   const KEY = 'homeflow_state_v1';
 
+  const MEMBER_COLORS = ['#8B6FB8','#5B9BD5','#F2A65A','#EF8FA3','#7FA98B','#E8936F','#E05D5D','#6BB5A9'];
+  const ADULT_EMOJI = ['\u{1F469}','\u{1F468}','\u{1F475}','\u{1F474}'];
+  const KID_EMOJI = ['\u{1F9D2}','\u{1F467}','\u{1F466}','\u{1F476}'];
+
+  HF.addMember = function(name, kind){
+    const used = new Set(HF.MEMBERS.map(m=>m.color));
+    const color = MEMBER_COLORS.find(c=>!used.has(c)) || MEMBER_COLORS[MEMBER_COLORS.length-1];
+    const pool = kind==='kid' ? KID_EMOJI : ADULT_EMOJI;
+    const emoji = pool[HF.MEMBERS.filter(m=>m.kind===kind).length % pool.length];
+    const m = {id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,4), name, short:name, color, soft:color+'26', emoji, kind};
+    HF.MEMBERS.push(m);
+    return m;
+  };
+
+  HF.removeMember = function(id, state){
+    state.tasks.forEach(t=>{
+      if(t.owner===id){ t.owner='me'; t.shared=false; }
+      if(t.planner===id){ t.planner='me'; }
+    });
+    state.history.health = state.history.health.filter(r=>r.kidId!==id);
+    state.history.study = state.history.study.filter(r=>r.kidId!==id);
+    HF.MEMBERS = HF.MEMBERS.filter(x=>x.id!==id);
+    HF.saveState(state);
+  };
+
+  HF.updateTask = function(state, id, patch){
+    const t = state.tasks.find(x=>x.id===id);
+    if(!t) return;
+    Object.assign(t, patch);
+    HF.saveState(state);
+  };
+
+  HF.deleteTask = function(state, id){
+    state.tasks = state.tasks.filter(x=>x.id!==id);
+    HF.saveState(state);
+  };
+
+  HF.addHistory = function(state, type, rec){
+    state.history[type].push(Object.assign({id:HF.uid('h')}, rec));
+    HF.saveState(state);
+  };
+
+  HF.deleteHistory = function(state, type, id){
+    state.history[type] = state.history[type].filter(r=>r.id!==id);
+    HF.saveState(state);
+  };
+
   function serialize(t){
     return Object.assign({}, t, {
       due: t.due instanceof Date ? t.due.toISOString() : t.due,
@@ -92,6 +139,20 @@
     return t;
   }
 
+  const SEED_HISTORY = {
+    health: [
+      {id:'h1', kidId:'bin', date:HF.dayOffset(-14), title:'Kh\u00e1m r\u0103ng \u0111\u1ecbnh k\u1ef3', note:'S\u1ea1ch, kh\u00f4ng s\u00e2u r\u0103ng'},
+      {id:'h2', kidId:'bin', date:HF.dayOffset(-40), title:'Ti\u00eam ph\u00f2ng c\u00fam m\u00f9a', note:''},
+      {id:'h3', kidId:'su', date:HF.dayOffset(-7), title:'Kh\u00e1m r\u0103ng \u0111\u1ecbnh k\u1ef3', note:'H\u1eb9n t\u00e1i kh\u00e1m sau 6 th\u00e1ng'},
+      {id:'h4', kidId:'su', date:HF.dayOffset(-60), title:'Kh\u00e1m dinh d\u01b0\u1ee1ng', note:'C\u00e2n n\u1eb7ng \u0111\u1ea1t chu\u1ea9n'}
+    ],
+    study: [
+      {id:'s1', kidId:'bin', date:HF.dayOffset(-30), title:'Gi\u1ea3i ba v\u1ebd tranh c\u1ea5p tr\u01b0\u1eddng', note:'C\u1ea3 nh\u00e0 t\u1ef1 h\u00e0o!'},
+      {id:'s2', kidId:'bin', date:HF.dayOffset(-70), title:'Cu\u1ed1i k\u1ef3 m\u00f4n To\u00e1n 9/10', note:''},
+      {id:'s3', kidId:'su', date:HF.dayOffset(-20), title:'Ho\u00e0n th\u00e0nh kh\u00f3a b\u01a1i c\u01a1 b\u1ea3n', note:'B\u01a1i \u0111\u01b0\u1ee3c 25m'}
+    ]
+  };
+
   HF.loadState = function(){
     try{
       const raw = localStorage.getItem(KEY);
@@ -99,12 +160,13 @@
         const s = JSON.parse(raw);
         s.tasks = s.tasks.map(hydrate);
         s.lastDump = s.lastDump||null;
+        s.history = s.history || JSON.parse(JSON.stringify(SEED_HISTORY));
         return s;
       }
     }catch(e){}
-    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0};
+    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY))};
     try{ localStorage.setItem(KEY, JSON.stringify(fresh)); }catch(e){}
-    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0};
+    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY))};
   };
 
   HF.saveState = function(state){
@@ -112,7 +174,8 @@
       localStorage.setItem(KEY, JSON.stringify({
         tasks: state.tasks.map(serialize),
         lastDump: state.lastDump,
-        dumpCount: state.dumpCount||0
+        dumpCount: state.dumpCount||0,
+        history: state.history||{health:[],study:[]}
       }));
     }catch(e){}
   };

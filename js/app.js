@@ -8,7 +8,8 @@
     {id:'tasks', ico:'\u{1F4CB}', label:'Vi\u1ec7c nh\u00e0'},
     {id:'dump', ico:'\u{1F9E0}', label:'Brain Dump'},
     {id:'balance',ico:'\u2696\uFE0F', label:'C\u00e2n b\u1eb1ng'},
-    {id:'brief', ico:'\u{1F4DD}', label:'B\u1ea3n tin'}
+    {id:'brief', ico:'\u{1F4DD}', label:'B\u1ea3n tin'},
+    {id:'settings',ico:'\u2699\uFE0F', label:'C\u00e0i \u0111\u1eb7t'}
   ];
 
   function renderTopbar(route){
@@ -77,6 +78,7 @@
       case 'dump': nodes = HF.views.Dump(state, navigate); break;
       case 'balance': nodes = HF.views.Balance(state, navigate); break;
       case 'brief': nodes = HF.views.Brief(state, navigate); break;
+      case 'settings': nodes = HF.views.Settings(state, navigate); break;
       default: nodes = HF.views.Today(state, navigate); break;
     }
     nodes.forEach(n=>{ if(n) screen.appendChild(n); });
