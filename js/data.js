@@ -208,6 +208,7 @@
         s.family = s.family || {name:'Gia \u0111\u00ecnh HomeFlow', avatar:''};
         s.feedback = s.feedback || [];
         s.growth = s.growth || [];
+        s.prefs = s.prefs || {defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true};
         if(s.members && s.members.length){
           HF.MEMBERS.length = 0;
           HF.MEMBERS.push(...s.members);
@@ -215,9 +216,9 @@
         return s;
       }
     }catch(e){}
-    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[]};
+    const fresh = {tasks: SEED.map(t=>serialize(t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}};
     try{ localStorage.setItem(KEY, JSON.stringify(fresh)); }catch(e){}
-    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[]};
+    return {tasks: SEED.slice().map(t=>Object.assign({},t)), lastDump:null, dumpCount:0, history: JSON.parse(JSON.stringify(SEED_HISTORY)), family:{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''}, feedback:[], growth:[], prefs:{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}};
   };
 
   HF.saveState = function(state){
@@ -230,7 +231,8 @@
         members: HF.MEMBERS,
         family: state.family||{name:'Gia \u0111\u00ecnh HomeFlow', avatar:''},
         feedback: state.feedback||[],
-        growth: state.growth||[]
+        growth: state.growth||[],
+        prefs: state.prefs||{defaultView:'day', weekStart:'mon', showCompleted:true, showPlanner:true, showDoer:true}
       }));
     }catch(e){}
   };

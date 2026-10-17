@@ -2,6 +2,7 @@
   const HF = window.HF = window.HF || {};
 
   const state = HF.loadState();
+  HF.prefs = state.prefs;
 
   const TABS = [
     {id:'today', ico:'\u{1F31E}', label:'H\u00f4m nay'},

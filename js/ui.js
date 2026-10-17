@@ -203,13 +203,15 @@
       opts.compact ? null : el('span',{class:'chip ghost'},['\u{1F5D3}\uFE0F '+dueLabel])
     ]);
 
-    if(task.planner){
+    if(task.planner && (!HF.prefs || HF.prefs.showPlanner !== false)){
       const pl = HF.memberById(task.planner);
       meta.appendChild(el('span',{class:'chip-lo'},['\u{1F9E0} '+pl.short+' lo']));
     }
-    meta.appendChild(task.shared
-      ? el('span',{class:'chip-lam chip-shared'},['C\u1ea3 nh\u00e0 l\u00e0m'])
-      : el('span',{class:'chip-lam',style:'background:'+owner.color},[owner.short+' l\u00e0m']));
+    if(!HF.prefs || HF.prefs.showDoer !== false){
+      meta.appendChild(task.shared
+        ? el('span',{class:'chip-lam chip-shared'},['C\u1ea3 nh\u00e0 l\u00e0m'])
+        : el('span',{class:'chip-lam',style:'background:'+owner.color},[owner.short+' l\u00e0m']));
+    }
 
     const body = el('div',{class:'task-body',style:'flex:1;min-width:0'},[
       el('div',{class:'task-title'},[task.title]),

@@ -545,6 +545,30 @@ textarea.input{resize:none;line-height:1.6}
 }
 .growth-val{font-size:13px;font-weight:700}
 .growth-note{font-size:11.5px;color:var(--muted);margin-top:1px}
+.pref-row{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 0;border-bottom:1px solid var(--hairline);
+}
+.pref-row:last-child{border-bottom:none}
+.soon-tag{
+  font-size:10.5px;font-weight:800;color:var(--muted);
+  background:rgba(142,116,130,.10);border-radius:999px;padding:4px 10px;
+  white-space:nowrap;
+}
+.tg{
+  width:46px;height:27px;border-radius:999px;flex:none;
+  background:rgba(142,116,130,.25);border:none;cursor:pointer;
+  position:relative;transition:background .2s;
+}
+.tg .tg-knob{
+  position:absolute;top:3px;left:3px;width:21px;height:21px;
+  border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.22);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.tg.on{background:var(--primary)}
+.tg.on .tg-knob{transform:translateX(19px)}
+.tg:active{transform:scale(.94)}
 
 .banner{
   border-radius:var(--radius-md);padding:10px 13px;font-size:12.5px;font-weight:600;

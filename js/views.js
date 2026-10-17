@@ -76,12 +76,14 @@ const todayCard = el('div',{class:'card compact',style:'padding-top:13px;padding
   };
 
   V.Tasks = function(state, nav, filter){
+    const showDone = !HF.prefs || HF.prefs.showCompleted !== false;
     const segs = [
       {id:'all', label:'T\u1ea5t c\u1ea3'},
       {id:'today', label:'H\u00f4m nay'},
-      {id:'week', label:'Tu\u1ea7n n\u00e0y'},
-      {id:'done', label:'\u0110\u00e3 xong'}
+      {id:'week', label:'Tu\u1ea7n n\u00e0y'}
     ];
+    if(showDone) segs.push({id:'done', label:'\u0110\u00e3 xong'});
+    if(filter==='done' && !showDone) filter = 'all';
     let list = state.tasks.slice();
     if(filter==='today') list = list.filter(t=>t.status==='open' && HF.isSameDay(t.due, HF.dayOffset(0)));
     else if(filter==='week') list = list.filter(t=>t.status==='open' && t.due <= HF.dayOffset(7));
@@ -693,8 +695,8 @@ V.Settings = function(state, nav, params){
       s.push(el('div',{class:'card compact set-menu'},[
         menuRow('\u{1F4CB}','Vi\u1ec7c nh\u00e0','Ch\u1ec9nh s\u1eeda, x\u00f3a vi\u1ec7c', ()=>nav('settings',{path:['tasks']})),
         menuRow('\u{1F46B}','Gia \u0111\u00ecnh & Th\u00e0nh vi\u00ean','T\u00ean gia \u0111\u00ecnh, th\u00e0nh vi\u00ean, h\u1ed3 s\u01a1 con', ()=>nav('settings',{path:['family']})),
-        menuRow('\u{1F514}','Nh\u1eafc vi\u1ec7c','Th\u1eddi gian v\u00e0 c\u00e1ch nh\u1eafc nh\u1edf', placeholderToast),
-        menuRow('\u{1F5D3}\uFE0F','L\u1ecbch & Hi\u1ec3n th\u1ecb','Ng\u00f4n ng\u1eef, giao di\u1ec7n', placeholderToast),
+        menuRow('\u{1F514}','Nh\u1eafc vi\u1ec7c','Nh\u1eafc vi\u1ec7c, h\u00f3a \u0111\u01a1n, b\u1ea3n tin tu\u1ea7n', ()=>nav('settings',{path:['reminders']})),
+        menuRow('\u{1F5D3}\uFE0F','L\u1ecbch & Hi\u1ec3n th\u1ecb','View l\u1ecbch, ng\u00e0y \u0111\u1ea7u tu\u1ea7n, hi\u1ec3n th\u1ecb', ()=>nav('settings',{path:['display']})),
         menuRow('\u{1F4B0}','Chi ph\u00ed','Theo d\u00f5i chi ti\u00eau gia \u0111\u00ecnh', placeholderToast),
         menuRow('\u2753','Tr\u1ee3 gi\u00fap & Ph\u1ea3n h\u1ed3i','H\u01b0\u1edbng d\u1eabn, c\u00e2u h\u1ecfi, g\u1eedi \u00fd ki\u1ebfn', ()=>nav('settings',{path:['help']})),
         menuRow('\u{1F510}','D\u1eef li\u1ec7u & Quy\u1ec1n ri\u00eang t\u01b0','Xu\u1ea5t d\u1eef li\u1ec7u, b\u1ea3o m\u1eadt', ()=>nav('settings',{path:['data']}))
@@ -1339,6 +1341,91 @@ V.Settings = function(state, nav, params){
       return s;
     }
 
+    function buildReminders(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['Nh\u1eafc vi\u1ec7c']));
+      s.push(el('div',{class:'card compact',style:'background:var(--sun-soft);border-color:rgba(214,168,52,.35)'},[
+        el('div',{style:'display:flex;gap:10px;align-items:flex-start'},[
+          el('span',{style:'font-size:20px'},['\u2139\uFE0F']),
+          el('div',{style:'flex:1'},[
+            el('div',{style:'font-weight:800;font-size:13.5px;color:#8A6A10'},['Th\u00f4ng b\u00e1o ch\u01b0a kh\u1ea3 d\u1ee5ng trong b\u1ea3n n\u00e0y']),
+            el('div',{style:'font-size:12px;color:#8A6A10;margin-top:3px;line-height:1.55'},['Phi\u00ean b\u1ea3n hi\u1ec7n t\u1ea1i ch\u01b0a h\u1ed7 tr\u1ee3 th\u00f4ng b\u00e1o \u0111\u1ea9y (push notification). Khi t\u00ednh n\u0103ng s\u1eb5n s\u00e0ng, b\u1ea1n s\u1ebd ch\u1ecdn \u0111\u01b0\u1ee3c th\u1eddi gian nh\u1eafc: 15 ph\u00fat, 1 gi\u1edd ho\u1eb7c 1 ng\u00e0y tr\u01b0\u1edbc gi\u1edd l\u00e0m vi\u1ec7c.'])
+          ])
+        ])
+      ]));
+      const items = [
+        ['\u{1F514}','Nh\u1eafc vi\u1ec7c & s\u1ef1 ki\u1ec7n','Nh\u1eafc tr\u01b0\u1edbc gi\u1edd l\u00e0m vi\u1ec7c'],
+        ['\u23F0','Nh\u1eafc vi\u1ec7c s\u1eafp \u0111\u1ebfn h\u1ea1n','Nh\u1eafc khi vi\u1ec7c g\u1ea7n \u0111\u1ebfn h\u1ea1n'],
+        ['\u{1F4B3}','Nh\u1eafc chi ph\u00ed / h\u00f3a \u0111\u01a1n','Nh\u1eafc h\u1ea1n thanh to\u00e1n h\u00f3a \u0111\u01a1n'],
+        ['\u{1F4DD}','Weekly Family Brief','B\u1ea3n tin t\u1ed5ng k\u1ebft tu\u1ea7n']
+      ];
+      s.push(el('div',{class:'card compact'}, items.map(([ico,lbl,sub])=>{
+        return el('div',{class:'pref-row'},[
+          el('span',{class:'set-ico',style:'width:36px;height:36px;font-size:17px'},[ico]),
+          el('div',{style:'flex:1;min-width:0'},[
+            el('div',{class:'set-row-t'},[lbl]),
+            el('div',{class:'set-row-s'},[sub])
+          ]),
+          el('span',{class:'soon-tag'},['S\u1eafp c\u00f3'])
+        ]);
+      })));
+      return s;
+    }
+
+    function prefToggle(key){
+      const b = el('button',{class:'tg'+(state.prefs[key]?' on':''),role:'switch','aria-checked':state.prefs[key]?'true':'false',onclick:()=>{
+        state.prefs[key] = !state.prefs[key];
+        HF.prefs = state.prefs;
+        HF.saveState(state);
+        rerender();
+        HF.toast(state.prefs[key]?'\u0110\u00e3 b\u1eadt':'\u0110\u00e3 t\u1eaft','\u2705');
+      }},[el('span',{class:'tg-knob'})]);
+      return b;
+    }
+
+    function prefRow(ico, label, sub, control){
+      return el('div',{class:'pref-row'},[
+        el('span',{class:'set-ico',style:'width:36px;height:36px;font-size:17px'},[ico]),
+        el('div',{style:'flex:1;min-width:0'},[
+          el('div',{class:'set-row-t'},[label]),
+          sub ? el('div',{class:'set-row-s'},[sub]) : null
+        ]),
+        control
+      ]);
+    }
+
+    function buildDisplay(){
+      const s = [];
+      s.push(backRow('C\u00e0i \u0111\u1eb7t','settings'));
+      s.push(el('h1',{class:'page-title',style:'margin-top:10px'},['L\u1ecbch & Hi\u1ec3n th\u1ecb']));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'View l\u1ecbch m\u1eb7c \u0111\u1ecbnh']));
+      const viewSeg = el('div',{class:'seg'}, [['day','Ng\u00e0y'],['week','Tu\u1ea7n'],['month','Th\u00e1ng']].map(([id,lbl])=>{
+        return el('button',{class:state.prefs.defaultView===id?'active':'',onclick:()=>{state.prefs.defaultView=id; HF.prefs=state.prefs; HF.saveState(state); rerender();}},[lbl]);
+      }));
+      s.push(el('div',{class:'card compact'},[
+        prefRow('\u{1F5C5}\uFE0F','View l\u1ecbch m\u1eb7c \u0111\u1ecbnh','Ch\u1ecdn c\u00e1ch hi\u1ec3n th\u1ecb l\u1ecbch', viewSeg),
+        el('div',{style:'font-size:11.5px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px dashed var(--hairline)'},['L\u1ecbch gia \u0111\u00ecnh s\u1ebd ra m\u1eaft trong b\u1ea3n c\u1eadp nh\u1eadt t\u1edbi \u2014 l\u1ef1a ch\u1ecdn n\u00e0y s\u1ebd \u0111\u01b0\u1ee3c \u00e1p d\u1ee5ng khi t\u00ednh n\u0103ng c\u00f3 m\u1eb7t.'])
+      ]));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Ng\u00e0y b\u1eaft \u0111\u1ea7u tu\u1ea7n']));
+      const wsSeg = el('div',{class:'seg'}, [['mon','Th\u1ee9 2'],['sun','Ch\u1ee7 nh\u1eadt']].map(([id,lbl])=>{
+        return el('button',{class:state.prefs.weekStart===id?'active':'',onclick:()=>{state.prefs.weekStart=id; HF.prefs=state.prefs; HF.saveState(state); rerender();}},[lbl]);
+      }));
+      s.push(el('div',{class:'card compact'},[
+        prefRow('\u{1F4C5}','Ng\u00e0y b\u1eaft \u0111\u1ea7u tu\u1ea7n','\u00c1p d\u1ee5ng khi L\u1ecbch gia \u0111\u00ecnh ra m\u1eaft', wsSeg)
+      ]));
+
+      s.push(el('div',{class:'section-label'},[el('span',{class:'bar'}),'Hi\u1ec3n th\u1ecb']));
+      s.push(el('div',{class:'card compact'},[
+        prefRow('\u2705','Hi\u1ec3n th\u1ecb vi\u1ec7c \u0111\u00e3 ho\u00e0n th\u00e0nh','\u1ea8n m\u1ee5c \u201c\u0110\u00e3 xong\u201d tr\u00ean trang Vi\u1ec7c nh\u00e0', prefToggle('showCompleted')),
+        prefRow('\u{1F9E0}','Planning Owner','Hi\u1ec7n ng\u01b0\u1eddi l\u1eadp k\u1ebf ho\u1ea1ch (lo) tr\u00ean vi\u1ec7c', prefToggle('showPlanner')),
+        prefRow('\u25CF','Task Owner','Hi\u1ec7n ng\u01b0\u1eddi th\u1ef1c hi\u1ec7n (l\u00e0m) tr\u00ean vi\u1ec7c', prefToggle('showDoer'))
+      ]));
+      return s;
+    }
+
     function build(){
       if(path[0]==='family'){
         if(path[1]){
@@ -1350,6 +1437,8 @@ V.Settings = function(state, nav, params){
       if(path[0]==='tasks') return buildTasks();
       if(path[0]==='data') return buildData();
       if(path[0]==='help') return buildHelp();
+      if(path[0]==='reminders') return buildReminders();
+      if(path[0]==='display') return buildDisplay();
       return buildLanding();
     }
 
