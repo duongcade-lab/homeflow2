@@ -1,5 +1,5 @@
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { createGoogle } from '@ai-sdk/google';
 import { z } from 'zod';
 
 const CATEGORIES = ['school', 'bill', 'health', 'event', 'shopping', 'home', 'kids'];
@@ -65,8 +65,9 @@ Ch\u1ec9 tr\u1ea3 v\u1ec1 JSON \u0111\u00fang schema, kh\u00f4ng th\u00eam l\u1e
 ${text}`;
 
   try {
+    const provider = createGoogle({ apiKey: key });
     const { object } = await generateObject({
-      model: google('gemini-2.5-flash', { apiKey: key }),
+      model: provider('gemini-2.5-flash'),
       schema: z.object({ tasks: z.array(TaskSchema) }),
       prompt
     });
