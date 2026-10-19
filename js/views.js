@@ -2261,7 +2261,8 @@ V.Expenses = function(state, nav, filter){
         }catch(err){
           btn.disabled = false;
           btn.textContent = '\u{1F4E8} T\u1ea1o l\u1eddi m\u1eddi';
-          HF.toast('Ch\u01b0a t\u1ea1o \u0111\u01b0\u1ee3c l\u1eddi m\u1eddi','\u{1F914}');
+          const em = (err && err.message) ? String(err.message) : 'l\u1ed7i kh\u00f4ng r\u00f5';
+          HF.toast('Ch\u01b0a t\u1ea1o \u0111\u01b0\u1ee3c l\u1eddi m\u1eddi: '+em,'\u{1F914}');
         }
       });
     }
