@@ -49,7 +49,9 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 
 -- Create an invitation (owner only). Returns the secret token.
-create or replace function public.create_invitation(invited_email text)
+-- NOTE: the parameter is p_email (not invited_email) to avoid PL/pgSQL
+-- ambiguity with the household_invitations.invited_email column.
+create or replace function public.create_invitation(p_email text)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare
   hid uuid;
@@ -62,16 +64,16 @@ begin
   if not public.is_household_owner(hid) then
     raise exception 'only the owner can invite';
   end if;
-  if invited_email is null or trim(invited_email) = '' then
+  if p_email is null or trim(p_email) = '' then
     raise exception 'email is required';
   end if;
   -- expire any previous pending invite for the same email
   update public.household_invitations
      set status = 'expired'
-   where household_id = hid and lower(invited_email) = lower(trim(invited_email)) and status = 'pending';
+   where household_id = hid and lower(invited_email) = lower(trim(p_email)) and status = 'pending';
   tok := gen_random_uuid();
   insert into public.household_invitations (household_id, invited_email, token)
-  values (hid, trim(invited_email), tok);
+  values (hid, trim(p_email), tok);
   return tok;
 end;
 $$;

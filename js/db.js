@@ -88,7 +88,7 @@
       return inv.token;
     }
     if(!sb()) throw new Error('auth not ready');
-    const { data, error } = await sb().rpc('create_invitation', { invited_email: e });
+    const { data, error } = await sb().rpc('create_invitation', { p_email: e });
     if(error) throw error;
     return data;
   };
